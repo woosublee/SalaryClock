@@ -120,7 +120,8 @@ open /Applications/SalaryClock.app
 
 ```bash
 npm test                # 웹
-npm run swift:test:core # 맥 (SalaryClockCore)
+npm run swift:test:core # 맥 계산 규칙 (SalaryClockCore)
+npm run swift:test:app  # 맥 앱 (SalaryClockApp — 메뉴바 문구·설정 저장·입력 해석)
 ```
 
 `swift test`를 손으로 직접 돌릴 거라면 `--package-path`만으로는 안 된다 —

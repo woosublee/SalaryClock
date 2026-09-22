@@ -7,7 +7,7 @@ import SalaryClockCore
 /// 1분에 한 번만 다시 그리면 된다 — 18px 링에서 1초치 진행은 보이지 않는다.
 /// template 이미지로 만들지 않는 이유: 진행 색이 메뉴바 색에 먹히면
 /// 링이 전부 같은 색이 되어 진행이 안 보인다.
-public func ringImage(progress: Double, phase: Phase, size: CGFloat = 16) -> NSImage {
+public func ringImage(progress: Double, size: CGFloat = 16) -> NSImage {
     let image = NSImage(size: NSSize(width: size, height: size))
     image.lockFocus()
     defer { image.unlockFocus() }
@@ -34,13 +34,9 @@ public func ringImage(progress: Double, phase: Phase, size: CGFloat = 16) -> NSI
         )
         arc.lineWidth = lineWidth
         arc.lineCapStyle = .round
-        emeraldColor(for: phase).setStroke()
+        NSColor(Palette.emerald500).setStroke()
         arc.stroke()
     }
 
     return image
-}
-
-private func emeraldColor(for phase: Phase) -> NSColor {
-    NSColor(Palette.emerald500)
 }

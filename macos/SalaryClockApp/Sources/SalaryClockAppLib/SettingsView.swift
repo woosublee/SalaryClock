@@ -252,8 +252,11 @@ struct SettingsView: View {
         )
     }
 
-    /// 실수령액 기준일 때만 의미가 있는 공제율 직접 입력 — 웹
-    /// SettingsPanel의 "공제 내역 · 직접 설정" 펼침 구간과 같은 문구를 쓴다.
+    /// 실수령액 기준일 때만 의미가 있는 공제율 직접 입력.
+    ///
+    /// 웹 SettingsPanel의 같은 구간은 "공제 내역 · 직접 설정"이라 부르고
+    /// 4대보험·소득세 내역 줄까지 펼친다. 맥은 공제율 칸만 옮겼으므로 라벨도
+    /// 있는 것만 약속한다 — 없는 내역을 문구로 내걸지 않는다.
     private var deductionSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -261,7 +264,7 @@ struct SettingsView: View {
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(theme.dim)
                 Spacer()
-                Button(showAdvanced ? "접기" : "공제 내역 · 직접 설정") {
+                Button(showAdvanced ? "접기" : "공제율 직접 설정") {
                     showAdvanced.toggle()
                 }
                 .buttonStyle(.plain)

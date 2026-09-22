@@ -80,8 +80,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func togglePopover() {
         guard let button = statusItem.button else { return }
         if popover.isShown {
+            // 타이머를 되돌리는 건 popoverDidClose가 한다 — 여기서 또 부르면
+            // 같은 일을 두 번 한다. 바깥 클릭으로 닫히는 경로는 어차피
+            // 델리게이트만 타므로 그쪽 하나로 모은다.
             popover.performClose(nil)
-            startTimer(interval: AppPreferences.shared.menuBarInterval)
         } else {
             tick()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
@@ -163,7 +165,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let minute = now / 60_000
         if minute != lastRingMinute {
             lastRingMinute = minute
-            button.image = ringImage(progress: e.progress, phase: e.phase)
+            button.image = ringImage(progress: e.progress)
         }
 
         model.now = now
