@@ -7,7 +7,7 @@
  * 쓰는 법: node --import ./scripts/ts-alias.mjs scripts/<script>.ts
  */
 import { registerHooks } from 'node:module'
-import { existsSync } from 'node:fs'
+import { statSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -17,8 +17,10 @@ registerHooks({
   resolve(specifier, context, nextResolve) {
     if (!specifier.startsWith('@/')) return nextResolve(specifier, context)
 
+    // 디렉터리도 존재는 하므로 파일인지까지 본다. @/components/clock 같은
+    // 이름이 디렉터리 URL로 풀려 엉뚱한 곳에서 실패하는 걸 막는다.
     const base = path.join(root, specifier.slice(2))
-    const target = existsSync(base) ? base : `${base}.ts`
+    const target = statSync(base, { throwIfNoEntry: false })?.isFile() ? base : `${base}.ts`
     return nextResolve(pathToFileURL(target).href, context)
   },
 })
