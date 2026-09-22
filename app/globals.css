@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/*
+ * 화면이 좁아지거나 낮아지면 UI 전체가 비례해서 줄어든다.
+ *
+ * Tailwind의 크기 유틸리티는 거의 전부 rem 기반이라, 루트 글꼴 크기 하나만
+ * 유동적으로 잡으면 시계 지름·글자 크기·여백·모달 폭이 한꺼번에 따라온다.
+ *
+ * min(vw, vh)를 쓰는 이유: 창이 가로로 좁을 때와 세로로 낮을 때 둘 다 대응해야
+ * 한다. 둘 중 빡빡한 쪽이 크기를 정한다.
+ *
+ * 단위를 px가 아니라 rem으로 쓴 이유: 1rem은 브라우저에 설정된 사용자 기본
+ * 글꼴 크기다. px로 박으면 글씨를 키워 쓰는 사람의 설정을 덮어쓰게 된다.
+ */
+html {
+  font-size: clamp(0.6875rem, min(4.3vw, 3.2vh), 1rem);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
