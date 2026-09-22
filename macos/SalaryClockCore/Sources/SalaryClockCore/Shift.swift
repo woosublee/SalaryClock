@@ -81,8 +81,12 @@ public func resolveShift(_ s: Settings, _ now: Int) -> Shift {
         return c
     }
 
-    // 둘 중 최대 하나만 걸린다. yesterday가 걸리려면 시프트가 자정을 넘어야 하고
-    // todayShift가 걸리려면 넘지 않아야 해서, 둘이 동시에 참일 수 없다.
+    // 고정 오프셋 지역에서는 둘 중 최대 하나만 걸린다. yesterday가 걸리려면
+    // 시프트가 자정을 넘어야 하고 todayShift가 걸리려면 넘지 않아야 해서다.
+    // DST가 시계를 되돌리는 날은 로컬 하루가 25시간이 되어 이 전제가 깨진다 —
+    // 시프트 길이가 24시간~24시간+DST 이득 사이면 어제 것과 오늘 것이 둘 다
+    // "오늘 안에 끝났다"에 걸릴 수 있다(예: America/New_York 2026-11-01의
+    // 23:00→00:40). 그때는 배열 순서대로 yesterday가 먼저 잡힌다.
     guard let ended = [yesterday, todayShift].first(where: { $0.endMs <= now && $0.endMs > today })
     else { return todayShift }
 
