@@ -109,8 +109,10 @@ export function SettingsPanel({
   }
 
   return (
+    // 설정 버튼이 우측 상단에 있으니 패널도 우측에서 열린다. 화면이 넓을 때
+    // 반대편에서 뜨면 눈이 한 번 건너뛰어야 한다.
     <div className="fixed inset-0 z-10 overflow-y-auto bg-black/40 p-4">
-      <div className="mx-auto flex min-h-full items-center">
+      <div className="flex min-h-full items-center justify-end">
         <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
           <h2 className="text-lg font-semibold">설정</h2>
 
