@@ -3186,3 +3186,335 @@ EOF
 
 - 앱 아이콘이 없다. `LSUIElement` 앱이라 Dock에 뜨지 않으므로 없어도 동작에 지장이 없고, 메뉴바 아이콘은 `RingIcon`이 그린다. 시스템 설정의 로그인 항목 목록에서는 기본 아이콘으로 보인다.
 - 스펙 13장에 적힌 야간근무 월요일 문제(일요일 22시 시작 시프트 때문에 월요일 낮이 휴무일로 보인다)는 그대로 남는다. 코드를 고치지 않고 기록만 해둔 상태다.
+
+---
+
+### Task 15: 근무일수 설정과 달력
+
+> 실행 순서상 Task 11 다음이다. 번호는 계획에 덧붙인 순서이지 실행 순서가 아니다.
+
+**Files:**
+- Modify: `scripts/generate-golden.ts`, `lib/__tests__/golden.test.ts`
+- Create: `shared/golden/calendar.json` (생성물)
+- Create: `macos/SalaryClockCore/Sources/SalaryClockCore/MonthCells.swift`
+- Create: `macos/SalaryClockCore/Tests/SalaryClockCoreTests/MonthCellsTests.swift`
+- Create: `macos/SalaryClockApp/Sources/SalaryClockAppLib/MonthCalendarView.swift`
+- Modify: `macos/SalaryClockApp/Sources/SalaryClockAppLib/SettingsView.swift`
+
+**Interfaces:**
+- Consumes: `isDefaultOff`, `dateKey`, `workdaysFromCalendar`, `effectiveWorkDays` (`SalaryClockCore`), `Theme`/`Palette`
+- Produces:
+  - `enum DayKind: String { work, weekend, holiday, customOff, customWork }`
+  - `struct DayCell { date: String; day: Int; dow: Int; kind: DayKind; isWorkday: Bool }`
+  - `monthCells(_ year: Int, _ month: Int, _ overrides: [String]) -> [DayCell]` (month는 0-based)
+  - `toggleOverride(_ overrides: [String], _ date: String) -> [String]`
+  - `clearMonthOverrides(_ overrides: [String], _ year: Int, _ month: Int) -> [String]`
+  - `MonthCalendarView(year:month:overrides:onToggle:onClearMonth:)`
+
+웹과 맥이 같은 설정인데 다른 금액을 보여주는 원인이었다 — 맥에 근무일수 설정이 없어 늘 `auto`로 계산했다. 웹의 세 모드를 그대로 옮긴다.
+
+**JSON의 `kind` 문자열은 웹의 것을 그대로 쓴다** — `custom-off`·`custom-work`에 하이픈이 들어간다. Swift `DayKind`의 `rawValue`를 그 문자열에 맞춰야 골든이 맞는다.
+
+- [ ] **Step 1: 웹에 monthCells 골든을 추가한다**
+
+`scripts/generate-golden.ts`의 `write('workdays.json', workdays)` 위에 넣는다:
+
+```ts
+/** 달력 그리드가 그리는 날짜별 상태. 맥의 MonthCalendarView가 같은 칸을 칠해야 한다. */
+const CALENDAR_MONTHS: { label: string; year: number; month: number; overrides: string[] }[] = [
+  { label: '2026년 9월 — 추석이 평일에 걸린 달', year: 2026, month: 8, overrides: [] },
+  { label: '2026년 9월 — 평일 하나를 쉬고 토요일 하나를 일함', year: 2026, month: 8,
+    overrides: ['2026-09-22', '2026-09-26'] },
+  { label: '2026년 2월 — 설 연휴', year: 2026, month: 1, overrides: [] },
+  { label: '2027년 1월 — 다음 해 표', year: 2027, month: 0, overrides: [] },
+  { label: '2028년 9월 — 공휴일 표가 없는 해', year: 2028, month: 8, overrides: [] },
+]
+
+const calendars = CALENDAR_MONTHS.map((m) => ({
+  ...m,
+  expected: {
+    workdays: workdaysFromCalendar(m.year, m.month, m.overrides),
+    cells: monthCells(m.year, m.month, m.overrides).map((c) => ({
+      date: c.date, day: c.day, dow: c.dow, kind: c.kind, isWorkday: c.isWorkday,
+    })),
+  },
+}))
+
+write('calendar.json', calendars)
+```
+
+import에 `monthCells`와 `workdaysFromCalendar`를 `@/lib/calendar`에서 추가한다.
+
+- [ ] **Step 2: 골든을 뽑고 눈으로 확인한다**
+
+```bash
+npm run golden
+python3 -c "
+import json
+d=json.load(open('shared/golden/calendar.json'))
+for m in d:
+    print(m['label'], '→ 근무', m['expected']['workdays'], '일')
+print([c['kind'] for c in d[0]['expected']['cells'][20:27]])
+"
+```
+
+Expected: 첫 달이 근무 20일. 9월 21~27일의 `kind`가 `work, work, work, holiday, holiday, holiday, weekend` — 9/26(토)은 추석이지만 주말이 먼저라 `weekend`다.
+
+- [ ] **Step 3: 웹 골든 테스트를 추가한다**
+
+`lib/__tests__/golden.test.ts` 맨 끝:
+
+```ts
+describe('golden — calendar', () => {
+  const cases = read('calendar.json')
+
+  it('케이스가 비어 있지 않다', () => {
+    expect(cases.length).toBeGreaterThan(0)
+  })
+
+  for (const m of cases) {
+    it(m.label, () => {
+      expect(workdaysFromCalendar(m.year, m.month, m.overrides)).toBe(m.expected.workdays)
+      const cells = monthCells(m.year, m.month, m.overrides)
+      expect(cells.length).toBe(m.expected.cells.length)
+      cells.forEach((c, i) => {
+        const want = m.expected.cells[i]
+        expect(c.date).toBe(want.date)
+        expect(c.day).toBe(want.day)
+        expect(c.dow).toBe(want.dow)
+        expect(c.kind).toBe(want.kind)
+        expect(c.isWorkday).toBe(want.isWorkday)
+      })
+    })
+  }
+})
+```
+
+import에 `monthCells`·`workdaysFromCalendar`를 추가한다.
+
+- [ ] **Step 4: 검증 — 웹이 전부 통과하는지**
+
+```bash
+npm test && npx tsc --noEmit && npm run lint
+npm run golden && git diff --exit-code shared/golden/
+TZ=UTC npx vitest run
+```
+
+- [ ] **Step 5: Swift 골든 테스트를 먼저 쓴다**
+
+`macos/SalaryClockCore/Tests/SalaryClockCoreTests/MonthCellsTests.swift`:
+
+```swift
+import Testing
+import Foundation
+@testable import SalaryClockCore
+
+struct CalendarCase: Decodable {
+    struct Cell: Decodable {
+        let date: String; let day: Int; let dow: Int; let kind: String; let isWorkday: Bool
+    }
+    struct Expected: Decodable { let workdays: Int; let cells: [Cell] }
+    let label: String
+    let year: Int
+    let month: Int
+    let overrides: [String]
+    let expected: Expected
+}
+
+@Test("골든 — calendar")
+func goldenCalendar() throws {
+    let cases: [CalendarCase] = try Golden.decode("calendar.json", as: [CalendarCase].self)
+    #expect(cases.count > 0)
+
+    for c in cases {
+        #expect(workdaysFromCalendar(c.year, c.month, c.overrides) == c.expected.workdays, "\(c.label) workdays")
+        let cells = monthCells(c.year, c.month, c.overrides)
+        #expect(cells.count == c.expected.cells.count, "\(c.label) 칸 수")
+        for (i, want) in c.expected.cells.enumerated() {
+            let got = cells[i]
+            #expect(got.date == want.date, "\(c.label) [\(i)] date")
+            #expect(got.day == want.day, "\(c.label) [\(i)] day")
+            #expect(got.dow == want.dow, "\(c.label) [\(i)] dow")
+            #expect(got.kind.rawValue == want.kind, "\(c.label) [\(i)] kind")
+            #expect(got.isWorkday == want.isWorkday, "\(c.label) [\(i)] isWorkday")
+        }
+    }
+}
+
+@Test("override는 기본값을 뒤집는다")
+func overrideFlips() {
+    let plain = monthCells(2026, 8, [])
+    let flipped = monthCells(2026, 8, ["2026-09-22", "2026-09-26"])
+    #expect(plain[21].kind == .work && flipped[21].kind == .customOff)
+    #expect(plain[25].kind == .weekend && flipped[25].kind == .customWork)
+}
+
+@Test("toggleOverride는 넣고 빼고 정렬한다")
+func toggles() {
+    let once = toggleOverride([], "2026-09-22")
+    #expect(once == ["2026-09-22"])
+    #expect(toggleOverride(once, "2026-09-22").isEmpty)
+    #expect(toggleOverride(["2026-09-24"], "2026-09-22") == ["2026-09-22", "2026-09-24"])
+}
+
+@Test("clearMonthOverrides는 그 달만 지운다")
+func clearsOneMonth() {
+    let all = ["2026-08-15", "2026-09-22", "2026-09-26", "2026-10-03"]
+    #expect(clearMonthOverrides(all, 2026, 8) == ["2026-08-15", "2026-10-03"])
+}
+```
+
+- [ ] **Step 6: 실패를 확인한다**
+
+```bash
+swift test --package-path macos/SalaryClockCore --scratch-path "$HOME/Library/Caches/salaryclock/core"
+```
+
+Expected: 컴파일 실패 — `monthCells`·`DayKind`·`toggleOverride`·`clearMonthOverrides` 없음
+
+- [ ] **Step 7: `MonthCells.swift`를 쓴다**
+
+원본은 `lib/calendar.ts`다. `rawValue`가 웹의 문자열과 같아야 한다.
+
+```swift
+import Foundation
+
+public enum DayKind: String, Sendable {
+    case work
+    case weekend
+    case holiday
+    case customOff = "custom-off"
+    case customWork = "custom-work"
+}
+
+public struct DayCell: Sendable {
+    /// "YYYY-MM-DD"
+    public let date: String
+    public let day: Int
+    /// 0=일 … 6=토
+    public let dow: Int
+    public let kind: DayKind
+    /// 근무일로 세는 날인지
+    public let isWorkday: Bool
+}
+
+/// 그 달의 날짜별 상태. month는 0-based.
+///
+/// overrides는 "기본값을 뒤집은 날"의 목록이다. 연차를 더하는 것과 공휴일에
+/// 출근한 것을 같은 방식으로 담을 수 있다.
+public func monthCells(_ year: Int, _ month: Int, _ overrides: [String]) -> [DayCell] {
+    let flipped = Set(overrides)
+    var cells: [DayCell] = []
+
+    for day in 1...daysInMonth(year, month) {
+        let date = dateKey(year, month, day)
+        let dow = weekday(year, month, day)
+        let defaultOff = isDefaultOff(year, month, day)
+        let isFlipped = flipped.contains(date)
+        let off = isFlipped ? !defaultOff : defaultOff
+
+        let kind: DayKind
+        if isFlipped {
+            kind = off ? .customOff : .customWork
+        } else if dow == 0 || dow == 6 {
+            kind = .weekend
+        } else if defaultOff {
+            kind = .holiday
+        } else {
+            kind = .work
+        }
+
+        cells.append(DayCell(date: date, day: day, dow: dow, kind: kind, isWorkday: !off))
+    }
+    return cells
+}
+
+/// 한 날짜의 기본값 뒤집기를 켜고 끈다. 결과는 항상 정렬돼 있다.
+public func toggleOverride(_ overrides: [String], _ date: String) -> [String] {
+    overrides.contains(date)
+        ? overrides.filter { $0 != date }
+        : (overrides + [date]).sorted()
+}
+
+/// 그 달의 override를 모두 지운다. month는 0-based.
+public func clearMonthOverrides(_ overrides: [String], _ year: Int, _ month: Int) -> [String] {
+    let prefix = String(format: "%04d-%02d-", year, month + 1)
+    return overrides.filter { !$0.hasPrefix(prefix) }
+}
+```
+
+`daysInMonth`는 `Workdays.swift`에 이미 있다. `private`이면 `internal`로 올린다.
+
+- [ ] **Step 8: 통과를 확인한다**
+
+```bash
+swift test --package-path macos/SalaryClockCore --scratch-path "$HOME/Library/Caches/salaryclock/core"
+TZ=UTC swift test --package-path macos/SalaryClockCore --scratch-path "$HOME/Library/Caches/salaryclock/core"
+```
+
+Expected: 둘 다 전부 PASS
+
+- [ ] **Step 9: 커밋**
+
+```bash
+git add scripts/generate-golden.ts lib/__tests__/golden.test.ts shared/golden macos/SalaryClockCore
+git commit -m "$(cat <<'EOF'
+feat: 달력 날짜 상태를 골든에 걸고 Swift로 옮긴다
+
+맥에 근무일수 설정이 없어 늘 auto로 계산한 것이 웹과 금액이 갈린
+원인이었다. 달력 모드를 옮기기 전에 monthCells를 골든으로 고정한다.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
+
+- [ ] **Step 10: `MonthCalendarView`를 쓴다**
+
+원본은 `components/MonthCalendar.tsx`다. 7열 그리드, 1일의 요일만큼 앞을 비우고, 칸 색은 `kind`로 가른다. 머리글은 `2026년 9월 · 근무 20일`이고 오른쪽에 그 달 지정을 지우는 버튼이 있다.
+
+색은 웹의 `KIND_CLASS`를 `Theme`의 역할로 옮긴다. 웹이 `holiday`에 rose 계열을 쓰는데 `Palette`에 rose 토큰이 없으므로, **`scripts/extract-palette.ts`의 `TOKENS`에 웹이 실제로 쓰는 rose 토큰을 추가하고 `npm run build && npm run palette && npm run palette:swift`로 다시 뽑는다.** hex를 손으로 적지 않는다.
+
+- [ ] **Step 11: 설정 창에 근무일수 구간을 붙인다**
+
+`SettingsView.swift`에 웹 `SettingsPanel.tsx`의 근무일수 구간을 옮긴다 — `auto` / `달력` / `직접 입력` 세그먼트, 모드별로 보이는 것이 다르다:
+
+| 모드 | 보이는 것 |
+|---|---|
+| `auto` | `이번 달 N일 (공휴일 M일 제외)` 안내 |
+| `달력` | `MonthCalendarView` + 월 이동 |
+| `직접 입력` | 숫자 한 칸 |
+
+날짜를 누르면 `dayOverrides`가 `toggleOverride`로 바뀌고, 지우기 버튼은 `clearMonthOverrides`를 쓴다. `workDaysPerMonth`는 `직접 입력`에서만 쓰인다.
+
+- [ ] **Step 12: 검증 — 눈으로 확인한다**
+
+```bash
+swift test --package-path macos/SalaryClockApp --scratch-path "$HOME/Library/Caches/salaryclock/app"
+./scripts/bundle-app.sh && open macos/build/SalaryClock.app
+```
+
+확인할 것:
+1. 세 모드가 전환되고, 각 모드에서 보이는 것이 위 표와 같다
+2. 달력에서 평일을 누르면 회색(쉬는 날)으로, 주말을 누르면 초록(출근)으로 바뀐다
+3. 머리글의 근무일수가 누를 때마다 따라 바뀐다
+4. 저장하면 메뉴바 금액이 바뀐다 — 근무일수가 줄면 하루치가 커진다
+5. `직접 입력`에 21을 넣으면 `auto`(20일)와 다른 금액이 나온다
+6. 껐다 켜도 달력에서 찍은 날이 남아 있다
+
+**캡처 규칙: 화면·영역 캡처 금지.** `CGWindowListCopyWindowInfo`로 창 id를 얻어 `screencapture -l <windowID>`로 그 창만 찍거나 접근성 텍스트로 읽는다. 창을 못 찾으면 "확인 못 함"으로 보고한다.
+
+- [ ] **Step 13: 커밋**
+
+```bash
+git add macos/SalaryClockApp scripts shared/golden macos/SalaryClockCore
+git commit -m "$(cat <<'EOF'
+feat: 설정 창에 근무일수 세 모드와 달력을 붙인다
+
+웹과 같은 auto/달력/직접 입력. 이걸로 "같은 설정인데 금액이 다르다"의
+마지막 원인이 사라진다.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
