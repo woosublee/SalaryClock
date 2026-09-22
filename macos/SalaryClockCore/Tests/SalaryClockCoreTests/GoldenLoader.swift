@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import SalaryClockCore
 
 /// shared/golden/*.json 을 저장소 원본에서 직접 읽는다.
 ///
@@ -35,7 +36,7 @@ enum Golden {
         comps.minute = c[4]
         comps.second = c[5]
         if c.count > 6 { comps.nanosecond = c[6] * 1_000_000 }
-        let date = Calendar.current.date(from: comps)!
+        let date = appCalendar.date(from: comps)!
         return Int((date.timeIntervalSince1970 * 1000).rounded())
     }
 

@@ -27,7 +27,10 @@ public struct ShiftArcs: Sendable {
 /// 흐른 시간을 재므로 그 시각의 벽시계가 가리키는 시각과 최대 한 시간까지
 /// 어긋난다. 웹(`lib/clock.ts`)은 `Date.getHours()` 등으로 벽시계 성분을 직접
 /// 읽으므로, 여기서도 같은 방식으로 맞춘다 — 초 단위까지는 Calendar로,
-/// 밀리초는 시간대가 항상 분 단위 오프셋이라는 점을 이용해 epoch에서 직접 뗀다.
+/// 밀리초는 epoch에서 직접 뗀다. 이 시계는 현재 시각만 다루고, 지금 쓰이는
+/// 시간대는 전부 분 단위 오프셋이라 초 안에서의 밀리초 위치가 시간대와
+/// 무관하다 — 다만 1970년대 이전에는 초 단위 오프셋을 쓰던 지역(예:
+/// Africa/Monrovia)이 있어 일반적으로 항상 성립하는 불변식은 아니다.
 private func msIntoDay(_ now: Int) -> Int {
     let date = Date(timeIntervalSince1970: Double(now) / 1000)
     let comps = appCalendar.dateComponents([.hour, .minute, .second], from: date)

@@ -22,6 +22,6 @@ func convertsClockArray() throws {
     let got = Golden.ms([2026, 8, 22, 9, 0, 0])
     var c = DateComponents()
     c.year = 2026; c.month = 9; c.day = 22; c.hour = 9; c.minute = 0; c.second = 0
-    let want = Calendar.current.date(from: c)!
+    let want = appCalendar.date(from: c)!
     #expect(got == Int(want.timeIntervalSince1970 * 1000))
 }
