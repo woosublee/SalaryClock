@@ -50,6 +50,14 @@ describe('resolveShift — 주간근무 (9 to 6)', () => {
   it('출근 시각 정각은 근무 중으로 본다', () => {
     expect(resolveShift(DEFAULT_SETTINGS, at(9)).startMs).toBe(at(9))
   })
+
+  it('자정 직후에는 어제 시프트를 버리고 오늘 시프트를 고른다', () => {
+    expect(resolveShift(DEFAULT_SETTINGS, at(0, 30)).startMs).toBe(at(9))
+  })
+
+  it('자정 직전에는 아직 오늘 시프트를 유지한다', () => {
+    expect(resolveShift(DEFAULT_SETTINGS, at(23, 59)).startMs).toBe(at(9))
+  })
 })
 
 describe('resolveShift — 야간근무', () => {
