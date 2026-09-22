@@ -42,3 +42,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# playwright mcp 산출물
+.playwright-mcp

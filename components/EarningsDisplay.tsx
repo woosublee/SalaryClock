@@ -3,16 +3,7 @@
 import type { Earnings } from '@/lib/salary'
 import { formatWon, formatPerSecond } from '@/lib/format'
 
-interface Props {
-  earnings: Earnings
-  hidden: boolean
-}
-
-export function EarningsDisplay({ earnings, hidden }: Props) {
-  // 블러는 시각 효과일 뿐이라 텍스트는 그대로 남는다. 화면을 가리는 용도이지
-  // 개발자 도구를 막는 용도가 아니다. 선택까지 막아 실수로 드래그해 읽히는 건 방지한다.
-  const veil = hidden ? 'blur-[0.35em] select-none' : ''
-
+export function EarningsDisplay({ earnings }: { earnings: Earnings }) {
   return (
     <div className="text-center">
       {/*
@@ -31,18 +22,14 @@ export function EarningsDisplay({ earnings, hidden }: Props) {
         또각또각 올라가는데, 한 자리를 더 두면 프레임마다 바뀌어 흐르듯 보인다.
         두 자리는 눈에 안 읽히는 잡음이라 한 자리에서 끊는다.
       */}
-      <p
-        className={`mt-1.5 font-mono text-5xl font-bold tabular-nums tracking-tight transition-[filter] duration-200 sm:text-6xl ${veil}`}
-      >
+      <p className="mt-1.5 font-mono text-5xl font-bold tabular-nums tracking-tight sm:text-6xl">
         {formatWon(Math.floor(earnings.earned))}
         <span className="text-slate-400 dark:text-slate-500">
           .{Math.floor((earnings.earned % 1) * 10)}
         </span>
       </p>
 
-      <p
-        className={`mt-2 font-mono text-sm tabular-nums text-emerald-600 transition-[filter] duration-200 dark:text-emerald-400 ${veil}`}
-      >
+      <p className="mt-2 font-mono text-sm tabular-nums text-emerald-600 dark:text-emerald-400">
         {earnings.perSecond > 0 ? `+${formatPerSecond(earnings.perSecond)} / 초` : ' '}
       </p>
     </div>

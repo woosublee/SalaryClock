@@ -5,6 +5,7 @@ import {
   formatDuration,
   formatKoreanUnits,
   formatDateKo,
+  formatClockTime,
 } from '@/lib/format'
 
 describe('formatWon', () => {
@@ -107,5 +108,19 @@ describe('formatDateKo', () => {
 
   it('일요일을 처리한다', () => {
     expect(formatDateKo(new Date(2026, 1, 1, 9).getTime())).toBe('2026년 2월 1일 (일)')
+  })
+})
+
+describe('formatClockTime', () => {
+  it('24시간제로 0을 채워 보여준다', () => {
+    expect(formatClockTime(new Date(2026, 8, 22, 16, 53, 21).getTime())).toBe('16:53:21')
+  })
+
+  it('자정을 00으로 쓴다', () => {
+    expect(formatClockTime(new Date(2026, 8, 22, 0, 5, 9).getTime())).toBe('00:05:09')
+  })
+
+  it('밀리초는 버린다', () => {
+    expect(formatClockTime(new Date(2026, 8, 22, 9, 0, 0, 999).getTime())).toBe('09:00:00')
   })
 })

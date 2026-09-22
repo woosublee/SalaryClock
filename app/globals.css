@@ -12,11 +12,52 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/*
+ * 다크모드는 세 가지 상태를 갖는다.
+ *
+ *   data-theme 없음   — 기기 설정을 따른다 (기본값)
+ *   data-theme=light  — 기기가 어두워도 밝게 고정
+ *   data-theme=dark   — 기기가 밝아도 어둡게 고정
+ *
+ * 기본값에 속성을 안 붙이는 게 핵심이다. 서버가 그린 HTML에 아무 표시가 없어도
+ * 기기 설정대로 칠해지므로, 자바스크립트가 붙기 전에 흰 화면이 번쩍이지 않는다.
+ * 속성은 사용자가 직접 고정했을 때만 붙는다.
+ */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(html:not([data-theme='light']), html:not([data-theme='light']) *) {
+      @slot;
+    }
+  }
+  &:where(html[data-theme='dark'], html[data-theme='dark'] *) {
+    @slot;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+:root[data-theme='dark'] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/*
+ * 네이티브 위젯(시각 입력의 시계 아이콘, 스크롤바 등)도 같이 따라오게 한다.
+ * 이게 없으면 다크 화면에 흰 달력 아이콘이 뜬다.
+ */
+:root {
+  color-scheme: light dark;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 /*
@@ -39,4 +80,42 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+ * iOS 사파리의 날짜·시각 입력 보정.
+ *
+ * 사파리는 input[type="time"]의 값을 ::-webkit-date-and-time-value라는 섀도
+ * 요소에 그린다. 이 요소가 로캘 기준(한국어는 "오전 09:00")으로 자체 최소 폭을
+ * 갖기 때문에, 바깥 input에 width:100%를 줘도 안쪽 내용이 줄지 않고 넘친다.
+ * 아이폰처럼 넓은 화면에서도 두 칸으로 나누면 글자와 아이콘이 겹치는 이유다.
+ *
+ * appearance:none으로 기본 크롬을 걷어내고, 섀도 요소의 여백과 최소 폭을
+ * 직접 0으로 눌러 컨테이너 폭을 따르게 만든다.
+ */
+input[type='time'],
+input[type='date'] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+}
+
+input[type='time']::-webkit-date-and-time-value,
+input[type='date']::-webkit-date-and-time-value {
+  margin: 0;
+  min-width: 0;
+  text-align: left;
+}
+
+/*
+ * iOS 사파리는 글꼴이 16px보다 작은 입력칸에 포커스하면 페이지를 확대한다.
+ * 확대되는 순간 레이아웃이 튀어서 겹친 것처럼 보이기도 한다.
+ * 손가락으로 쓰는 기기에서만 16px을 보장한다.
+ */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }

@@ -31,6 +31,16 @@ const PAY_LABELS: Record<PayMode, string> = {
 const FIELD =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100'
 
+/**
+ * 시각 입력 전용.
+ *
+ * 한국어 로캘에서 <input type="time">은 "오전 09:00"에 달력 아이콘까지 붙어
+ * 렌더링된다. 두 칸으로 나눈 좁은 화면에서는 기본 좌우 여백(px-3)만으로도
+ * 글자와 아이콘이 맞붙는다. 여백을 줄이고 아이콘도 바짝 당긴다.
+ */
+const TIME_FIELD =
+  'w-full min-w-0 rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 [&::-webkit-calendar-picker-indicator]:ml-0 [&::-webkit-calendar-picker-indicator]:shrink-0'
+
 const LABEL = 'text-sm text-slate-600 dark:text-slate-300'
 const HINT = 'text-xs text-slate-400 dark:text-slate-500'
 
@@ -288,21 +298,26 @@ export function SettingsPanel({
             </div>
 
             {/* 근무시간 */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
+            {/*
+              좁은 화면에서는 세로로 쌓는다. 사파리의 시각 입력은 내부 섀도 요소가
+              로캘 기준 최소 폭을 가져서 두 칸으로 나누면 글자와 아이콘이 겹친다.
+              CSS로 눌러두긴 했지만 브라우저 고유 크기에 기대지 않는 쪽이 안전하다.
+            */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="min-w-0">
                 <label className={LABEL}>출근</label>
                 <input
                   type="time"
-                  className={`${FIELD} mt-1`}
+                  className={`${TIME_FIELD} mt-1`}
                   value={draft.workStart}
                   onChange={(e) => setTime('workStart', e.target.value)}
                 />
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className={LABEL}>퇴근</label>
                 <input
                   type="time"
-                  className={`${FIELD} mt-1`}
+                  className={`${TIME_FIELD} mt-1`}
                   value={draft.workEnd}
                   onChange={(e) => setTime('workEnd', e.target.value)}
                 />
@@ -323,18 +338,18 @@ export function SettingsPanel({
 
               {draft.lunchEnabled && (
                 <>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <input
                       type="time"
                       aria-label="점심 시작"
-                      className={FIELD}
+                      className={TIME_FIELD}
                       value={draft.lunchStart}
                       onChange={(e) => setTime('lunchStart', e.target.value)}
                     />
                     <input
                       type="time"
                       aria-label="점심 종료"
-                      className={FIELD}
+                      className={TIME_FIELD}
                       value={lunchEndValue}
                       onChange={(e) => setLunchEnd(e.target.value)}
                     />

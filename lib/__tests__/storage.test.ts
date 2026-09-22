@@ -8,15 +8,16 @@ import {
   type Settings,
 } from '@/lib/settings'
 
-/** 브라우저 없이 localStorage 동작만 흉내낸다 */
-function installFakeStorage() {
+/** 브라우저 없이 localStorage와 다크모드 설정만 흉내낸다 */
+function installFakeStorage(prefersDark = false) {
   const store = new Map<string, string>()
   const localStorage = {
     getItem: (k: string) => store.get(k) ?? null,
     setItem: (k: string, v: string) => void store.set(k, v),
     removeItem: (k: string) => void store.delete(k),
   }
-  ;(globalThis as { window?: unknown }).window = { localStorage }
+  const matchMedia = (q: string) => ({ matches: q.includes('dark') ? prefersDark : false })
+  ;(globalThis as { window?: unknown }).window = { localStorage, matchMedia }
   return store
 }
 
@@ -35,6 +36,20 @@ describe('localStorage 저장', () => {
     const loaded = loadSettings()
     expect(loaded.settings).toEqual(DEFAULT_SETTINGS)
     expect(loaded.hasStored).toBe(false)
+  })
+
+  it('첫 방문에는 테마를 기기 설정에서 가져온다', () => {
+    installFakeStorage(true)
+    expect(loadSettings().settings.theme).toBe('dark')
+
+    installFakeStorage(false)
+    expect(loadSettings().settings.theme).toBe('light')
+  })
+
+  it('저장된 테마가 있으면 기기 설정을 무시한다', () => {
+    installFakeStorage(true)
+    saveSettings({ ...DEFAULT_SETTINGS, theme: 'light' })
+    expect(loadSettings().settings.theme).toBe('light')
   })
 
   it('설정 전체가 한 덩어리로 저장된다', () => {
@@ -59,6 +74,7 @@ describe('localStorage 저장', () => {
       deductionRate: 0.142,
       clockStyle: 'grain',
       hideAmount: true,
+      theme: 'dark',
     }
 
     saveSettings(custom)
@@ -78,6 +94,11 @@ describe('localStorage 저장', () => {
     const s = loadSettings().settings
     expect(s.clockStyle).toBe('rings')
     expect(s.hideAmount).toBe(true)
+  })
+
+  it('테마 설정도 살아남는다', () => {
+    saveSettings({ ...DEFAULT_SETTINGS, theme: 'dark' })
+    expect(loadSettings().settings.theme).toBe('dark')
   })
 
   it('실수령 설정과 공제율도 살아남는다', () => {

@@ -5,6 +5,10 @@ import { formatWon, formatDuration } from '@/lib/format'
 
 interface Props {
   earnings: Earnings
+  /**
+   * 금액을 가린 상태. 내용은 TimeDisplay가 대신 보여주므로 여기서는 비우되,
+   * 줄 높이는 그대로 차지해야 위쪽 시계가 움직이지 않는다.
+   */
   hidden: boolean
 }
 
@@ -22,18 +26,19 @@ export function StatusLine({ earnings, hidden }: Props) {
     }
   })()
 
+  const showRemaining = earnings.phase !== 'after'
+
+  if (hidden) {
+    return <p className="text-center font-mono text-sm tabular-nums">{' '}</p>
+  }
+
   return (
     <p className="text-center font-mono text-sm tabular-nums text-slate-600 dark:text-slate-300">
       {primary}
-      {earnings.phase !== 'after' && (
+      {showRemaining && (
         <span className="text-slate-400 dark:text-slate-500">
           {' · 남은 '}
-          {/* 시간은 가리지 않는다. 가려야 하는 건 금액뿐이다 */}
-          <span
-            className={`transition-[filter] duration-200 ${hidden ? 'blur-[0.35em] select-none' : ''}`}
-          >
-            {formatWon(earnings.remainingAmount)}
-          </span>
+          {formatWon(earnings.remainingAmount)}
         </span>
       )}
     </p>

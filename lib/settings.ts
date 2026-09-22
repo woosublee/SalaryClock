@@ -3,6 +3,7 @@ import { isValidHHmm, parseHHmm, durationMinutes } from '@/lib/time'
 
 export type PayMode = 'annual' | 'monthly' | 'hourly'
 export type WorkDaysMode = 'auto' | 'calendar' | 'manual'
+export type ThemeMode = 'light' | 'dark'
 export type ClockStyle =
   | 'minimal'
   | 'numerals'
@@ -48,6 +49,11 @@ export interface Settings {
   clockStyle: ClockStyle
   /** 금액을 블러로 가릴지. 옆자리에서 화면이 보일 때 쓴다 */
   hideAmount: boolean
+  /**
+   * 저장된 값이 없을 때만 기기 설정에서 가져온다(loadSettings 참고).
+   * 한 번 저장된 뒤로는 기기 설정이 바뀌어도 사용자가 고른 값을 지킨다.
+   */
+  theme: ThemeMode
 }
 
 export const STORAGE_KEY = 'salaryclock.settings.v2'
@@ -67,6 +73,7 @@ export const DEFAULT_SETTINGS: Settings = {
   deductionRate: null,
   clockStyle: 'minimal',
   hideAmount: false,
+  theme: 'light',
 }
 
 const hhmm = z.string().refine(isValidHHmm, { message: 'HH:mm 형식이어야 합니다' })
@@ -116,6 +123,7 @@ export const SettingsSchema = z
       'pulse',
     ]),
     hideAmount: z.boolean(),
+    theme: z.enum(['light', 'dark']),
   })
   .superRefine((s, ctx) => {
     // zod 4는 필드 검증이 실패해도 이 훅을 실행한다. 형식이 깨진 값을 파싱하면
@@ -162,13 +170,24 @@ export const SettingsSchema = z
     }
   })
 
+/** 기기의 다크모드 설정. 못 읽으면 밝은 쪽으로 본다 */
+function deviceTheme(): ThemeMode {
+  try {
+    return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light'
+  } catch {
+    return 'light'
+  }
+}
+
 export function loadSettings(): { settings: Settings; hasStored: boolean } {
   if (typeof window === 'undefined') {
     return { settings: DEFAULT_SETTINGS, hasStored: false }
   }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { settings: DEFAULT_SETTINGS, hasStored: false }
+    // 첫 방문에는 기기 설정을 그대로 가져온다. 사용자가 토글을 누르는 순간부터
+    // 저장된 값이 기준이 된다.
+    if (!raw) return { settings: { ...DEFAULT_SETTINGS, theme: deviceTheme() }, hasStored: false }
     const parsed = SettingsSchema.safeParse(JSON.parse(raw))
     if (!parsed.success) return { settings: DEFAULT_SETTINGS, hasStored: false }
     return { settings: parsed.data, hasStored: true }

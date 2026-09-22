@@ -22,6 +22,7 @@ describe('DEFAULT_SETTINGS', () => {
       deductionRate: null,
       clockStyle: 'minimal',
       hideAmount: false,
+      theme: 'light',
     })
   })
 

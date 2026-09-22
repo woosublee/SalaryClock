@@ -66,3 +66,10 @@ export function formatDateKo(now: number): string {
   const d = new Date(now)
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`
 }
+
+/** "16:53:21" — 24시간제. 오전/오후를 안 쓰면 폭이 고정돼 숫자가 흔들리지 않는다 */
+export function formatClockTime(now: number): string {
+  const d = new Date(now)
+  const pad = (v: number) => String(v).padStart(2, '0')
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}

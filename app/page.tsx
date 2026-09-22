@@ -1,20 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNow } from '@/hooks/useNow'
 import { useSettings } from '@/hooks/useSettings'
 import { computeEarnings } from '@/lib/salary'
 import { workdayInfo } from '@/lib/workdays'
+import type { ThemeMode } from '@/lib/settings'
 import { AnalogClock } from '@/components/AnalogClock'
 import { DateLine } from '@/components/DateLine'
 import { EarningsDisplay } from '@/components/EarningsDisplay'
+import { TimeDisplay } from '@/components/TimeDisplay'
 import { StatusLine } from '@/components/StatusLine'
 import { SettingsPanel } from '@/components/SettingsPanel'
+
+const THEME_LABELS: Record<ThemeMode, string> = {
+  light: '어두운 화면으로',
+  dark: '밝은 화면으로',
+}
 
 export default function Home() {
   const now = useNow()
   const { settings, isLoaded, hasStored, revision, update, reset } = useSettings()
   const [panelOpen, setPanelOpen] = useState(false)
+
+  /*
+   * 테마를 <html>의 data-theme으로 내보낸다. CSS가 이 속성을 읽어 색을 정한다.
+   *
+   * 서버가 그린 HTML에는 이 속성이 없고, 그때는 CSS가 기기 설정을 따른다.
+   * 첫 방문의 저장값도 기기 설정에서 가져오므로(loadSettings) 자바스크립트가
+   * 붙는 순간 색이 바뀌어 번쩍이는 일이 없다.
+   */
+  useEffect(() => {
+    document.documentElement.dataset.theme = settings.theme
+  }, [settings.theme])
 
   const earnings = computeEarnings(settings, now)
 
@@ -30,22 +48,36 @@ export default function Home() {
     )
   }
 
+  const toggleTheme = () =>
+    update({ ...settings, theme: settings.theme === 'dark' ? 'light' : 'dark' })
+
+  const iconButton =
+    'rounded-lg p-2 text-slate-400 transition-colors hover:text-slate-700 dark:hover:text-slate-200'
+
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center gap-6 bg-white px-4 py-10 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <div className="absolute right-4 top-4 flex items-center gap-1">
+        <button
+          onClick={toggleTheme}
+          aria-label={THEME_LABELS[settings.theme]}
+          title={THEME_LABELS[settings.theme]}
+          className={iconButton}
+        >
+          <ThemeIcon mode={settings.theme} />
+        </button>
         <button
           onClick={() => update({ ...settings, hideAmount: !settings.hideAmount })}
           aria-label={settings.hideAmount ? '금액 보이기' : '금액 가리기'}
           aria-pressed={settings.hideAmount}
           title={settings.hideAmount ? '금액 보이기' : '금액 가리기'}
-          className="rounded-lg p-2 text-slate-400 transition-colors hover:text-slate-700 dark:hover:text-slate-200"
+          className={iconButton}
         >
           <EyeIcon off={settings.hideAmount} />
         </button>
         <button
           onClick={() => setPanelOpen(true)}
           aria-label="설정 열기"
-          className="rounded-lg p-2 text-xl leading-none text-slate-400 transition-colors hover:text-slate-700 dark:hover:text-slate-200"
+          className={`${iconButton} text-xl leading-none`}
         >
           ⚙
         </button>
@@ -59,10 +91,22 @@ export default function Home() {
         workStart={settings.workStart}
         workEnd={settings.workEnd}
         paidHours={earnings.totalPaidMs / 3_600_000}
+        minimal={settings.hideAmount}
       />
 
       <AnalogClock now={now} shift={earnings.shift} style={settings.clockStyle} />
-      <EarningsDisplay earnings={earnings} hidden={settings.hideAmount} />
+
+      {/*
+        가린 상태에서는 금액과 상태 문구를 내리고 시각만 남긴다. 남은 시간은
+        TimeDisplay가 시각 바로 아래에 붙인다. 두 블록과 아래 상태줄은 높이를
+        똑같이 유지하므로 가리기를 눌러도 시계가 제자리에 있는다.
+      */}
+      {settings.hideAmount ? (
+        <TimeDisplay now={now} earnings={earnings} />
+      ) : (
+        <EarningsDisplay earnings={earnings} />
+      )}
+
       <StatusLine earnings={earnings} hidden={settings.hideAmount} />
 
       {showPanel && (
@@ -97,6 +141,36 @@ function EyeIcon({ off }: { off: boolean }) {
       <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
       <circle cx="12" cy="12" r="3" />
       {off && <line x1="3" y1="21" x2="21" y2="3" />}
+    </svg>
+  )
+}
+
+/** 지금 상태가 아니라 누르면 가게 될 상태를 그린다 */
+function ThemeIcon({ mode }: { mode: ThemeMode }) {
+  const common = {
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.75,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    className: 'size-5',
+    'aria-hidden': true,
+  }
+
+  // 밝은 화면이면 달(어둡게 가기), 어두운 화면이면 해(밝게 가기)
+  if (mode === 'light') {
+    return (
+      <svg {...common}>
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+      </svg>
+    )
+  }
+
+  return (
+    <svg {...common}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
     </svg>
   )
 }
