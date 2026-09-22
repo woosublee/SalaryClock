@@ -16,13 +16,13 @@ describe('perSecondRate', () => {
   it('연봉을 12개월 × 근무일수 × 유급초로 나눈다', () => {
     const shift = resolveShift(DEFAULT_SETTINGS, at(14))
     const expected = 40_000_000 / (12 * WORK_DAYS * PAID_SECONDS_PER_DAY)
-    expect(perSecondRate(DEFAULT_SETTINGS, shift, at(14))).toBeCloseTo(expected, 10)
+    expect(perSecondRate(DEFAULT_SETTINGS, shift)).toBeCloseTo(expected, 10)
   })
 
   it('월급은 12를 곱하지 않는다', () => {
     const s: Settings = { ...DEFAULT_SETTINGS, payMode: 'monthly', payAmount: 4_000_000 }
     const shift = resolveShift(s, at(14))
-    expect(perSecondRate(s, shift, at(14))).toBeCloseTo(
+    expect(perSecondRate(s, shift)).toBeCloseTo(
       4_000_000 / (WORK_DAYS * PAID_SECONDS_PER_DAY),
       10,
     )
@@ -36,7 +36,7 @@ describe('perSecondRate', () => {
       workDaysPerMonth: 1,
     }
     const shift = resolveShift(s, at(14))
-    expect(perSecondRate(s, shift, at(14))).toBeCloseTo(12_000 / 3600, 10)
+    expect(perSecondRate(s, shift)).toBeCloseTo(12_000 / 3600, 10)
   })
 })
 
@@ -76,7 +76,7 @@ describe('computeEarnings — 금액', () => {
 
   it('근무 1시간 뒤에는 1시간치가 쌓인다', () => {
     const e = computeEarnings(DEFAULT_SETTINGS, at(10))
-    const rate = perSecondRate(DEFAULT_SETTINGS, resolveShift(DEFAULT_SETTINGS, at(10)), at(10))
+    const rate = perSecondRate(DEFAULT_SETTINGS, resolveShift(DEFAULT_SETTINGS, at(10)))
     expect(e.earned).toBeCloseTo(rate * 3600, 6)
   })
 

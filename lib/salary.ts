@@ -53,8 +53,10 @@ export function deductionRateFor(s: Settings, gross: number): number {
   return estimateDeductions(gross).rate
 }
 
-export function perSecondRate(s: Settings, shift: Shift, now: number): number {
-  const workDays = effectiveWorkDays(s, now)
+export function perSecondRate(s: Settings, shift: Shift): number {
+  // 근무일수도 시프트 시작일 기준이다. now로 세면 야간근무가 달을 넘는 순간
+  // 다음 달 근무일수로 바뀌어 근무 중에 금액이 튄다.
+  const workDays = effectiveWorkDays(s, shift.startMs)
   const paidSecondsPerDay = shift.paidMs / 1000
   if (paidSecondsPerDay <= 0 || workDays <= 0) return 0
 
@@ -83,7 +85,8 @@ function phaseOf(shift: Shift, now: number): Phase {
 
 export function computeEarnings(s: Settings, now: number): Earnings {
   const shift = resolveShift(s, now)
-  const workDays = effectiveWorkDays(s, now)
+  // 휴무일 판정과 같은 기준으로 센다 — now가 아니라 시프트 시작일이다.
+  const workDays = effectiveWorkDays(s, shift.startMs)
 
   // 판정은 now가 아니라 시프트 시작일 기준이다. now로 보면 야간근무가 자정을
   // 넘는 순간 다음 날이 공휴일인지에 따라 근무 중에 0이 되어버린다.
@@ -108,7 +111,7 @@ export function computeEarnings(s: Settings, now: number): Earnings {
   }
 
   const phase = phaseOf(shift, now)
-  const rate = perSecondRate(s, shift, now)
+  const rate = perSecondRate(s, shift)
 
   const totalPaidMs = shift.paidMs
   const elapsedPaidMs = paidMsBetween(shift, shift.startMs, now)
