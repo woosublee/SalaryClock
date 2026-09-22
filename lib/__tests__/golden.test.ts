@@ -19,6 +19,7 @@ const read = (name: string) => JSON.parse(readFileSync(path.join(dir, name), 'ut
 
 const SETTINGS: Record<string, Settings> = read('settings.json')
 const ms = (c: number[]) => new Date(c[0], c[1], c[2], c[3], c[4], c[5], 0).getTime()
+const msOrNull = (c: number[] | null) => (c === null ? null : ms(c))
 
 describe('golden — earnings', () => {
   const cases = read('earnings.json')
@@ -58,10 +59,10 @@ describe('golden — shift', () => {
   for (const c of cases) {
     it(`${c.label} (${c.settings})`, () => {
       const sh = resolveShift(SETTINGS[c.settings], ms(c.at))
-      expect(sh.startMs).toBe(c.expected.startMs)
-      expect(sh.endMs).toBe(c.expected.endMs)
-      expect(sh.lunchStartMs).toBe(c.expected.lunchStartMs)
-      expect(sh.lunchEndMs).toBe(c.expected.lunchEndMs)
+      expect(sh.startMs).toBe(ms(c.expected.start))
+      expect(sh.endMs).toBe(ms(c.expected.end))
+      expect(sh.lunchStartMs).toBe(msOrNull(c.expected.lunchStart))
+      expect(sh.lunchEndMs).toBe(msOrNull(c.expected.lunchEnd))
       expect(sh.paidMs).toBe(c.expected.paidMs)
     })
   }

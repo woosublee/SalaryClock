@@ -21,6 +21,17 @@ type Clock = [number, number, number, number, number, number]
 
 const ms = (c: Clock) => new Date(c[0], c[1], c[2], c[3], c[4], c[5], 0).getTime()
 
+/**
+ * 시각은 epoch ms가 아니라 로컬 시각 배열로 적는다. 양쪽 구현이 각자의
+ * 타임존에서 다시 만들어야 하므로, ms를 박으면 KST 밖에서 전부 깨진다.
+ */
+const clock = (t: number): Clock => {
+  const d = new Date(t)
+  return [d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()]
+}
+
+const clockOrNull = (t: number | null): Clock | null => (t === null ? null : clock(t))
+
 const night: Settings = {
   ...DEFAULT_SETTINGS,
   workStart: '22:00',
@@ -106,10 +117,11 @@ const shifts = MOMENTS.map((m) => {
     settings: m.settings,
     at: m.at,
     expected: {
-      startMs: sh.startMs,
-      endMs: sh.endMs,
-      lunchStartMs: sh.lunchStartMs,
-      lunchEndMs: sh.lunchEndMs,
+      start: clock(sh.startMs),
+      end: clock(sh.endMs),
+      lunchStart: clockOrNull(sh.lunchStartMs),
+      lunchEnd: clockOrNull(sh.lunchEndMs),
+      // 길이는 시각이 아니라 기간이므로 ms 그대로 둔다.
       paidMs: sh.paidMs,
     },
   }
