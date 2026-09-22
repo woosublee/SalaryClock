@@ -20,9 +20,17 @@ struct PopoverView: View {
     var onSettings: () -> Void
     var onQuit: () -> Void
 
-    @Environment(\.colorScheme) private var scheme
+    /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
+    @Environment(\.colorScheme) private var systemScheme
 
-    private var theme: Theme { Theme(scheme: scheme) }
+    /// 웹 `loadSettings`와 같은 세 상태 규칙: 저장된 값이 없으면(hasStored ==
+    /// false) 기기 설정을 따르고, 한 번이라도 저장했으면 그 값에 고정한다.
+    private var effectiveScheme: ColorScheme {
+        guard SettingsStore.shared.hasStored else { return systemScheme }
+        return model.settings.theme == .dark ? .dark : .light
+    }
+
+    private var theme: Theme { Theme(scheme: effectiveScheme) }
 
     /// 웹 app/page.tsx의 `minimal = settings.hideAmount || dayOff`와 같은
     /// 조건. 날짜·시계자리·상태줄이 전부 이 하나를 기준으로 갈라진다.
@@ -60,6 +68,10 @@ struct PopoverView: View {
         }
         .frame(width: 220)
         .background(theme.background)
+        // effectiveScheme을 실제 SwiftUI 환경에도 심는다 — MonthCalendarView처럼
+        // 스스로 @Environment(\.colorScheme)를 읽는 하위 뷰(여기서는 안 쓰지만
+        // 설정 창과 같은 규칙을 유지한다)에도 같은 값이 내려가게 한다.
+        .preferredColorScheme(effectiveScheme)
     }
 
     /// 웹 DateLine — 평소엔 시계 위에 작게, 가려지면 날짜만 크게. 두 상태의
@@ -79,13 +91,39 @@ struct PopoverView: View {
         }
     }
 
-    /// 설정·종료 아이콘 줄. 지금은 둘뿐이지만 웹 순서(테마·가리기·설정)대로
-    /// 앞에 더 끼워 넣을 자리를 남겨 둔다 — 종료만 항상 맨 끝에 남는다.
+    /// 테마·가리기·설정·종료 아이콘 줄. 앞의 셋은 웹 순서(테마·가리기·설정)를
+    /// 그대로 따른다 — 종료는 웹에 없는 맥 전용 항목이라 맨 끝에 둔다. 네
+    /// 아이콘이 220pt 폭 안에 들어간다는 것은 Task 10 리뷰에서 확인됐다.
     private var controls: some View {
         HStack(spacing: 2) {
+            IconButton(systemName: themeIconName, label: themeLabel, theme: theme, action: toggleTheme)
+            IconButton(
+                systemName: model.settings.hideAmount ? "eye.slash" : "eye",
+                label: hideAmountLabel, theme: theme, action: toggleHideAmount
+            )
             IconButton(systemName: "gearshape", label: "설정", theme: theme, action: onSettings)
             IconButton(systemName: "power", label: "종료", theme: theme, action: onQuit)
         }
+    }
+
+    /// 지금 상태가 아니라 누르면 가게 될 상태를 그린다 — 웹 ThemeIcon과 같은 규칙.
+    private var themeIconName: String { effectiveScheme == .light ? "moon" : "sun.max" }
+    private var themeLabel: String { effectiveScheme == .light ? "어두운 화면으로" : "밝은 화면으로" }
+
+    /// SettingsStore.shared.settings는 메인 액터에서만 대입한다 — 버튼 액션은
+    /// SwiftUI View 프로토콜이 메인 액터로 격리하므로 안전하다.
+    private func toggleTheme() {
+        var s = model.settings
+        s.theme = effectiveScheme == .dark ? .light : .dark
+        SettingsStore.shared.settings = s
+    }
+
+    private var hideAmountLabel: String { model.settings.hideAmount ? "금액 보이기" : "금액 가리기" }
+
+    private func toggleHideAmount() {
+        var s = model.settings
+        s.hideAmount.toggle()
+        SettingsStore.shared.settings = s
     }
 
     private var amount: some View {

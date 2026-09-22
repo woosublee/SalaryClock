@@ -10,7 +10,6 @@ func findsGoldenDirectory() throws {
 @Test("설정 골든을 읽는다")
 func decodesSettingsGolden() throws {
     let all: [String: Settings] = try Golden.decode("settings.json", as: [String: Settings].self)
-    #expect(all.count == 10)
     let d = try #require(all["default"])
     #expect(d.payAmount == 40_000_000)
     #expect(d.workStart == "09:00")

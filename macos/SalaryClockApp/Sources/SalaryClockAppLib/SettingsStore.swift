@@ -17,31 +17,41 @@ public final class SettingsStore: @unchecked Sendable {
     private static let key = "settings.v2"
     private let lock = NSLock()
     private var cached: Settings
+    private var cachedHasStored: Bool
 
     private init() {
-        cached = Self.load()
+        (cached, cachedHasStored) = Self.load()
     }
 
     public var settings: Settings {
         get { lock.withLock { cached } }
         set {
-            lock.withLock { cached = newValue }
+            lock.withLock { cached = newValue; cachedHasStored = true }
             Self.save(newValue)
             NotificationCenter.default.post(name: .settingsChanged, object: nil)
         }
     }
 
+    /// 저장된 값이 있었는지 — 웹 `lib/settings.ts`의 `loadSettings`가 돌려주는
+    /// `hasStored`와 같다. 저장된 게 전혀 없거나 깨져 있으면 false다: 이때
+    /// 팝오버·설정 창은 `settings.theme` 대신 `@Environment(\.colorScheme)`로
+    /// 기기 설정을 따라간다. 한 번이라도 저장하면(사용자가 토글을 누르면)
+    /// true로 굳는다 — 그 뒤로는 기기 설정이 바뀌어도 고른 값을 지킨다.
+    public var hasStored: Bool {
+        lock.withLock { cachedHasStored }
+    }
+
     public func reload() {
-        lock.withLock { cached = Self.load() }
+        lock.withLock { (cached, cachedHasStored) = Self.load() }
         NotificationCenter.default.post(name: .settingsChanged, object: nil)
     }
 
-    private static func load() -> Settings {
+    private static func load() -> (Settings, Bool) {
         guard let data = UserDefaults.standard.data(forKey: key),
               let decoded = try? JSONDecoder().decode(Settings.self, from: data),
               isValid(decoded)
-        else { return .default }
-        return decoded
+        else { return (.default, false) }
+        return (decoded, true)
     }
 
     private static func save(_ s: Settings) {

@@ -23,6 +23,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             self, selector: #selector(settingsChanged),
             name: .settingsChanged, object: nil
         )
+        // 메뉴바 갱신 주기(맥 전용, Settings가 아니라 AppPreferences)가
+        // 바뀌면 즉시 타이머에 반영한다.
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(appPreferencesChanged),
+            name: .appPreferencesChanged, object: nil
+        )
         // 절전에서 깨어나면 즉시 맞춘다. 타이머만 믿어도 1초 뒤엔 맞지만
         // 화면이 켜지는 순간 옛 숫자가 보이는 게 눈에 띈다.
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -44,7 +50,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             )
         )
 
-        startTimer(interval: 1)
+        startTimer(interval: AppPreferences.shared.menuBarInterval)
         tick()
     }
 
@@ -67,12 +73,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func settingsChanged() { lastRingMinute = -1; tick() }
     @objc private func wakeUp() { tick() }
+    @objc private func appPreferencesChanged() {
+        startTimer(interval: AppPreferences.shared.menuBarInterval)
+    }
 
     @objc private func togglePopover() {
         guard let button = statusItem.button else { return }
         if popover.isShown {
             popover.performClose(nil)
-            startTimer(interval: 1)
+            startTimer(interval: AppPreferences.shared.menuBarInterval)
         } else {
             tick()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
@@ -92,7 +101,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     /// LSUIElement 앱은 기본적으로 창을 앞으로 못 가져오므로 activate가 필요하다.
     private func openSettings() {
         popover.performClose(nil)
-        startTimer(interval: 1)
+        startTimer(interval: AppPreferences.shared.menuBarInterval)
 
         let hosting = NSHostingController(
             rootView: SettingsView(onDone: { [weak self] in
@@ -155,6 +164,6 @@ extension AppDelegate: NSPopoverDelegate {
     /// transient 팝오버는 바깥을 클릭하면 togglePopover를 거치지 않고 스스로
     /// 닫힌다. 그 경우에도 0.1초 타이머를 1초로 되돌려야 배터리를 안 먹는다.
     public func popoverDidClose(_ notification: Notification) {
-        startTimer(interval: 1)
+        startTimer(interval: AppPreferences.shared.menuBarInterval)
     }
 }

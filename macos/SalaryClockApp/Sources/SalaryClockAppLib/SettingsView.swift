@@ -34,10 +34,28 @@ struct SettingsView: View {
     // 달력을 펼쳤는지 — Settings에 안 담기는 순수 뷰 상태다. 웹 SettingsPanel의
     // showCalendar와 같다. 저장하지 않는다.
     @State private var showCalendar = false
-    @Environment(\.colorScheme) private var scheme
+    /// 메뉴바 갱신 주기 입력칸의 원문. 숫자로 못 읽는 값도 그대로 담아 두고
+    /// 빨갛게 보여줘야 하므로(다른 시각 입력칸과 같은 규칙) Double이 아니라
+    /// String으로 갖는다.
+    @State private var intervalText = SettingsView.formatInterval(AppPreferences.shared.menuBarInterval)
+    /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
+    @Environment(\.colorScheme) private var systemScheme
 
-    private var theme: Theme { Theme(scheme: scheme) }
-    private var isValid: Bool { SettingsStore.isValid(draft) }
+    /// 웹 `loadSettings`와 같은 세 상태 규칙: 저장된 값이 없으면(hasStored ==
+    /// false) 기기 설정을 따르고, 한 번이라도 저장했으면 그 값에 고정한다.
+    /// 테마를 고르는 토글 자체는 팝오버에만 있으므로, 여기서는 draft.theme을
+    /// 그대로 읽기만 한다.
+    private var effectiveScheme: ColorScheme {
+        guard SettingsStore.shared.hasStored else { return systemScheme }
+        return draft.theme == .dark ? .dark : .light
+    }
+
+    private var theme: Theme { Theme(scheme: effectiveScheme) }
+    private var intervalValue: Double? { Double(intervalText) }
+    private var intervalValid: Bool { intervalValue.map(AppPreferences.isValid) ?? false }
+    private var isValid: Bool { SettingsStore.isValid(draft) && intervalValid }
+
+    private static func formatInterval(_ v: Double) -> String { String(format: "%.1f", v) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -107,6 +125,8 @@ struct SettingsView: View {
 
             workDaysSection
 
+            // 웹에 대응물이 없는 맥 전용 옵션 묶음 — 로그인 자동 실행과
+            // 메뉴바 갱신 주기를 나란히 둔다.
             Toggle("로그인할 때 자동 실행", isOn: $launchAtLogin)
                 .onChange(of: launchAtLogin) { _, on in
                     // 등록이 실패해도 앱은 계속 돌아야 한다. 토글만 되돌린다.
@@ -117,6 +137,24 @@ struct SettingsView: View {
                         launchAtLogin = SMAppService.mainApp.status == .enabled
                     }
                 }
+
+            field("메뉴바 갱신") {
+                TextField("", text: $intervalText)
+                    .textFieldStyle(.roundedBorder)
+                    .multilineTextAlignment(.trailing)
+                    .font(.system(size: 13, design: .monospaced))
+                    .foregroundStyle(intervalValid ? theme.foreground : .red)
+                    .padding(.trailing, 18)
+                    .overlay(alignment: .trailing) {
+                        Text("초")
+                            .font(.system(size: 13))
+                            .foregroundStyle(theme.dim)
+                            .padding(.trailing, 10)
+                    }
+                Text("0.1~10초. 짧게 둘수록 부드럽게 흐르지만 배터리를 조금 더 씁니다")
+                    .font(.system(size: 10))
+                    .foregroundStyle(theme.dim)
+            }
 
             if !isValid {
                 Text("설정값이 올바르지 않습니다")
@@ -129,6 +167,11 @@ struct SettingsView: View {
                 Button("닫기", action: onDone)
                 Button("저장") {
                     SettingsStore.shared.settings = draft
+                    // isValid가 true일 때만 이 버튼이 눌리므로 intervalValue는
+                    // 항상 유효한 값을 담고 있다 — if let은 안전망일 뿐이다.
+                    if let interval = intervalValue {
+                        AppPreferences.shared.menuBarInterval = interval
+                    }
                     onDone()
                 }
                 .disabled(!isValid)
@@ -138,6 +181,7 @@ struct SettingsView: View {
         .padding(20)
         .frame(width: 340)
         .background(theme.background)
+        .preferredColorScheme(effectiveScheme)
     }
 
     @ViewBuilder
