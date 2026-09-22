@@ -124,3 +124,29 @@ func calendarOverrideOutsideMonthIgnored() {
     s.dayOverrides = ["2026-08-15"]  // 8월, 계산 대상은 9월
     #expect(effectiveWorkDays(s, now) == 20)
 }
+
+/// workdayInfo는 (연, 월)로 캐시한다. 키가 달을 제대로 가르는지, 그리고 같은
+/// 달을 여러 번 물어도 답이 흔들리지 않는지 본다.
+@Test("workdayInfo 캐시는 달을 가르고 같은 달에는 같은 답을 준다")
+func workdayInfoCacheKeysOnMonth() {
+    let sepStart = workdayInfo(Golden.ms([2026, 8, 1, 0, 0, 0]))
+    let sepEnd = workdayInfo(Golden.ms([2026, 8, 30, 23, 59, 59]))
+    #expect(sepStart.weekdays == 22)
+    #expect(sepStart.workdays == 20)
+    #expect(sepEnd.weekdays == sepStart.weekdays)
+    #expect(sepEnd.workdays == sepStart.workdays)
+
+    // 2026년 2월은 평일 20일 · 설 연휴 평일 3일 → 근무 17일. 키가 달을
+    // 안 가르면 9월 값이 그대로 나온다.
+    let feb = workdayInfo(Golden.ms([2026, 1, 15, 12, 0, 0]))
+    #expect(feb.weekdays == 20)
+    #expect(feb.workdays == 17)
+
+    // 해가 달라도 갈라져야 한다 — 키를 month만으로 잡으면 여기서 걸린다.
+    let sep2028 = workdayInfo(Golden.ms([2028, 8, 15, 12, 0, 0]))
+    #expect(sep2028.hasHolidayData == false)
+    #expect(sep2028.workdays == sep2028.weekdays)
+
+    // weekdaysInMonth도 같은 캐시를 읽는다.
+    #expect(weekdaysInMonth(Golden.ms([2026, 8, 15, 12, 0, 0])) == 22)
+}
