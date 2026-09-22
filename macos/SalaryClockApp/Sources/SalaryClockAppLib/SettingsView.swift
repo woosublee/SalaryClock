@@ -181,6 +181,10 @@ struct SettingsView: View {
         .padding(20)
         .frame(width: 340)
         .background(theme.background)
+        // preferredColorScheme만으로는 하위 뷰의 @Environment(\.colorScheme)가
+        // 바뀌지 않는다. MonthCalendarView는 그 키로 Theme을 만들므로, 심어주지
+        // 않으면 밝은 맥에서 어두운 테마를 골랐을 때 달력 칸만 하얗게 남는다.
+        .environment(\.colorScheme, effectiveScheme)
         .preferredColorScheme(effectiveScheme)
     }
 

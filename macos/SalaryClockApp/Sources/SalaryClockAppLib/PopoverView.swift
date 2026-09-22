@@ -68,9 +68,16 @@ struct PopoverView: View {
         }
         .frame(width: 220)
         .background(theme.background)
-        // effectiveScheme을 실제 SwiftUI 환경에도 심는다 — MonthCalendarView처럼
-        // 스스로 @Environment(\.colorScheme)를 읽는 하위 뷰(여기서는 안 쓰지만
-        // 설정 창과 같은 규칙을 유지한다)에도 같은 값이 내려가게 한다.
+        // 두 줄이 서로 다른 일을 한다.
+        //
+        // preferredColorScheme은 이 화면(팝오버 창)의 선호 외형을 알린다 —
+        // 하위 뷰의 @Environment(\.colorScheme)에는 이 값이 쓰이지 않는다.
+        // MonthCalendarView처럼 스스로 그 키를 읽어 Theme을 만드는 뷰에도
+        // 고른 테마가 닿게 하려면 환경에 직접 심어야 한다.
+        //
+        // 팝오버에는 지금 그런 하위 뷰가 없지만(MinimalFaceView는 theme을
+        // 인자로 받는다) 설정 창과 규칙을 하나로 둔다.
+        .environment(\.colorScheme, effectiveScheme)
         .preferredColorScheme(effectiveScheme)
     }
 
