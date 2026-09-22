@@ -18,6 +18,9 @@ public enum Palette {
         Color(.sRGB, red: r, green: g, blue: b, opacity: 1)
     }
 
+    /// slate-50 — #f8fafc
+    public static let slate50 = srgb(0.972549, 0.980392, 0.988235)
+
     /// slate-100 — #f1f5f9
     public static let slate100 = srgb(0.945098, 0.960784, 0.976471)
 
@@ -48,6 +51,12 @@ public enum Palette {
     /// slate-950 — #020618
     public static let slate950 = srgb(0.007843, 0.023529, 0.094118)
 
+    /// emerald-100 — #d0fae5
+    public static let emerald100 = srgb(0.815686, 0.980392, 0.898039)
+
+    /// emerald-300 — #5ee9b5
+    public static let emerald300 = srgb(0.368627, 0.913725, 0.709804)
+
     /// emerald-400 — #00d294
     public static let emerald400 = srgb(0.000000, 0.823529, 0.580392)
 
@@ -56,6 +65,24 @@ public enum Palette {
 
     /// emerald-600 — #009767
     public static let emerald600 = srgb(0.000000, 0.592157, 0.403922)
+
+    /// emerald-700 — #007956
+    public static let emerald700 = srgb(0.000000, 0.474510, 0.337255)
+
+    /// emerald-900 — #004e3b
+    public static let emerald900 = srgb(0.000000, 0.305882, 0.231373)
+
+    /// rose-50 — #fff1f2
+    public static let rose50 = srgb(1.000000, 0.945098, 0.949020)
+
+    /// rose-400 — #ff667f
+    public static let rose400 = srgb(1.000000, 0.400000, 0.498039)
+
+    /// rose-950 — #4d0218
+    public static let rose950 = srgb(0.301961, 0.007843, 0.094118)
+
+    /// sky-400 — #00bcfe
+    public static let sky400 = srgb(0.000000, 0.737255, 0.996078)
 
     /// white — #fff
     public static let white = srgb(1.000000, 1.000000, 1.000000)

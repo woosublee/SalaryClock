@@ -33,6 +33,7 @@ const css = readdirSync(cssDir)
 
 /** 맥 앱이 실제로 쓰는 토큰만. 스펙 5.1 표와 같은 목록이다. */
 const TOKENS = [
+  'slate-50',
   'slate-100',
   'slate-200',
   'slate-300',
@@ -43,9 +44,19 @@ const TOKENS = [
   'slate-800',
   'slate-900',
   'slate-950',
+  'emerald-100',
+  'emerald-300',
   'emerald-400',
   'emerald-500',
   'emerald-600',
+  'emerald-700',
+  'emerald-900',
+  // MonthCalendar가 공휴일·요일 머리글에 쓰는 색. 지금까지는 아무 화면도
+  // rose/sky를 안 써서 토큰이 없었다.
+  'rose-50',
+  'rose-400',
+  'rose-950',
+  'sky-400',
 ] as const
 
 /**

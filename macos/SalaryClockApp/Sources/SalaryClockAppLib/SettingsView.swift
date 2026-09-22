@@ -2,6 +2,17 @@ import SwiftUI
 import ServiceManagement
 import SalaryClockCore
 
+/// 지금 이 순간의 (연, 월) — 달력 모드가 처음 열릴 때 보여줄 달.
+/// SalaryClockCore의 `appCalendar`는 core 모듈 내부에만 보이므로(internal)
+/// 여기서 같은 규칙(그레고리력 고정, 기기 시간대)으로 새로 만든다.
+/// month는 0-based로 맞춘다.
+private func calendarComponents() -> (year: Int, month: Int) {
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone.current
+    let now = Date()
+    return (cal.component(.year, from: now), cal.component(.month, from: now) - 1)
+}
+
 /// 웹 SettingsPanel에서 맥이 쓰는 항목만 남긴 폼.
 ///
 /// macOS 기본 Form 스타일(회색 배경, 오른쪽 정렬 라벨)을 쓰지 않는다 —
@@ -16,6 +27,13 @@ struct SettingsView: View {
     @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
     // 공제율 직접 입력 섹션을 펼쳤는지 — 웹 SettingsPanel의 showAdvanced와 같다.
     @State private var showAdvanced = false
+    // 달력이 보여주는 달 — 패널이 열린 시각의 달로 고정한다. 웹 SettingsPanel의
+    // panelYear/panelMonth와 같다(월 이동 없음 — 웹에 없는 기능을 더하지 않는다).
+    @State private var calendarYear = calendarComponents().year
+    @State private var calendarMonth = calendarComponents().month
+    // 달력을 펼쳤는지 — Settings에 안 담기는 순수 뷰 상태다. 웹 SettingsPanel의
+    // showCalendar와 같다. 저장하지 않는다.
+    @State private var showCalendar = false
     @Environment(\.colorScheme) private var scheme
 
     private var theme: Theme { Theme(scheme: scheme) }
@@ -86,6 +104,8 @@ struct SettingsView: View {
                         .foregroundStyle(theme.dim)
                 }
             }
+
+            workDaysSection
 
             Toggle("로그인할 때 자동 실행", isOn: $launchAtLogin)
                 .onChange(of: launchAtLogin) { _, on in
@@ -222,5 +242,131 @@ struct SettingsView: View {
                     .foregroundStyle(theme.dim)
             }
         }
+    }
+
+    // MARK: - 근무일수
+
+    /// 지금 시각을 epoch ms로 — auto 안내 문구와 effectiveWorkDays 계산이 쓴다.
+    private var nowMs: Int { Int((Date().timeIntervalSince1970 * 1000).rounded()) }
+
+    /// auto 기준 이번 달 근무일수 — "자동 N일로" 링크의 N.
+    private var autoWorkDaysCount: Int { workdayInfo(nowMs).workdays }
+
+    /// auto 모드 안내 — 웹 SettingsPanel의 workDaysMode === 'auto' 분기와
+    /// 글자 하나까지 같다.
+    private var autoWorkDaysHint: String {
+        let info = workdayInfo(nowMs)
+        return info.hasHolidayData
+            ? "평일 \(info.weekdays)일 − 공휴일 \(info.holidays)일. 달이 바뀌면 따라갑니다"
+            : "평일 \(info.weekdays)일. 이 해의 공휴일 자료가 없어 주말만 뺐습니다"
+    }
+
+    /// 웹 SettingsPanel의 "근무일수" 구간 — 모드를 직접 고르는 UI가 아니다.
+    /// 숫자를 고치면 manual로, 달력에서 날짜를 찍으면 calendar로 자연히
+    /// 넘어간다. "자동 N일로" 링크가 auto로 돌아가는 유일한 길이다.
+    private var workDaysSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("월 근무일수")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(theme.secondary)
+                Spacer()
+                // showCalendar는 Settings에 안 담기는 순수 뷰 상태다 — 저장하지 않는다.
+                Button(showCalendar ? "달력 접기" : "달력에서 고르기") {
+                    showCalendar.toggle()
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 11))
+                .underline()
+                .foregroundStyle(theme.calendarClearButton)
+            }
+
+            workDaysField
+            workDaysHint
+
+            if showCalendar {
+                MonthCalendarView(
+                    year: calendarYear,
+                    month: calendarMonth,
+                    overrides: draft.dayOverrides,
+                    onToggle: { date in
+                        draft.workDaysMode = .calendar
+                        draft.dayOverrides = toggleOverride(draft.dayOverrides, date)
+                    },
+                    onClearMonth: {
+                        // 지우기는 이 달의 override만 지운다 — 모드는 그대로 둔다.
+                        draft.dayOverrides = clearMonthOverrides(draft.dayOverrides, calendarYear, calendarMonth)
+                    }
+                )
+            }
+        }
+    }
+
+    /// 숫자 한 칸 — 보여주는 값은 지금 모드의 effectiveWorkDays다(auto일 때도
+    /// draft.workDaysPerMonth가 아니라 계산된 값을 보여준다). 고치면
+    /// workDaysMode를 manual로, workDaysPerMonth를 그 값으로 한 번에 바꾼다 —
+    /// 웹 입력칸의 onChange와 같다.
+    private var workDaysField: some View {
+        TextField("", value: workDaysBinding, format: .number)
+            .textFieldStyle(.roundedBorder)
+            .multilineTextAlignment(.trailing)
+            .font(.system(size: 13, design: .monospaced))
+            .padding(.trailing, 18)
+            .overlay(alignment: .trailing) {
+                Text("일")
+                    .font(.system(size: 13))
+                    .foregroundStyle(theme.dim)
+                    .padding(.trailing, 10)
+            }
+    }
+
+    private var workDaysBinding: Binding<Double> {
+        Binding(
+            get: { effectiveWorkDays(draft, nowMs) },
+            set: { newValue in
+                draft.workDaysMode = .manual
+                draft.workDaysPerMonth = newValue
+            }
+        )
+    }
+
+    /// 모드에 따라 바뀌는 안내 줄. calendar·manual은 "자동 N일로" 링크를
+    /// 오른쪽에 둔다 — 누르면 workDaysMode만 auto로 돌아가고 dayOverrides는
+    /// 그대로 남는다(달력을 다시 열면 찍어둔 날이 그대로 있다).
+    private var workDaysHint: some View {
+        Group {
+            switch draft.workDaysMode {
+            case .auto:
+                Text(autoWorkDaysHint)
+            case .calendar:
+                HStack {
+                    Text("달력에서 고른 날로 셉니다")
+                    Spacer()
+                    resetToAutoButton
+                }
+            case .manual:
+                HStack {
+                    Text("직접 입력한 값으로 고정됩니다")
+                    Spacer()
+                    resetToAutoButton
+                }
+            }
+        }
+        .font(.system(size: 11))
+        .foregroundStyle(theme.dim)
+    }
+
+    /// "자동 N일로" — 미리 만든 String을 그대로 넘긴다. Button(_:)에 보간
+    /// 리터럴을 바로 주면 LocalizedStringKey 경로를 타면서 N에 몰래 천 단위
+    /// 쉼표가 붙을 수 있다(MonthCalendarView 헤더에서 실제로 겪은 문제다).
+    private var resetToAutoLabel: String { "자동 \(autoWorkDaysCount)일로" }
+
+    private var resetToAutoButton: some View {
+        Button(resetToAutoLabel) {
+            draft.workDaysMode = .auto
+        }
+        .buttonStyle(.plain)
+        .underline()
+        .foregroundStyle(theme.dim)
     }
 }
