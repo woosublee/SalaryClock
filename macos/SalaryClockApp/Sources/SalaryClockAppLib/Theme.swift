@@ -30,4 +30,13 @@ struct Theme {
     /// 아이콘 버튼에 마우스를 올렸을 때 — hover:text-slate-700
     /// dark:hover:text-slate-200.
     var iconButtonHover: Color { scheme == .dark ? Palette.slate200 : Palette.slate700 }
+    /// 세전·실수령 배지 테두리 — 웹 EarningsDisplay의 ring-slate-200
+    /// dark:ring-slate-700. 라벨 글자색(dim)과는 다른 역할이라 opacity로
+    /// 흉내내지 않고 따로 둔다.
+    var badgeBorder: Color { scheme == .dark ? Palette.slate700 : Palette.slate200 }
+    /// 날짜 — 평소 크기일 때. 웹 DateLine의 text-slate-700 dark:text-slate-200.
+    var dateNormal: Color { scheme == .dark ? Palette.slate200 : Palette.slate700 }
+    /// 날짜 — 가려서 크게 보일 때. 웹 DateLine minimal 분기의
+    /// text-slate-800 dark:text-slate-100.
+    var dateMinimal: Color { scheme == .dark ? Palette.slate100 : Palette.slate800 }
 }

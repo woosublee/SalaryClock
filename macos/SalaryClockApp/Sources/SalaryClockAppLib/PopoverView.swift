@@ -24,22 +24,25 @@ struct PopoverView: View {
 
     private var theme: Theme { Theme(scheme: scheme) }
 
+    /// 웹 app/page.tsx의 `minimal = settings.hideAmount || dayOff`와 같은
+    /// 조건. 날짜·시계자리·상태줄이 전부 이 하나를 기준으로 갈라진다.
+    private var hidden: Bool { model.settings.hideAmount || model.earnings.phase == .dayoff }
+
     var body: some View {
         // 웹은 아이콘 버튼 줄을 app/page.tsx에서 `absolute right-4 top-4`로
         // 콘텐츠 위에 띄운다 — 아래쪽 줄에 나란히 두지 않는다. 여기서도
         // ZStack으로 우측 상단에 얹는다.
         ZStack(alignment: .topTrailing) {
             VStack(spacing: 12) {
+                dateLine
+
                 MinimalFaceView(now: model.now, shift: model.earnings.shift, theme: theme)
                     .frame(width: 132, height: 132)
 
-                if model.earnings.phase == .dayoff || model.settings.hideAmount {
+                if hidden {
                     // 쉬는 날과 가린 상태에서는 금액 대신 시각을 보여준다.
                     // 웹의 가리기 화면과 같은 규칙이다.
-                    Text(formatClockTime(model.now))
-                        .font(.system(size: 28, weight: .bold, design: .monospaced))
-                        .monospacedDigit()
-                        .foregroundStyle(theme.foreground)
+                    timeDisplay
                 } else {
                     amount
                 }
@@ -57,6 +60,23 @@ struct PopoverView: View {
         }
         .frame(width: 220)
         .background(theme.background)
+    }
+
+    /// 웹 DateLine — 평소엔 시계 위에 작게, 가려지면 날짜만 크게. 두 상태의
+    /// 높이를 고정해 두지 않으면 가리기를 누를 때 시계가 통째로 밀린다
+    /// (DateLine.tsx의 `h-[2.375rem]` 박스와 같은 이유).
+    @ViewBuilder private var dateLine: some View {
+        if hidden {
+            Text(formatDateKo(model.now))
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(theme.dateMinimal)
+                .frame(height: 26)
+        } else {
+            Text(formatDateKo(model.now))
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(theme.dateNormal)
+                .frame(height: 26)
+        }
     }
 
     /// 설정·종료 아이콘 줄. 지금은 둘뿐이지만 웹 순서(테마·가리기·설정)대로
@@ -80,7 +100,7 @@ struct PopoverView: View {
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 3).stroke(theme.dim.opacity(0.4), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 3).stroke(theme.badgeBorder, lineWidth: 1)
                     )
             }
 
@@ -104,26 +124,67 @@ struct PopoverView: View {
         }
     }
 
+    /// 가려졌을 때 amount 자리에 들어간다. 웹 TimeDisplay와 같은 이유로
+    /// amount와 줄 구성·글자 크기를 맞춘다 — 라벨 줄 자리에 빈 줄,
+    /// 큰 숫자 자리에 시각, 초당 적립액 줄 자리에 라벨 없는 남은 시간
+    /// (문구를 넣으면 "퇴근까지"처럼 가린 티가 나므로 숫자만 둔다).
+    private var timeDisplay: some View {
+        VStack(spacing: 4) {
+            Text(" ").font(.system(size: 11))
+
+            Text(formatClockTime(model.now))
+                .font(.system(size: 28, weight: .bold, design: .monospaced))
+                .monospacedDigit()
+                .foregroundStyle(theme.foreground)
+
+            Text(remainingTimeText)
+                .font(.system(size: 11, design: .monospaced))
+                .monospacedDigit()
+                .foregroundStyle(theme.dim)
+        }
+    }
+
+    private var remainingTimeText: String {
+        let e = model.earnings
+        switch e.phase {
+        case .before: return formatDuration(e.msUntilStart)
+        case .lunch: return formatDuration(e.msUntilLunchEnd)
+        case .working: return formatDuration(e.msUntilEnd)
+        case .after, .dayoff: return " "
+        }
+    }
+
     @ViewBuilder private var status: some View {
         let e = model.earnings
-        let text: String = {
-            switch e.phase {
-            case .before: return "출근까지 \(formatDuration(e.msUntilStart))"
-            case .lunch: return "점심시간 · 재개까지 \(formatDuration(e.msUntilLunchEnd))"
-            case .after: return "오늘 근무 종료"
-            case .working: return "퇴근까지 \(formatDuration(e.msUntilEnd))"
-            case .dayoff: return " "
-            }
-        }()
+        // 가려진 상태(가리기 켜짐 또는 휴무일)에서는 줄 전체를 비운다.
+        // "퇴근까지 04:00:00" 같은 문구만 남아도 뭔가 가려져 있다는 티가
+        // 난다 — 웹 StatusLine의 hidden 분기와 같은 규칙이다. 높이는
+        // 그대로 차지해야 팝오버가 들썩이지 않는다.
+        if hidden {
+            Text(" ")
+                .font(.system(size: 11, design: .monospaced))
+        } else {
+            let text: String = {
+                switch e.phase {
+                case .before: return "출근까지 \(formatDuration(e.msUntilStart))"
+                case .lunch: return "점심시간 · 재개까지 \(formatDuration(e.msUntilLunchEnd))"
+                case .after: return "오늘 근무 종료"
+                case .working: return "퇴근까지 \(formatDuration(e.msUntilEnd))"
+                // hidden이 이미 .dayoff를 걸러내므로 여기 오지 않는다 —
+                // switch를 다 채우기 위한 자리만 지킨다.
+                case .dayoff: return " "
+                }
+            }()
 
-        HStack(spacing: 4) {
-            Text(text).foregroundStyle(theme.secondary)
-            if e.phase != .after && e.phase != .dayoff && !model.settings.hideAmount {
-                Text("· 남은 \(formatWon(e.remainingAmount))").foregroundStyle(theme.dim)
+            HStack(spacing: 4) {
+                Text(text).foregroundStyle(theme.secondary)
+                if e.phase != .after {
+                    Text("· 남은 \(formatWon(e.remainingAmount))").foregroundStyle(theme.dim)
+                }
             }
+            .font(.system(size: 11, design: .monospaced))
+            .monospacedDigit()
         }
-        .font(.system(size: 11, design: .monospaced))
-        .monospacedDigit()
     }
 }
 

@@ -90,8 +90,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let e = computeEarnings(s, now)
 
         guard let button = statusItem.button else { return }
-        button.title = menuBarTitle(e, hideAmount: s.hideAmount).map { " " + $0 } ?? ""
-        button.font = NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular)
+        // title + font를 따로 주면 렌더링된 런이 실제로 이 폰트를 쓴다는
+        // 보장이 없다 — 실측 결과 자릿수가 같은데도 폭이 몇 pt씩 흔들렸다
+        // (monospacedDigitSystemFont가 적용되지 않고 있었다는 뜻). 폰트를
+        // attributedTitle 안에 직접 실어 애매함을 없앤다.
+        let titleText = menuBarTitle(e, hideAmount: s.hideAmount).map { " " + $0 } ?? ""
+        button.attributedTitle = NSAttributedString(
+            string: titleText,
+            attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular)]
+        )
 
         let minute = now / 60_000
         if minute != lastRingMinute {
