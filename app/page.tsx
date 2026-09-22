@@ -74,12 +74,8 @@ export default function Home() {
         >
           <EyeIcon off={settings.hideAmount} />
         </button>
-        <button
-          onClick={() => setPanelOpen(true)}
-          aria-label="설정 열기"
-          className={`${iconButton} text-xl leading-none`}
-        >
-          ⚙
+        <button onClick={() => setPanelOpen(true)} aria-label="설정 열기" className={iconButton}>
+          <GearIcon />
         </button>
       </div>
 
@@ -123,6 +119,30 @@ export default function Home() {
         />
       )}
     </main>
+  )
+}
+
+/*
+ * 톱니바퀴를 문자(U+2699)로 쓰면 iOS에서 컬러 이모지로 바뀐다. 애플 시스템
+ * 폰트에 이 문자의 텍스트 글리프가 없어서 Apple Color Emoji로 대체되기 때문이다.
+ * 변이 선택자(U+FE0E)를 붙여도 대체할 텍스트 글리프 자체가 없어 소용이 없다.
+ * 나머지 아이콘과 같이 SVG로 그린다.
+ */
+function GearIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-5"
+      aria-hidden="true"
+    >
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
   )
 }
 
