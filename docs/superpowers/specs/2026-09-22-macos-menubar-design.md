@@ -12,6 +12,7 @@ SalaryClock을 macOS 메뉴바 앱으로 옮긴다. 종일 띄워놓고 금액�
 메뉴바  …  ◔ ₩83,412  ▸  🔋 100%  화 오후 1:24
                   │
          클릭 ───▸ ╭────────────────╮
+                  │      ◐ 🙈 ⚙ ⏻  │
                   │    ╱ 12  ╲      │
                   │   9   ┼   3    │
                   │    ╲  6  ╱      │
@@ -19,7 +20,6 @@ SalaryClock을 macOS 메뉴바 앱으로 옮긴다. 종일 띄워놓고 금액�
                   │  ₩83,412.4      │
                   │  +5.8 / 초      │
                   │  퇴근까지 04:00:00│
-                  │  [설정]  [종료]  │
                   ╰────────────────╯
 ```
 
@@ -30,9 +30,10 @@ SalaryClock을 macOS 메뉴바 앱으로 옮긴다. 종일 띄워놓고 금액�
 
 ### 포함
 
-- 메뉴바 타이틀에 적립 금액 표시 (1초마다 정수 갱신)
-- 클릭 시 팝오버: 시계 1종, 금액, 초당 적립액, 퇴근까지 남은 시간
-- 설정 창: 급여, 근무시간, 점심, 실수령액 기준, 로그인 시 자동 실행
+- 메뉴바 타이틀에 적립 금액 표시 (갱신 주기는 사용자 설정, 기본 1초마다 정수 갱신 — 4.2)
+- 클릭 시 팝오버: 시계 1종, 금액, 초당 적립액, 퇴근까지 남은 시간, 테마·가리기 토글 (4.3)
+- 설정 창: 급여, 근무시간, 점심, 실수령액 기준(공제율 직접 입력 포함), 근무일수(자동/달력/직접 입력),
+  로그인 시 자동 실행, 메뉴바 갱신 주기 (4.4)
 - 웹과 공유하는 도메인 규칙 변경 (휴무일, 자정 초기화)
 - 두 구현의 일치를 검증하는 골든 파일
 
@@ -41,13 +42,26 @@ SalaryClock을 macOS 메뉴바 앱으로 옮긴다. 종일 띄워놓고 금액�
 - Windows 지원 — 윈도우 트레이는 아이콘만 달 수 있고 글자를 못 넣는다.
   이 앱의 주 화면이 성립하지 않으므로 다른 설계가 필요하고, 그건 별도 과제다
 - 시계 얼굴 10종 — 팝오버가 작아 차이가 드러나지 않는다. `minimal` 1종만 옮긴다
-- 달력으로 근무일 지정 (`workDaysMode: 'calendar' | 'manual'`) — 맥 앱은 `auto` 고정
-- 다크모드 **토글** — 웹의 세 상태(기기 설정 / 밝게 고정 / 어둡게 고정) 중
-  기기 설정을 따르는 기본 동작만 가져간다
 - 코드 서명, 공증, 배포 — 본인 기계에서 빌드해 쓴다 (10장)
 
 **제외한 건 기능이지 디자인이 아니다.** 옮기는 화면은 웹과 같아 보여야
 한다. 색·글꼴·도형 수치를 눈대중으로 맞추지 않고 값으로 옮긴다 (5장).
+
+### 뒤집힌 제외 항목
+
+실행 중 사용자가 직접 요청해 아래 세 가지가 제외에서 포함으로 뒤집혔다 —
+원래 이 장에 있던 문구는 지웠고, 실제로 들어간 자리는 각 절에 있다.
+
+- **달력으로 근무일 지정** (`workDaysMode: 'calendar' | 'manual'`) — 같은
+  설정인데 웹과 맥이 다른 금액을 보여준 사고(근무일수가 맥에서 통째로
+  빠져 있었다)를 겪은 뒤 요청이 들어왔다. 근무일수를 전부(자동/달력/직접
+  입력) 넣기로 했다 (4.4)
+- **공제율 직접 입력** — 같은 요청에 함께 들어갔다 (4.4)
+- **다크모드 토글** — 웹의 세 상태(기기 설정 / 밝게 고정 / 어둡게 고정)를
+  그대로 가져온다. 설정 창이 아니라 팝오버에 있다 (4.3)
+
+**가리기 토글**은 애초에 이 장에 명시된 적이 없었지만(웹에는 있었다),
+다크모드 토글과 같은 시점에 팝오버에 들어갔다 (4.3).
 
 ### 결정을 되돌린 것
 
@@ -153,12 +167,36 @@ export interface Earnings {
 
 ```
 macos/
-  SalaryClock.xcodeproj
-  SalaryClock/            앱 타깃 — 메뉴바, 팝오버, 설정 창
   SalaryClockCore/        Swift Package — 도메인 순수 함수 + 테스트
+  SalaryClockApp/         Swift Package — 메뉴바, 팝오버, 설정 창
+scripts/
+  bundle-app.sh           swift build → SalaryClock.app
+  install-app.sh          /Applications 설치
+  generate-palette-swift.ts   palette.json → Palette.swift
 ```
 
-앱 타깃은 `SalaryClockCore`를 의존하기만 한다. `LSUIElement = true`로
+Xcode 프로젝트를 두지 않는다. `.pbxproj`는 손으로 쓰기 어렵고 diff가
+읽히지 않아 리뷰가 불가능한 반면, `Package.swift`와 20줄짜리 번들
+스크립트는 둘 다 읽힌다. `swift build`가 AppKit·SwiftUI를 그대로
+컴파일하고, `.app` 번들은 디렉터리 구조 + `Info.plist` + ad-hoc
+서명이면 끝이다.
+
+`SalaryClockApp` 패키지 안은 다시 세 타깃으로 나뉜다:
+
+```
+SalaryClockApp/
+  Sources/SalaryClockAppLib/   메뉴바 · 팝오버 · 설정 창 전부 (라이브러리 타깃)
+  Sources/SalaryClockApp/      main.swift 하나만 (실행 타깃)
+  Tests/SalaryClockAppTests/   SalaryClockAppLib을 테스트
+```
+
+계획대로면 테스트 타깃이 실행 타깃(`executableTarget`)을 바로 의존하는데,
+`main.swift`의 top-level 코드가 테스트 번들에 함께 링크되면 `main` 심볼이
+충돌할 수 있다. 그래서 `main.swift`만 남긴 실행 타깃과, 나머지 전부를
+담은 라이브러리 타깃으로 쪼갰다 — 테스트는 라이브러리 쪽만 의존한다.
+번들 스크립트가 찾는 실행 파일 이름(`SalaryClockApp`)은 그대로다.
+
+`SalaryClockAppLib`은 `SalaryClockCore`를 의존한다. `LSUIElement = true`로
 Dock 아이콘 없이 메뉴바에만 상주한다.
 
 ### 4.1 메뉴바
@@ -186,16 +224,24 @@ Dock 아이콘 없이 메뉴바에만 상주한다.
 
 ### 4.2 타이머
 
-`Timer` 1초 간격을 `RunLoop.common` 모드에 등록한다. 기본 모드로만
-등록하면 메뉴나 팝오버를 여는 순간 숫자가 멈춘다.
+`Timer` 간격을 `RunLoop.common` 모드에 등록한다. 기본 모드로만 등록하면
+메뉴나 팝오버를 여는 순간 숫자가 멈춘다.
+
+**간격은 고정 1초가 아니라 사용자 설정이다(0.1~10초, 기본 1초).**
+초기 설계에서 1초로 고정했던 근거("0.1초면 메뉴바가 꿈틀거린다")는
+4.1의 `attributedTitle` 폭 고정으로 사라졌다. 남는 비용은 배터리뿐이라
+(10Hz로 깨우면 깊은 절전에 못 들어간다), 설정 창에서 숫자로 직접 바꾸게
+했다(4.4). 이 값은 웹과 공유하는 `Settings`가 아니라 맥 전용 저장소에
+있다(4.5).
 
 **매 tick마다 `Date()`로 전부 다시 계산한다.** 웹앱의 설계 원칙 ①을
 그대로 가져오는 것이다. 누적하지 않으므로 타이머가 드리프트하든 절전에서
 깨어나든 다음 tick에 저절로 맞는다.
 
 팝오버가 열려 있는 동안만 0.1초 간격으로 올려 소수점 1자리가 흐르게
-하고, 닫히면 1초로 되돌린다. 웹이 소수 1자리를 쓰는 이유가 그대로
-적용된다 — 정수만 쓰면 초당 5.8원일 때 또각또각 끊겨 보인다.
+하고, 닫히면 설정된 간격으로 되돌린다 — 이 동작은 갱신 주기 설정과
+무관하게 유지된다. 웹이 소수 1자리를 쓰는 이유가 그대로 적용된다 —
+정수만 쓰면 초당 5.8원일 때 또각또각 끊겨 보인다.
 
 ### 4.3 팝오버
 
@@ -204,6 +250,7 @@ Dock 아이콘 없이 메뉴바에만 상주한다.
 
 ```
 ╭────────────────╮
+│          ◐ 🙈 ⚙ ⏻│   아이콘 4개 — 테마·가리기·설정·종료, 우상단
 │    ╱ 12  ╲      │   MinimalFace — 웹 SVG를 수치 그대로 옮김
 │   9   ┼   3    │
 │    ╲  6  ╱      │
@@ -211,7 +258,6 @@ Dock 아이콘 없이 메뉴바에만 상주한다.
 │  ₩83,412.4      │   EarningsDisplay — 정수부 + 소수부 색 분리
 │  +5.8 / 초      │
 │  퇴근까지 04:00:00│   StatusLine
-│  [설정]  [종료]  │
 ╰────────────────╯
 ```
 
@@ -219,12 +265,29 @@ Dock 아이콘 없이 메뉴바에만 상주한다.
 둔다. 팝오버가 좁으므로 웹의 `text-5xl`을 그대로 쓸 수는 없고, 5.3의
 비례 축소 규칙을 따른다.
 
+네 아이콘은 텍스트 버튼이 아니라 SF Symbols 아이콘이다(사용자 요청) —
+웹도 아이콘이라 오히려 충실도가 올라간다. 순서는 테마 · 가리기 · 설정 ·
+종료이고 우상단에 모인다(웹 `page.tsx`의 `right-4 top-4` 클러스터와 같은
+배치). 220pt 팝오버에 네 개가 여유 있게 들어간다.
+
+**테마 토글**은 웹의 세 상태(기기 설정 / 밝게 고정 / 어둡게 고정)를
+순환한다. 저장된 값이 없으면(`hasStored == false`) `@Environment(\.colorScheme)`로
+기기 설정을 따르고, 한 번이라도 저장하면 그 값에 고정된다 — 웹
+`loadSettings`와 같은 규칙이다. 설정 창(4.4)도 같은 `hasStored` 기준으로
+테마를 적용해 팝오버와 어긋나지 않는다.
+
+**가리기 토글**은 상태줄의 일부(`· 남은 ₩X` 접미)가 아니라 상태줄
+전체를 비운다. 웹이 원래 그렇게 하는 이유가 그대로 적용된다 —
+"퇴근까지"라고 써 붙이면 가린 티가 난다. 문구가 하나라도 남으면 가리기의
+목적("옆에서 보면 그냥 시계로 보이는 것")이 깨진다.
+
 ### 4.4 설정 창
 
 `NSWindow` + SwiftUI. **남기는 항목의 배치·문구·스타일은 웹
-`SettingsPanel`을 그대로 따른다.** 제외한 항목(근무일수 모드와 달력,
-얼굴 캐러셀, 다크모드 토글, 가리기)은 자리째 빼고, 남은 것의 순서는
-웹과 같게 둔다.
+`SettingsPanel`을 그대로 따른다.** 제외한 항목(얼굴 캐러셀)은 자리째
+빼고, 남은 것의 순서는 웹과 같게 둔다. 다크모드 토글과 가리기 토글은
+이 창이 아니라 팝오버에 있다(4.3) — 웹도 그 둘은 설정 패널이 아니라
+메인 화면에 둔다.
 
 macOS 기본 `Form` 스타일(회색 배경, 오른쪽 정렬 라벨)을 쓰지 않는다 —
 그러면 웹과 다른 화면이 된다.
@@ -233,18 +296,35 @@ macOS 기본 `Form` 스타일(회색 배경, 오른쪽 정렬 라벨)을 쓰지 
 |---|---|
 | 급여 | 연봉 / 월급 / 시급. 억·만 단위 보조 표시(`formatKoreanUnits`) 포함 |
 | 근무 시작·종료 | |
-| 점심 | on/off, 시작 시각, 무급 분 |
-| 실수령액 기준 | 공제율은 자동 추정만 |
+| 점심 | on/off. UI는 시작·종료 두 칸으로 받고, 저장은 시작 시각 + 무급 분으로
+한다 — 시작을 바꾸면 무급 길이를 유지한 채 구간이 통째로 이동한다 |
+| 실수령액 기준 | 공제율은 자동 추정 또는 직접 입력(0~90%). 비우면 추정치로 되돌아간다 |
+| 근무일수 | 자동(평일 − 공휴일) / 달력에서 날짜 찍기 / 직접 입력 세 모드. 모드는
+직접 고르지 않는다 — 숫자 칸을 고치면 manual로, 달력에서 날짜를 찍으면
+calendar로 행동에서 넘어간다. "자동 N일로" 링크가 auto로 돌아가는 유일한
+통로이고, 눌러도 찍어둔 `dayOverrides`는 안 지운다 |
 | 로그인 시 자동 실행 | `SMAppService.mainApp.register()` — 웹에 없는 항목 |
+| 메뉴바 갱신 주기 | 0.1~10초, 기본 1초. `초` 접미의 숫자 입력칸 + 안내
+문구 한 줄. 로그인 자동 실행 옆에 둔다(둘 다 맥 전용 옵션) — 웹에
+없는 항목이고 팝오버가 아니라 여기 있다(4.2) |
 
-근무일수는 `auto` 고정이고 공휴일 표는 그대로 쓴다. 공휴일 표가 없는
-해에는 웹과 같은 문구로 그 사실을 알린다.
+공휴일 표가 없는 해(2028~)에는 주말만 근무일수 계산에 반영하고,
+웹과 같은 문구로 그 사실을 알린다. 달력을 펼쳤는지·어느 달을
+보여주는지는 `Settings`에 저장하지 않는 순수 뷰 상태다 — 웹도 같다.
 
 ### 4.5 저장
 
 `UserDefaults`에 `Codable` 구조체로 저장한다. 웹의 zod 스키마에
 대응하는 검증은 값 검증 함수로 옮긴다 — 저장된 값이 규칙을 어기면
 기본값으로 되돌린다.
+
+**맥 전용 설정(메뉴바 갱신 주기)은 공유 `Settings`에 넣지 않는다.**
+`Settings`는 웹과 공유하는 도메인 모델이고 `shared/golden/settings.json`이
+그 필드를 고정한다 — 여기 필드를 더하면 골든이 깨지고 웹 스키마까지
+건드려야 하는데, 갱신 주기는 웹에 대응물이 없는 맥만의 표시 취향이라
+도메인이 아니다. 별도의 `UserDefaults` 키를 쓰는 작은 저장소
+(`AppPreferences`)를 두고, `SettingsStore`와 같은 규칙(검증 실패 시
+기본값, 값이 바뀌면 알림)을 따른다.
 
 **웹앱과 설정이 이어지지 않는다.** 웹은 브라우저 `localStorage`에
 저장하고 맥 앱은 `UserDefaults`에 저장한다. 맥에서 설정을 한 번 새로
@@ -258,47 +338,68 @@ macOS 기본 `Form` 스타일(회색 배경, 오른쪽 정렬 라벨)을 쓰지 
 
 ### 5.1 팔레트
 
-웹은 Tailwind v4 기본 팔레트에서 `slate`와 `emerald`만 쓴다. 실제로
-쓰이는 토큰은 아래가 전부다.
+웹은 Tailwind v4 기본 팔레트에서 `slate`·`emerald`를 쓰고, 달력(4.4)이
+`rose`·`sky` 몇 토큰을 더했다(주말·공휴일·직접 지정 표시). 실제로
+화면에 칠해지는 배경·본문 색은 `app/page.tsx`의 `<main>`이 지정하는
+**`surface`** 토큰이다. `globals.css`의 `--background`/`--foreground`는
+`<main>`이 항상 덮어쓰는 **폴백**(`bodyFallback`)이라 화면에는 보이지
+않는다 — `palette.json`이 이 둘을 별도 키로 나눠 담는다.
 
 | 용도 | 밝게 | 어둡게 |
 |---|---|---|
-| 배경 | `#ffffff` | `#0a0a0a` |
-| 본문 | `#171717` | `#ededed` |
+| 배경 (`surface`) | `white` → `#ffffff` | `slate-950` → `#020618` |
+| 본문 (`surface`) | `slate-900` | `slate-100` |
+| 배경 폴백 (`bodyFallback`, 화면에 안 쓰임) | `#fff` | `#0a0a0a` |
+| 본문 폴백 (`bodyFallback`, 화면에 안 쓰임) | `#171717` | `#ededed` |
 | 시계 바늘 (시·분) | `slate-800` | `slate-100` |
 | 문자판 눈금 | `slate-400` | `slate-500` |
 | 링 — 근무 구간 | `slate-200` | `slate-700` |
-| 링 — 점심 지우개 | 배경색 | 배경색 |
+| 링 — 점심 지우개 | 배경색 (`surface`) | 배경색 (`surface`) |
 | 링 — 점심 파선 | `slate-300` | `slate-600` |
 | 진행 링 · 초침 · 중심점 | `emerald-500` | `emerald-500` |
 | 초당 적립액 | `emerald-600` | `emerald-400` |
 | 보조 텍스트 | `slate-500` | `slate-400` |
 | 금액 소수부 · 흐린 텍스트 | `slate-400` | `slate-500` |
 | 배지 테두리 | `slate-200` | `slate-700` |
+| 달력 표시 (주말/공휴일/직접 지정) | `rose`·`sky`·`emerald`·`slate` 토큰 | 같음 |
 
 점심 구간은 링을 굵게 덧그어 지우는 방식이라 **배경과 같은 색이어야
-한다.** 웹은 여기에 `white` / `slate-950`(`#020617`)을 쓰는데, 다크모드
-배경은 `#0a0a0a`라 정확히 같지 않다. 맥에서는 배경색을 그대로 써서 맞춘다.
-웹의 이 어긋남은 따로 고칠 거리이고, 고치면 팔레트가 다시 일치한다.
+한다.** 이전 판(v3 팔레트 기준)에서는 다크모드 배경 폴백이 `#0a0a0a`,
+지우개에 쓰는 `slate-950`이 `#020617`이라 정확히 같지 않다고 적었는데,
+그 우려는 착오였다 — 화면에 실제로 칠해지는 다크모드 배경은 폴백이
+아니라 `surface`(`slate-950`)이고, v4의 `slate-950`은 `#020618`이다.
+지우개 색과 배경 색이 **정확히 일치한다.**
 
-배경과 본문 색은 `app/globals.css`의 CSS 변수에서 그대로 가져온 값이다.
-`slate`·`emerald` 값은 Tailwind v4가 oklch로 정의하므로, **빌드된 CSS에서
-실제 사용된 색만 뽑아** `shared/golden/palette.json`으로 내보내고
-`Palette.swift`를 거기서 생성한다. 손으로 hex를 적지 않는다.
+배경·본문 색(`surface`·`bodyFallback`)은 `app/globals.css`와
+`app/page.tsx`에서 그대로 가져온 값이다. `slate`·`emerald`·`rose`·`sky`
+값은 Tailwind v4가 oklch로 정의하므로, **빌드된 CSS에서 실제 사용된
+색만 뽑아** `shared/golden/palette.json`으로 내보내고 `Palette.swift`를
+거기서 생성한다. 손으로 hex를 적지 않는다.
 
-다크모드는 웹의 세 상태 중 "기기 설정을 따른다"만 구현한다. SwiftUI의
-`@Environment(\.colorScheme)`로 받는다.
+`Palette.swift` 생성기는 `hex`가 3자리(`#fff`, `white` 토큰이 그 경우다)일
+수 있고 `lab`이 `null`일 수 있음을 처리해야 한다. 이번 버전은 sRGB
+`hex`만 쓰고 `lab`은 JSON에 남겨둔다 — 광색역 `lab()` → Display P3
+변환을 눈으로 검증할 수단이 없는 채로 넣을 작업은 아니다.
+
+다크모드는 웹의 세 상태를 전부 구현한다: 기기 설정을 따름 / 밝게
+고정 / 어둡게 고정. 저장된 테마가 없으면(`hasStored == false`)
+SwiftUI의 `@Environment(\.colorScheme)`로 기기 설정을 따르고, 한 번이라도
+저장했으면 그 값에 고정한다. 토글은 팝오버에 있다(4.3).
 
 ### 5.2 글꼴
 
 | 대상 | 웹 | 맥 |
 |---|---|---|
-| 금액·시각·상태줄 (`font-mono`) | Geist Mono | Geist Mono (앱에 번들) |
+| 금액·시각·상태줄 (`font-mono`) | Geist Mono | 시스템 `.monospaced` (SF Mono) |
 | 그 외 본문 | Arial | Arial |
 | 메뉴바 타이틀 | — | 시스템 글꼴 (4.1) |
 
-Geist Mono는 OFL 라이선스라 앱에 번들할 수 있다. 웹은 `next/font/google`로
-받아 쓰므로 같은 글꼴이 된다.
+**Geist Mono를 앱에 번들하지 않기로 했다.** OFL 라이선스라 번들 자체는
+가능하지만, 라이선스 파일과 `ATSApplicationFontsPath` 설정이 더 필요한
+데 비해 그 차이가 드러나는 곳은 팝오버 안의 22pt 숫자 몇 개뿐이다.
+SwiftUI `.monospaced` 시스템 글꼴로 대신하고, 웹과 나란히 띄워 봐도
+거슬리지 않는다는 걸 확인했다(4.3 이식 검증). 거슬리면 그때 번들을
+붙인다 — 지금은 하지 않는다.
 
 본문이 Arial인 것은 `globals.css`의 `body { font-family: Arial, ... }`
 때문이다. `--font-geist-sans`를 html에 걸어놓고도 body 선언이 이기고
@@ -340,8 +441,27 @@ Geist Mono는 OFL 라이선스라 앱에 번들할 수 있다. 웹은 `next/font
 ### 5.4 문구
 
 화면에 나오는 한국어는 웹과 글자까지 같게 쓴다: `오늘 벌어들인 금액`,
-`세전` / `실수령`, `퇴근까지 HH:MM:SS`, `점심시간 · 재개까지 HH:MM:SS`,
-`출근까지 HH:MM:SS`, `오늘 근무 종료`, `· 남은 ₩0`.
+`세전` / `실수령`, `퇴근까지 HH:MM:SS`, `점심시간 HH:MM:SS`,
+`출근까지 HH:MM:SS`, `· 남은 ₩0`.
+
+점심 문구는 원래 `점심시간 · 재개까지 HH:MM:SS`였다가 `점심시간 HH:MM:SS`로
+줄였다 — 메뉴바 상태줄이 폭에 걸려 잘리는 문제(`00:33:…`)를 겪었고,
+글자를 줄이는 대신 문구 자체를 줄이는 쪽을 택했다. 웹 `StatusLine.tsx`도
+같은 문구로 맞췄다.
+
+**퇴근 후 문구는 고정 문장이 아니라 다음 근무일까지의 간격에 따라 넷
+중 하나를 고른다** (`lib/afterWork.ts`):
+
+| 상황 | 문구 |
+|---|---|
+| 다음 근무일이 내일 | `오늘도 고생하셨어요` |
+| 내일은 쉬고, 이번 주 안에 또 출근 | `오늘도 고생하셨어요, 푹 쉬세요` |
+| 다음 근무일이 다음 주 | `이번 주도 고생하셨어요` |
+| 연휴 (4일 이상 쉼) | `연휴 잘 보내세요` |
+
+"다음 주"라고 쓰지 않은 이유: 수요일 퇴근 + 목요일 공휴일 + 금요일
+출근처럼, 다음 근무일이 이번 주 안인데도 "다음 주"라고 잘못 말하게 되는
+경우가 있다. 다음 근무일까지의 간격과 주 경계로 가른다.
 
 금액·시각 포맷도 `lib/format.ts`와 같은 규칙을 따른다. 특히 **금액은
 항상 내림한다** — 반올림하면 아직 벌지 않은 1원이 먼저 뜬다.
@@ -407,6 +527,10 @@ shared/golden/
   workdays.json      effectiveWorkDays / isDayOff
   settings.json      위 파일들이 이름으로 가리키는 설정 묶음
   palette.json       웹에서 실제로 쓰는 색 토큰 (5.1)
+  format.json        formatWon / formatKoreanUnits / formatDuration 등 (lib/format.ts)
+  clock.json         바늘 각도 · 문자판 호 (lib/clock.ts)
+  calendar.json      월별 날짜 상태 — work/weekend/holiday/custom-off/custom-work (lib/calendar.ts monthCells)
+  afterWork.json     퇴근 후 문구의 kind — tomorrow/restThisWeek/nextWeek/longBreak (lib/afterWork.ts, 5.4)
 ```
 
 vitest와 Swift Testing이 같은 파일을 읽는다. 규칙이 갈라지는 순간 한쪽
@@ -463,9 +587,42 @@ vitest와 Swift Testing이 같은 파일을 읽는다. 규칙이 갈라지는 �
 
 ## 10. 빌드와 배포
 
-`xcodebuild`로 로컬 빌드해 `/Applications`에 넣는다. **본인 기계에서
-빌드한 ad-hoc 서명 앱이라 Gatekeeper가 막지 않는다.** 이슈 #1이 걱정하던
-"우클릭으로 열기"나 `xattr -dr com.apple.quarantine`가 필요 없다.
+`scripts/install-app.sh`로 로컬 빌드해 `/Applications`에 넣는다.
+**본인 기계에서 빌드한 ad-hoc 서명 앱이라 Gatekeeper가 막지 않는다.**
+이슈 #1이 걱정하던 "우클릭으로 열기"나 `xattr -dr com.apple.quarantine`가
+필요 없다.
+
+```bash
+./scripts/install-app.sh
+open /Applications/SalaryClock.app
+```
+
+`install-app.sh`는 `scripts/bundle-app.sh release`로 번들을 만들고(4장),
+돌고 있는 이전 버전을 먼저 내린 뒤(실행 중인 번들을 덮어쓰면 다음 실행이
+깨진다) `/Applications`에 복사한다.
+
+**이 저장소는 `~/Documents` 아래에 있어 iCloud Drive가 동기화한다.**
+iCloud가 빌드 산출물에 붙이는 확장 속성 때문에 기본 `.build` 경로로는
+`codesign`이 "resource fork, Finder information, or similar detritus not
+allowed"로 실패한다 — `swift build`·`swift test`를 이 저장소에서 직접
+돌리려면 항상 iCloud 동기화 밖의 캐시 경로를 `--scratch-path`로 줘야
+한다. `bundle-app.sh`·`install-app.sh`는 내부에서 이미 처리하지만, 손으로
+돌리는 명령은 각자 지정해야 한다:
+
+```bash
+swift test --package-path macos/SalaryClockCore --scratch-path "$HOME/Library/Caches/salaryclock/core"
+swift test --package-path macos/SalaryClockApp  --scratch-path "$HOME/Library/Caches/salaryclock/app"
+```
+
+`npm run swift:test:core` / `npm run swift:test:app`가 같은 경로로 이미
+감싸져 있다.
+
+같은 이유로 **조립된 `.app` 자체도 문제가 될 수 있다.** `bundle-app.sh`가
+결과물을 두는 `macos/build/`는 스크래치 경로가 아니라 저장소 안이라
+iCloud 동기화 대상이다. 빌드 직후 `.app`에 iCloud가 `com.apple.FinderInfo`·
+`com.apple.fileprovider.fpfs#P` 같은 확장 속성을 붙이면 마지막 `codesign`
+단계가 같은 이유로 실패한다. `bundle-app.sh`는 서명 직전에 `xattr -cr "$APP"`로
+이 속성을 지워서 대응한다.
 
 Apple Developer 계정도 GitHub Actions도 필요 없다. 남에게 배포하고
 싶어지면 그때 붙인다.
@@ -508,9 +665,11 @@ Next.js 빌드는 `app/` 기준이라 `macos/`가 생겨도 Vercel 배포에 영
 
 ## 13. 확장 여지
 
+원래 여기 있던 "달력 근무일 지정"과 "다크모드 고정 토글"은 실행 중
+사용자 요청으로 이미 들어갔다 (2장 "뒤집힌 제외 항목", 4.3, 4.4). 남은
+확장 여지는 아래뿐이다.
+
 - 시계 얼굴 10종 — 5.3과 같은 방식으로 하나씩 늘린다. 팝오버를 키울 때 의미가 생긴다
-- 달력 근무일 지정 — `workdaysFromCalendar`를 같이 옮기고 설정 창에 달력을 붙인다
-- 다크모드 고정 토글 — 웹의 세 상태를 그대로 가져온다
 - Windows — 트레이에 글자를 못 넣으므로 항상-위 작은 창으로 다시 설계해야 한다.
   이슈 #1의 `/widget` 라우트 구상이 그쪽 출발점이다
 - 배포 — 코드 서명 + 공증 + GitHub Releases. 이슈 #1의 `tauri-action` 자리에

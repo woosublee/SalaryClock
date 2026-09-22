@@ -105,3 +105,23 @@ npm run build
 Next.js (App Router) · TypeScript · Tailwind CSS · zod · vitest
 
 서버 코드 없이 전부 클라이언트에서 렌더링합니다.
+
+## 맥 메뉴바 앱
+
+금액을 메뉴바에 직접 띄우는 네이티브 앱이 `macos/`에 있다.
+
+```bash
+./scripts/install-app.sh      # 빌드해서 /Applications에 설치
+open /Applications/SalaryClock.app
+```
+
+계산 규칙은 웹과 공유한다 — `shared/golden/*.json`을 양쪽 테스트가 함께
+읽으므로, 규칙이 갈라지면 한쪽이 빨개진다.
+
+```bash
+npm test                                      # 웹
+swift test --package-path macos/SalaryClockCore   # 맥
+```
+
+설계와 이식 결정은 `docs/superpowers/specs/2026-09-22-macos-menubar-design.md`에
+있다.

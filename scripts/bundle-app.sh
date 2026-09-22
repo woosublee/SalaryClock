@@ -20,6 +20,11 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/SalaryClock"
 
+# $APP 자체는 (SCRATCH와 달리) 저장소 안의 macos/build에 조립되므로 iCloud
+# 동기화 대상이다. iCloud가 붙이는 확장 속성(FinderInfo·fileprovider 등)
+# 때문에 아래 codesign이 같은 이유로 실패할 수 있어 서명 직전에 지운다.
+xattr -cr "$APP"
+
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
