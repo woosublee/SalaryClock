@@ -20,11 +20,6 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/SalaryClock"
 
-# $APP 자체는 (SCRATCH와 달리) 저장소 안의 macos/build에 조립되므로 iCloud
-# 동기화 대상이다. iCloud가 붙이는 확장 속성(FinderInfo·fileprovider 등)
-# 때문에 아래 codesign이 같은 이유로 실패할 수 있어 서명 직전에 지운다.
-xattr -cr "$APP"
-
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -43,6 +38,12 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
+
+# $APP 자체는 (SCRATCH와 달리) 저장소 안의 macos/build에 조립되므로 iCloud
+# 동기화 대상이다. iCloud가 붙이는 확장 속성(FinderInfo·fileprovider 등)
+# 때문에 codesign이 같은 이유로 실패할 수 있어, 지금 막 쓴 Info.plist까지
+# 포함해 서명 바로 직전에 지운다 — 그 사이에 새로 붙을 여지를 남기지 않는다.
+xattr -cr "$APP"
 
 # 본인 기계에서 쓸 것이라 ad-hoc 서명이면 충분하다. Gatekeeper가 막지 않는다.
 codesign --force --sign - "$APP"
