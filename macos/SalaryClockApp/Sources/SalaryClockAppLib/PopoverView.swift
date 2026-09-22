@@ -167,11 +167,11 @@ struct PopoverView: View {
             let text: String = {
                 switch e.phase {
                 case .before: return "출근까지 \(formatDuration(e.msUntilStart))"
-                // "· 재개까지"를 빼서 짧게 줄였다 — 팝오버 폭에서 가장 긴
-                // 문구였다. 웹은 아직 긴 쪽을 쓴다(components/StatusLine.tsx는
-                // 이 태스크 밖이라 손대지 않았다) — 이후 태스크가 맞춘다.
+                // "· 재개까지"를 빼서 짧게 줄였다 — 웹 StatusLine도 같은 문구다.
                 case .lunch: return "점심시간 \(formatDuration(e.msUntilLunchEnd))"
-                case .after: return "오늘 근무 종료"
+                // 종류(kind)는 SalaryClockCore가 정하고, 문구는 여기(UI)가 갖는다.
+                // 표는 웹 components/StatusLine.tsx의 AFTER_WORK_TEXT와 같다.
+                case .after: return afterWorkText(afterWorkKind(model.settings, model.now))
                 case .working: return "퇴근까지 \(formatDuration(e.msUntilEnd))"
                 // hidden이 이미 .dayoff를 걸러내므로 여기 오지 않는다 —
                 // switch를 다 채우기 위한 자리만 지킨다.
@@ -203,6 +203,18 @@ struct PopoverView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.85)
         }
+    }
+}
+
+/// 퇴근 후 격려 문구. 종류(kind)는 SalaryClockCore.afterWorkKind가 정하고,
+/// 실제 한국어 문장은 여기(UI)가 갖는다 — 웹 components/StatusLine.tsx의
+/// AFTER_WORK_TEXT와 같은 표를 따른다.
+private func afterWorkText(_ kind: AfterWorkKind) -> String {
+    switch kind {
+    case .tomorrow: return "오늘도 고생하셨어요"
+    case .restThisWeek: return "오늘도 고생하셨어요, 푹 쉬세요"
+    case .nextWeek: return "이번 주도 고생하셨어요"
+    case .longBreak: return "연휴 잘 보내세요"
     }
 }
 
