@@ -15,6 +15,7 @@ import { resolveShift } from '@/lib/shift'
 import { estimateDeductions } from '@/lib/deductions'
 import { effectiveWorkDays } from '@/lib/workdays'
 import { isDayOff, monthCells, workdaysFromCalendar } from '@/lib/calendar'
+import { afterWorkKind } from '@/lib/afterWork'
 import {
   formatWon,
   formatPerSecond,
@@ -191,6 +192,22 @@ const workdays = {
   })),
 }
 
+/** 퇴근 후 격려 문구의 종류. 문구 자체가 아니라 kind만 고정한다 — lib/afterWork 참고. */
+const AFTER_WORK_DAYS: { label: string; settings: string; at: Clock }[] = [
+  { label: '화요일 퇴근', settings: 'default', at: [2026, 8, 22, 19, 0, 0] },
+  { label: '수요일 퇴근 — 추석 연휴 직전', settings: 'default', at: [2026, 8, 23, 19, 0, 0] },
+  { label: '금요일 퇴근', settings: 'default', at: [2026, 8, 25, 19, 0, 0] },
+  { label: '목요일 퇴근', settings: 'default', at: [2026, 9, 1, 19, 0, 0] },
+  { label: '연휴 직전 — 설 연휴', settings: 'default', at: [2026, 1, 13, 19, 0, 0] },
+  { label: '공휴일을 출근으로 뒤집음', settings: 'workOnHoliday', at: [2026, 8, 23, 19, 0, 0] },
+  { label: '야간근무 퇴근 후 아침', settings: 'night', at: [2026, 8, 23, 7, 0, 0] },
+]
+
+const afterWork = AFTER_WORK_DAYS.map((m) => ({
+  ...m,
+  expected: afterWorkKind(SETTINGS[m.settings], ms(m.at)),
+}))
+
 const outDir = path.resolve(import.meta.dirname, '..', 'shared', 'golden')
 mkdirSync(outDir, { recursive: true })
 
@@ -226,6 +243,7 @@ const calendars = CALENDAR_MONTHS.map((m) => ({
 }))
 
 write('calendar.json', calendars)
+write('afterWork.json', afterWork)
 
 /** 내림 규칙과 소수 자리 처리를 고정한다. 반올림하면 안 벌은 돈이 먼저 뜬다. */
 const FORMAT_AMOUNTS = [0, 0.4, 0.9, 1, 999.99, 1234.56, 83412.49, 166666.66666666666, 1_0000_0000]

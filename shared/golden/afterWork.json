@@ -1,0 +1,93 @@
+[
+  {
+    "label": "화요일 퇴근",
+    "settings": "default",
+    "at": [
+      2026,
+      8,
+      22,
+      19,
+      0,
+      0
+    ],
+    "expected": "tomorrow"
+  },
+  {
+    "label": "수요일 퇴근 — 추석 연휴 직전",
+    "settings": "default",
+    "at": [
+      2026,
+      8,
+      23,
+      19,
+      0,
+      0
+    ],
+    "expected": "longBreak"
+  },
+  {
+    "label": "금요일 퇴근",
+    "settings": "default",
+    "at": [
+      2026,
+      8,
+      25,
+      19,
+      0,
+      0
+    ],
+    "expected": "nextWeek"
+  },
+  {
+    "label": "목요일 퇴근",
+    "settings": "default",
+    "at": [
+      2026,
+      9,
+      1,
+      19,
+      0,
+      0
+    ],
+    "expected": "tomorrow"
+  },
+  {
+    "label": "연휴 직전 — 설 연휴",
+    "settings": "default",
+    "at": [
+      2026,
+      1,
+      13,
+      19,
+      0,
+      0
+    ],
+    "expected": "longBreak"
+  },
+  {
+    "label": "공휴일을 출근으로 뒤집음",
+    "settings": "workOnHoliday",
+    "at": [
+      2026,
+      8,
+      23,
+      19,
+      0,
+      0
+    ],
+    "expected": "tomorrow"
+  },
+  {
+    "label": "야간근무 퇴근 후 아침",
+    "settings": "night",
+    "at": [
+      2026,
+      8,
+      23,
+      7,
+      0,
+      0
+    ],
+    "expected": "tomorrow"
+  }
+]

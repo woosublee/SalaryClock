@@ -12,6 +12,7 @@ import { resolveShift } from '@/lib/shift'
 import { estimateDeductions } from '@/lib/deductions'
 import { effectiveWorkDays } from '@/lib/workdays'
 import { isDayOff, monthCells, workdaysFromCalendar } from '@/lib/calendar'
+import { afterWorkKind } from '@/lib/afterWork'
 import { DEFAULT_SETTINGS, type Settings } from '@/lib/settings'
 import {
   formatWon,
@@ -174,6 +175,20 @@ describe('golden — clock', () => {
       const got = arcBetween(sh.startMs, sh.endMs)
       expect(got.startDeg).toBeCloseTo(a.expected.startDeg, 9)
       expect(got.sweepDeg).toBeCloseTo(a.expected.sweepDeg, 9)
+    })
+  }
+})
+
+describe('golden — afterWork', () => {
+  const cases = read('afterWork.json')
+
+  it('케이스가 비어 있지 않다', () => {
+    expect(cases.length).toBeGreaterThan(0)
+  })
+
+  for (const c of cases) {
+    it(`${c.label} (${c.settings})`, () => {
+      expect(afterWorkKind(SETTINGS[c.settings], ms(c.at))).toBe(c.expected)
     })
   }
 })

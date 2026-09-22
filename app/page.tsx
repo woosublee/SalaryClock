@@ -109,7 +109,7 @@ export default function Home() {
         <EarningsDisplay earnings={earnings} />
       )}
 
-      <StatusLine earnings={earnings} hidden={minimal} />
+      <StatusLine earnings={earnings} settings={settings} now={now} hidden={minimal} />
 
       {showPanel && (
         // revision을 key로 주면 설정이 바뀔 때마다 폼이 새로 마운트된다.
