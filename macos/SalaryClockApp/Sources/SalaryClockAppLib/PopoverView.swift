@@ -167,7 +167,10 @@ struct PopoverView: View {
             let text: String = {
                 switch e.phase {
                 case .before: return "출근까지 \(formatDuration(e.msUntilStart))"
-                case .lunch: return "점심시간 · 재개까지 \(formatDuration(e.msUntilLunchEnd))"
+                // "· 재개까지"를 빼서 짧게 줄였다 — 팝오버 폭에서 가장 긴
+                // 문구였다. 웹은 아직 긴 쪽을 쓴다(components/StatusLine.tsx는
+                // 이 태스크 밖이라 손대지 않았다) — 이후 태스크가 맞춘다.
+                case .lunch: return "점심시간 \(formatDuration(e.msUntilLunchEnd))"
                 case .after: return "오늘 근무 종료"
                 case .working: return "퇴근까지 \(formatDuration(e.msUntilEnd))"
                 // hidden이 이미 .dayoff를 걸러내므로 여기 오지 않는다 —
@@ -176,14 +179,29 @@ struct PopoverView: View {
                 }
             }()
 
-            HStack(spacing: 4) {
-                Text(text).foregroundStyle(theme.secondary)
+            // HStack에 Text 두 개를 따로 두면 minimumScaleFactor가 각자
+            // 따로 줄어들어(한쪽만 말줄임표가 남는 등) 어색해진다. Text를
+            // +로 이어 붙여 한 덩어리로 만들어야 전체가 같은 비율로 줄어든다.
+            Group {
                 if e.phase != .after {
-                    Text("· 남은 \(formatWon(e.remainingAmount))").foregroundStyle(theme.dim)
+                    Text(text).foregroundStyle(theme.secondary)
+                        + Text(" · 남은 \(formatWon(e.remainingAmount))").foregroundStyle(theme.dim)
+                } else {
+                    Text(text).foregroundStyle(theme.secondary)
                 }
             }
             .font(.system(size: 11, design: .monospaced))
             .monospacedDigit()
+            // 실제로 쓰는 범위(남은 금액 6자리, ₩999,999까지)는 188pt 폭에
+            // 그대로 들어간다 — minimumScaleFactor는 자연스러운 크기가
+            // 이미 맞으면 아무 것도 안 줄이는 "바닥값"이라, 이 범위에서는
+            // 100% 그대로 그려진다. 0.85는 그보다 큰 급여를 입력했을 때(7~8
+            // 자리, 예: "· 남은 ₩10,416,666")를 위한 안전망이다 — 줄바꿈을
+            // 허용하면 팝오버 높이가 들쑥날쑥해지므로 한 줄로 고정하고,
+            // 안 맞을 때만 그만큼 줄여서 맞춘다. 문구는 그대로 두고
+            // 레이아웃만 양보한다.
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
         }
     }
 }
