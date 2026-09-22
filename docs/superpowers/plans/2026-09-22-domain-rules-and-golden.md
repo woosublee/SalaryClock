@@ -18,9 +18,9 @@
 - **서버 코드 금지.** Server Action, Route Handler, `next/headers`를 쓰지 않는다. 페이지는 `'use client'`.
 - **`react-hooks/set-state-in-effect` 린트 규칙이 켜져 있다.** `useEffect` 안에서 `setState`를 부르면 에러다.
 - **UI 문구는 한국어.**
-- **새 의존성을 추가하지 않는다.** 골든 생성에는 vitest에 딸려 오는 `vite-node`를 쓴다.
+- **새 의존성을 추가하지 않는다.** 골든 생성 스크립트는 Node 26의 기본 타입 스트리핑으로 `.ts`를 그대로 실행하고, `@/` 별칭은 `scripts/ts-alias.mjs`(의존성 없는 15줄짜리 resolve 훅)가 푼다. `vite-node`는 vitest 5에 딸려 오지 않으므로 쓰지 않는다 — 확인함.
 - 테스트 실행: `npm test` (= `vitest run`)
-- 타입 검사: `npx tsc --noEmit`
+- 타입 검사: `npx tsc --noEmit`. **먼저 `npm run build`를 한 번 돌려야 한다** — `app/layout.tsx`가 쓰는 `LayoutProps`는 Next 16이 `.next/types`에 생성하는 전역 타입이라, 갓 받은 저장소에서는 이것 없이 `tsc`가 실패한다.
 - 린트: `npm run lint`
 - 커밋 메시지는 한국어, `feat:` / `fix:` / `chore:` 접두사를 쓴다.
 - 커밋 말미에 `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`를 붙인다.
@@ -43,6 +43,7 @@
 | `components/StatusLine.tsx` | `'dayoff'` 분기 (switch 완전성) |
 | `components/TimeDisplay.tsx` | 〃 |
 | `app/page.tsx` | 휴무일이면 가리기 화면 강제, 가리기 토글 숨김 |
+| `scripts/ts-alias.mjs` | `@/` 별칭을 푸는 Node resolve 훅. 스크립트 실행 전용 |
 | `scripts/generate-golden.ts` | 웹 구현에서 골든 JSON을 뽑는 스크립트 |
 | `scripts/extract-palette.ts` | 빌드된 CSS에서 색 토큰을 뽑는 스크립트 |
 | `shared/golden/*.json` | 생성물. 맥 앱 계획이 읽는다 |
@@ -82,10 +83,12 @@ Expected: 212개 통과, 실패 0
 - [ ] **Step 3: 타입과 린트도 확인**
 
 ```bash
-npx tsc --noEmit && npm run lint
+npm run build && npx tsc --noEmit && npm run lint
 ```
 
-Expected: 둘 다 오류 없음
+Expected: 셋 다 오류 없음
+
+`npm run build`를 먼저 돌리는 이유: `app/layout.tsx`의 `LayoutProps`는 Next 16이 `.next/types`에 만들어주는 전역 타입이라, 빌드 전에는 `tsc`가 `TS2304: Cannot find name 'LayoutProps'`로 실패한다. 이 계획과 무관한 기존 조건이다.
 
 ---
 
@@ -829,7 +832,38 @@ EOF
 
 **시각은 `[year, month, day, hour, minute, second]` 배열로 적는다.** (월은 0-based) epoch ms를 박으면 타임존 독립성이 깨진다. Swift 쪽은 `DateComponents`로 같은 방식으로 읽는다.
 
-`vite-node`는 vitest에 딸려 오므로 새 의존성이 없고, `vitest.config.mts`의 `@` 별칭을 그대로 쓴다.
+- [ ] **Step 0: `@/` 별칭 훅을 만든다**
+
+Node 26은 `.ts`를 그대로 실행하지만(타입 스트리핑) `@/` 별칭은 모른다. `tsconfig.json`의 `paths`는 Node가 읽지 않는다. 15줄짜리 resolve 훅으로 푼다 — 새 의존성이 없다.
+
+`scripts/ts-alias.mjs`:
+
+```js
+/**
+ * `@/...` 를 저장소 루트 기준으로 푸는 Node resolve 훅.
+ *
+ * tsconfig의 paths는 Node가 읽지 않고, vitest는 자기 설정으로 별칭을 풀지만
+ * 스크립트는 vitest 밖에서 돈다. 스크립트 실행 전용이며 앱 번들에는 들어가지 않는다.
+ *
+ * 쓰는 법: node --import ./scripts/ts-alias.mjs scripts/<script>.ts
+ */
+import { registerHooks } from 'node:module'
+import { existsSync } from 'node:fs'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+
+const root = path.resolve(import.meta.dirname, '..')
+
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (!specifier.startsWith('@/')) return nextResolve(specifier, context)
+
+    const base = path.join(root, specifier.slice(2))
+    const target = existsSync(base) ? base : `${base}.ts`
+    return nextResolve(pathToFileURL(target).href, context)
+  },
+})
+```
 
 - [ ] **Step 1: 생성 스크립트를 쓴다**
 
@@ -1014,7 +1048,7 @@ interface Deductions {
 `scripts` 블록에 넣는다:
 
 ```json
-    "golden": "vite-node scripts/generate-golden.ts",
+    "golden": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-alias.mjs scripts/generate-golden.ts",
 ```
 
 - [ ] **Step 3: 스크립트를 돌린다**
@@ -1104,7 +1138,7 @@ Expected: 전부 통과. 골든 케이스만큼 테스트 수가 늘어난다
 - [ ] **Step 6: 커밋**
 
 ```bash
-git add scripts/generate-golden.ts shared/golden lib/__tests__/golden.test.ts package.json
+git add scripts/ts-alias.mjs scripts/generate-golden.ts shared/golden lib/__tests__/golden.test.ts package.json
 git commit -m "$(cat <<'EOF'
 chore: 맥 앱이 읽을 골든 파일을 웹 구현에서 뽑는다
 
@@ -1220,7 +1254,7 @@ console.log('wrote shared/golden/palette.json')
 - [ ] **Step 3: `package.json`에 스크립트를 추가한다**
 
 ```json
-    "palette": "vite-node scripts/extract-palette.ts",
+    "palette": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-alias.mjs scripts/extract-palette.ts",
 ```
 
 - [ ] **Step 4: 돌려서 확인한다**
