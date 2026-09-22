@@ -9,9 +9,21 @@ public struct Shift: Equatable, Sendable {
     public let paidMs: Int
 }
 
+/// "HH:mm"을 분으로 바꾼다. 형식이 깨졌으면 0.
+///
+/// SettingsStore가 저장 시점에 검증하므로 여기까지 오면 계약이 깨진 것이다.
+/// 디버그·테스트에서는 즉시 멈추고, 릴리스에서는 0으로 버티며 앱을 살려둔다.
+private func minutesOrZero(_ v: String) -> Int {
+    guard let m = parseHHmm(v) else {
+        assertionFailure("시각 형식이 올바르지 않습니다: \(v)")
+        return 0
+    }
+    return m
+}
+
 private func buildShift(_ s: Settings, _ dayStart: Int) -> Shift {
-    let workStartMin = parseHHmm(s.workStart) ?? 0
-    let shiftMin = durationMinutes(workStartMin, parseHHmm(s.workEnd) ?? 0)
+    let workStartMin = minutesOrZero(s.workStart)
+    let shiftMin = durationMinutes(workStartMin, minutesOrZero(s.workEnd))
 
     let startMs = dayStart + workStartMin * MS_PER_MINUTE
     let endMs = startMs + shiftMin * MS_PER_MINUTE
@@ -21,7 +33,7 @@ private func buildShift(_ s: Settings, _ dayStart: Int) -> Shift {
     var lunchMs = 0
 
     if s.lunchEnabled {
-        let offsetMin = durationMinutes(workStartMin, parseHHmm(s.lunchStart) ?? 0)
+        let offsetMin = durationMinutes(workStartMin, minutesOrZero(s.lunchStart))
         let ls = startMs + offsetMin * MS_PER_MINUTE
         lunchStartMs = ls
         lunchEndMs = ls + s.lunchMinutes * MS_PER_MINUTE
@@ -60,6 +72,8 @@ public func resolveShift(_ s: Settings, _ now: Int) -> Shift {
         return c
     }
 
+    // 둘 중 최대 하나만 걸린다. yesterday가 걸리려면 시프트가 자정을 넘어야 하고
+    // todayShift가 걸리려면 넘지 않아야 해서, 둘이 동시에 참일 수 없다.
     if let ended = [yesterday, todayShift].first(where: { $0.endMs <= now && $0.endMs > today }) {
         return ended
     }
