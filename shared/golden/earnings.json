@@ -168,6 +168,34 @@
     }
   },
   {
+    "label": "퇴근 정각",
+    "settings": "default",
+    "at": [
+      2026,
+      8,
+      22,
+      18,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "after",
+      "earned": 166666.66666666666,
+      "perSecond": 0,
+      "progress": 1,
+      "elapsedPaidMs": 28800000,
+      "totalPaidMs": 28800000,
+      "msUntilStart": 0,
+      "msUntilEnd": 0,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 0,
+      "dailyTotal": 166666.66666666666,
+      "workDays": 20,
+      "deductionRate": 0,
+      "hasShift": true
+    }
+  },
+  {
     "label": "퇴근 직후",
     "settings": "default",
     "at": [
@@ -473,6 +501,62 @@
       "workDays": 20,
       "deductionRate": 0,
       "hasShift": true
+    }
+  },
+  {
+    "label": "야간근무가 공휴일 새벽으로 넘어감",
+    "settings": "night",
+    "at": [
+      2026,
+      8,
+      24,
+      3,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 95238.09523809524,
+      "perSecond": 6.613756613756614,
+      "progress": 0.5714285714285714,
+      "elapsedPaidMs": 14400000,
+      "totalPaidMs": 25200000,
+      "msUntilStart": 0,
+      "msUntilEnd": 10800000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 71428.57142857142,
+      "dailyTotal": 166666.66666666666,
+      "workDays": 20,
+      "deductionRate": 0,
+      "hasShift": true
+    }
+  },
+  {
+    "label": "공휴일에 시작한 야간근무",
+    "settings": "night",
+    "at": [
+      2026,
+      8,
+      25,
+      3,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "dayoff",
+      "earned": 0,
+      "perSecond": 0,
+      "progress": 0,
+      "elapsedPaidMs": 0,
+      "totalPaidMs": 25200000,
+      "msUntilStart": 0,
+      "msUntilEnd": 0,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 0,
+      "dailyTotal": 0,
+      "workDays": 20,
+      "deductionRate": 0,
+      "hasShift": false
     }
   },
   {

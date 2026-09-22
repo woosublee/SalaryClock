@@ -114,6 +114,25 @@
     }
   },
   {
+    "label": "퇴근 정각",
+    "settings": "default",
+    "at": [
+      2026,
+      8,
+      22,
+      18,
+      0,
+      0
+    ],
+    "expected": {
+      "startMs": 1790035200000,
+      "endMs": 1790067600000,
+      "lunchStartMs": 1790046000000,
+      "lunchEndMs": 1790049600000,
+      "paidMs": 28800000
+    }
+  },
+  {
     "label": "퇴근 직후",
     "settings": "default",
     "at": [
@@ -319,6 +338,44 @@
       "endMs": 1790110800000,
       "lunchStartMs": 1790092800000,
       "lunchEndMs": 1790096400000,
+      "paidMs": 25200000
+    }
+  },
+  {
+    "label": "야간근무가 공휴일 새벽으로 넘어감",
+    "settings": "night",
+    "at": [
+      2026,
+      8,
+      24,
+      3,
+      0,
+      0
+    ],
+    "expected": {
+      "startMs": 1790168400000,
+      "endMs": 1790197200000,
+      "lunchStartMs": 1790179200000,
+      "lunchEndMs": 1790182800000,
+      "paidMs": 25200000
+    }
+  },
+  {
+    "label": "공휴일에 시작한 야간근무",
+    "settings": "night",
+    "at": [
+      2026,
+      8,
+      25,
+      3,
+      0,
+      0
+    ],
+    "expected": {
+      "startMs": 1790254800000,
+      "endMs": 1790283600000,
+      "lunchStartMs": 1790265600000,
+      "lunchEndMs": 1790269200000,
       "paidMs": 25200000
     }
   },
