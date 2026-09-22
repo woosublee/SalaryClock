@@ -155,5 +155,24 @@
     "clockStyle": "minimal",
     "hideAmount": false,
     "theme": "light"
+  },
+  "workFridayOfHolidayWeek": {
+    "payMode": "annual",
+    "payAmount": 40000000,
+    "workDaysMode": "auto",
+    "workDaysPerMonth": 21,
+    "dayOverrides": [
+      "2026-09-25"
+    ],
+    "workStart": "09:00",
+    "workEnd": "18:00",
+    "lunchEnabled": true,
+    "lunchStart": "12:00",
+    "lunchMinutes": 60,
+    "netPay": false,
+    "deductionRate": null,
+    "clockStyle": "minimal",
+    "hideAmount": false,
+    "theme": "light"
   }
 }

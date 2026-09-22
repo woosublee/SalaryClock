@@ -89,5 +89,18 @@
       0
     ],
     "expected": "tomorrow"
+  },
+  {
+    "label": "추석 연휴 중 금요일만 출근 — 같은 주",
+    "settings": "workFridayOfHolidayWeek",
+    "at": [
+      2026,
+      8,
+      23,
+      19,
+      0,
+      0
+    ],
+    "expected": "restThisWeek"
   }
 ]

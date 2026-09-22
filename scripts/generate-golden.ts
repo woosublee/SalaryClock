@@ -59,6 +59,9 @@ const net: Settings = { ...DEFAULT_SETTINGS, netPay: true }
 const noLunch: Settings = { ...DEFAULT_SETTINGS, lunchEnabled: false }
 const offToday: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-22'] }
 const workOnHoliday: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-24'] }
+// 9/24(목)는 추석이라 그대로 쉬고 9/25(금)만 출근으로 뒤집는다 — afterWorkKind가
+// restThisWeek(같은 주)를 내는 유일한 골든 케이스를 만들기 위한 설정이다.
+const workFridayOfHolidayWeek: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-25'] }
 
 const SETTINGS: Record<string, Settings> = {
   default: DEFAULT_SETTINGS,
@@ -70,6 +73,7 @@ const SETTINGS: Record<string, Settings> = {
   net,
   offToday,
   workOnHoliday,
+  workFridayOfHolidayWeek,
 }
 
 /** 경계만 촘촘히 깐다. 가운데 값은 규칙이 갈라져도 잘 안 드러난다. */
@@ -201,6 +205,11 @@ const AFTER_WORK_DAYS: { label: string; settings: string; at: Clock }[] = [
   { label: '연휴 직전 — 설 연휴', settings: 'default', at: [2026, 1, 13, 19, 0, 0] },
   { label: '공휴일을 출근으로 뒤집음', settings: 'workOnHoliday', at: [2026, 8, 23, 19, 0, 0] },
   { label: '야간근무 퇴근 후 아침', settings: 'night', at: [2026, 8, 23, 7, 0, 0] },
+  {
+    label: '추석 연휴 중 금요일만 출근 — 같은 주',
+    settings: 'workFridayOfHolidayWeek',
+    at: [2026, 8, 23, 19, 0, 0],
+  },
 ]
 
 const afterWork = AFTER_WORK_DAYS.map((m) => ({
