@@ -12,6 +12,8 @@
  * 쓰는 lab() 값이다. 최신 맥은 전부 P3 디스플레이라 웹은 실제로 lab() 값을
  * 렌더링한다 — hex만 옮기면 맥 앱이 웹과 미묘하게 다른 색으로 보인다. 그래서
  * 손으로 hex를 옮겨 적지 않고, 두 값을 전부 빌드 결과에서 그대로 가져온다.
+ * --background/--foreground도 마찬가지다. Tailwind 팔레트 밖의 변수지만
+ * 빌드된 CSS에 그대로 나오므로 같은 방식으로 뽑는다.
  *
  * 실행: npm run build && npm run palette
  */
@@ -39,26 +41,56 @@ const TOKENS = [
   'slate-600',
   'slate-700',
   'slate-800',
+  'slate-900',
   'slate-950',
   'emerald-400',
   'emerald-500',
   'emerald-600',
 ] as const
 
-type Entry = { hex: string; lab: string }
+/**
+ * 넓은 색역에서도 같은 색이라 Tailwind가 lab() 변형을 내보내지 않는 토큰.
+ * hex 하나만 나오는 게 정상이므로 따로 둔다.
+ */
+const HEX_ONLY_TOKENS = ['white'] as const
+
+type Entry = { hex: string; lab: string | null }
+
+const values = (name: string) =>
+  [...css.matchAll(new RegExp(`--${name}:([^;}]+)[;}]`, 'g'))].map((m) => m[1])
 
 const found: Record<string, Entry> = {}
 const missing: string[] = []
 
-for (const token of TOKENS) {
+for (const token of [...TOKENS, ...HEX_ONLY_TOKENS]) {
   // 토큰마다 --color-<token>: 선언이 두 번 나온다: hex 폴백, 그다음 lab() 값.
   // 순서에 기대지 않고 각 값의 모양으로 hex/lab을 구분한다.
-  const matches = [...css.matchAll(new RegExp(`--color-${token}:([^;]+);`, 'g'))]
-  const hex = matches.map((m) => m[1]).find((v) => v.startsWith('#'))
-  const lab = matches.map((m) => m[1]).find((v) => v.startsWith('lab('))
-  if (hex && lab) found[token] = { hex, lab }
+  const vs = values(`color-${token}`)
+  const hex = vs.find((v) => v.startsWith('#'))
+  const lab = vs.find((v) => v.startsWith('lab(')) ?? null
+  const labNeeded = (TOKENS as readonly string[]).includes(token)
+  if (hex && (lab || !labNeeded)) found[token] = { hex, lab }
   else missing.push(token)
 }
+
+/**
+ * 밝게/어둡게가 갈리는 CSS 변수를 뽑는다.
+ *
+ * 선언 순서는 :root(밝게)가 먼저고 다크 규칙이 뒤따른다. 첫 값이 밝게,
+ * 그와 다른 첫 값이 어둡게다. 여기도 손으로 적지 않는다 — 스펙 5.1.
+ */
+const themedVar = (name: string): { light: string; dark: string } | null => {
+  const vs = values(name)
+  const light = vs[0]
+  const dark = vs.slice(1).find((v) => v !== light)
+  return light && dark ? { light, dark } : null
+}
+
+const bodyBackground = themedVar('background')
+const bodyForeground = themedVar('foreground')
+
+if (!bodyBackground) missing.push('--background')
+if (!bodyForeground) missing.push('--foreground')
 
 if (missing.length > 0) {
   console.error(`CSS에서 못 찾은 토큰: ${missing.join(', ')}`)
@@ -68,11 +100,36 @@ if (missing.length > 0) {
   process.exit(1)
 }
 
+/**
+ * 화면에 실제로 칠해지는 색. app/page.tsx의 <main>이 bg-white dark:bg-slate-950 /
+ * text-slate-900 dark:text-slate-100으로 body 변수를 화면 전체에서 덮어쓴다.
+ * 팝오버는 body 변수가 아니라 이쪽을 따라야 웹과 같아 보인다.
+ * hex를 다시 적지 않고 tokens의 이름을 가리킨다.
+ */
+const surface = {
+  note: 'app/page.tsx의 <main>이 칠하는 색. 값은 tokens의 키다. 팝오버는 이쪽을 쓴다.',
+  background: { light: 'white', dark: 'slate-950' },
+  foreground: { light: 'slate-900', dark: 'slate-100' },
+}
+
+const dangling = [surface.background, surface.foreground]
+  .flatMap((pair) => Object.values(pair))
+  .filter((name) => !(name in found))
+
+if (dangling.length > 0) {
+  console.error(`surface가 가리키는 토큰이 tokens에 없다: ${dangling.join(', ')}`)
+  process.exit(1)
+}
+
 const palette = {
   note: 'npm run build && npm run palette 로 다시 뽑는다. 손으로 고치지 말 것.',
-  // app/globals.css의 CSS 변수 값. Tailwind 팔레트에 없어 여기서만 손으로 적는다.
-  background: { light: '#ffffff', dark: '#0a0a0a' },
-  foreground: { light: '#171717', dark: '#ededed' },
+  surface,
+  // app/globals.css의 body 변수. <main>이 덮어써서 화면에는 거의 보이지 않는다.
+  bodyFallback: {
+    note: 'app/globals.css의 --background/--foreground. <main>이 덮어쓰는 폴백이다.',
+    background: bodyBackground,
+    foreground: bodyForeground,
+  },
   tokens: found,
 }
 

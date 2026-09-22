@@ -1,12 +1,26 @@
 {
   "note": "npm run build && npm run palette 로 다시 뽑는다. 손으로 고치지 말 것.",
-  "background": {
-    "light": "#ffffff",
-    "dark": "#0a0a0a"
+  "surface": {
+    "note": "app/page.tsx의 <main>이 칠하는 색. 값은 tokens의 키다. 팝오버는 이쪽을 쓴다.",
+    "background": {
+      "light": "white",
+      "dark": "slate-950"
+    },
+    "foreground": {
+      "light": "slate-900",
+      "dark": "slate-100"
+    }
   },
-  "foreground": {
-    "light": "#171717",
-    "dark": "#ededed"
+  "bodyFallback": {
+    "note": "app/globals.css의 --background/--foreground. <main>이 덮어쓰는 폴백이다.",
+    "background": {
+      "light": "#fff",
+      "dark": "#0a0a0a"
+    },
+    "foreground": {
+      "light": "#171717",
+      "dark": "#ededed"
+    }
   },
   "tokens": {
     "slate-100": {
@@ -41,6 +55,10 @@
       "hex": "#1d293d",
       "lab": "lab(16.132% -.318035 -14.6672)"
     },
+    "slate-900": {
+      "hex": "#0f172b",
+      "lab": "lab(7.78673% 1.82345 -15.0537)"
+    },
     "slate-950": {
       "hex": "#020618",
       "lab": "lab(1.76974% 1.32743 -9.28855)"
@@ -56,6 +74,10 @@
     "emerald-600": {
       "hex": "#009767",
       "lab": "lab(55.0481% -49.9246 15.93)"
+    },
+    "white": {
+      "hex": "#fff",
+      "lab": null
     }
   }
 }
