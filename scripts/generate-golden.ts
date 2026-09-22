@@ -62,6 +62,26 @@ const workOnHoliday: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-2
 // 9/24(목)는 추석이라 그대로 쉬고 9/25(금)만 출근으로 뒤집는다 — afterWorkKind가
 // restThisWeek(같은 주)를 내는 유일한 골든 케이스를 만들기 위한 설정이다.
 const workFridayOfHolidayWeek: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-25'] }
+// 공제율을 직접 넣은 경우. 이게 없으면 deductionRateFor의 "사용자 값을 쓴다"
+// 분기가 어느 골든에도 안 걸려서, 필드를 통째로 무시하고 늘 추정하는 구현도
+// 전부 통과한다. 맥 설정 창에 공제율 칸이 생긴 뒤로는 실제 사용자 경로다.
+const customRate: Settings = { ...net, deductionRate: 0.245 }
+// calendar 모드 — 근무일수를 달력에서 센다. 평일 하나를 쉬고 주말 둘을 일해
+// auto(평일 − 공휴일)와 숫자가 갈라지게 둔다. 그렇지 않으면 calendar 분기를
+// auto로 구현해도 통과한다. 뒤집는 날은 아래 moment의 날짜(9/22)를 피한다 —
+// 그날을 뒤집으면 근무일수가 아니라 phase가 달라져 무엇을 보는지 흐려진다.
+const calendarMode: Settings = {
+  ...DEFAULT_SETTINGS,
+  workDaysMode: 'calendar',
+  dayOverrides: ['2026-09-21', '2026-09-26', '2026-09-27'],
+}
+// manual 모드 — workDaysPerMonth를 그대로 쓴다. 기본값 21은 9월의 auto 값과
+// 겹칠 수 있어 일부러 18로 어긋내 둔다.
+const manualMode: Settings = {
+  ...DEFAULT_SETTINGS,
+  workDaysMode: 'manual',
+  workDaysPerMonth: 18,
+}
 
 const SETTINGS: Record<string, Settings> = {
   default: DEFAULT_SETTINGS,
@@ -74,6 +94,9 @@ const SETTINGS: Record<string, Settings> = {
   offToday,
   workOnHoliday,
   workFridayOfHolidayWeek,
+  customRate,
+  calendarMode,
+  manualMode,
 }
 
 /** 경계만 촘촘히 깐다. 가운데 값은 규칙이 갈라져도 잘 안 드러난다. */
@@ -110,6 +133,9 @@ const MOMENTS: { label: string; settings: string; at: Clock }[] = [
   { label: '야간근무 연말 — 자정 직후', settings: 'night', at: [2027, 0, 1, 0, 0, 1] },
   { label: 'override로 쉬는 평일', settings: 'offToday', at: [2026, 8, 22, 14, 0, 0] },
   { label: 'override로 출근한 공휴일', settings: 'workOnHoliday', at: [2026, 8, 24, 14, 0, 0] },
+  { label: '공제율 직접 입력 — 근무 중', settings: 'customRate', at: [2026, 8, 22, 14, 0, 0] },
+  { label: '달력 모드 근무일수 — 근무 중', settings: 'calendarMode', at: [2026, 8, 22, 14, 0, 0] },
+  { label: '수동 근무일수 — 근무 중', settings: 'manualMode', at: [2026, 8, 22, 14, 0, 0] },
 ]
 
 const earnings = MOMENTS.map((m) => {
@@ -155,10 +181,20 @@ const shifts = MOMENTS.map((m) => {
   }
 })
 
-// 양 끝을 넣어 연금 하한과 상위 세율 구간·세액공제 한도까지 닿게 한다.
+/**
+ * 양 끝을 넣어 연금 상·하한과 상위 세율 구간·세액공제 한도까지 닿게 한다.
+ *
+ * 경계값만이 아니라 "한 번도 안 들어가는 분기"가 없어야 한다. 각 값이 여는 분기:
+ *   200_000     — 연금 하한(PENSION_FLOOR), 근로소득공제 1구간(연 500만 이하 ×0.7)
+ *   20_000_000  — 누진세율 38% 구간 (과세표준 약 2.06억)
+ *   50_000_000  — 누진세율 42% 구간 (과세표준 약 5.41억)
+ *   100_000_000 — 누진세율 45% 구간 (과세표준 약 11.0억)
+ * 나머지 값이 6·15·24·35·40% 구간과 근로소득공제 2~5구간, 세액공제 한도
+ * 네 구간을 이미 덮는다.
+ */
 const GROSSES = [
-  500_000, 1_500_000, 2_000_000, 3_000_000, 3_500_000, 5_000_000, 6_000_000, 10_000_000,
-  30_000_000,
+  200_000, 500_000, 1_500_000, 2_000_000, 3_000_000, 3_500_000, 5_000_000, 6_000_000,
+  10_000_000, 20_000_000, 30_000_000, 50_000_000, 100_000_000,
 ]
 
 const deductions = GROSSES.map((gross) => {

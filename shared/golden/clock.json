@@ -711,6 +711,54 @@
         "startDeg": 270,
         "sweepDeg": 270
       }
+    },
+    {
+      "label": "공제율 직접 입력 — 근무 중",
+      "settings": "customRate",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "달력 모드 근무일수 — 근무 중",
+      "settings": "calendarMode",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "수동 근무일수 — 근무 중",
+      "settings": "manualMode",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
     }
   ]
 }

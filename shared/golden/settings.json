@@ -174,5 +174,60 @@
     "clockStyle": "minimal",
     "hideAmount": false,
     "theme": "light"
+  },
+  "customRate": {
+    "payMode": "annual",
+    "payAmount": 40000000,
+    "workDaysMode": "auto",
+    "workDaysPerMonth": 21,
+    "dayOverrides": [],
+    "workStart": "09:00",
+    "workEnd": "18:00",
+    "lunchEnabled": true,
+    "lunchStart": "12:00",
+    "lunchMinutes": 60,
+    "netPay": true,
+    "deductionRate": 0.245,
+    "clockStyle": "minimal",
+    "hideAmount": false,
+    "theme": "light"
+  },
+  "calendarMode": {
+    "payMode": "annual",
+    "payAmount": 40000000,
+    "workDaysMode": "calendar",
+    "workDaysPerMonth": 21,
+    "dayOverrides": [
+      "2026-09-21",
+      "2026-09-26",
+      "2026-09-27"
+    ],
+    "workStart": "09:00",
+    "workEnd": "18:00",
+    "lunchEnabled": true,
+    "lunchStart": "12:00",
+    "lunchMinutes": 60,
+    "netPay": false,
+    "deductionRate": null,
+    "clockStyle": "minimal",
+    "hideAmount": false,
+    "theme": "light"
+  },
+  "manualMode": {
+    "payMode": "annual",
+    "payAmount": 40000000,
+    "workDaysMode": "manual",
+    "workDaysPerMonth": 18,
+    "dayOverrides": [],
+    "workStart": "09:00",
+    "workEnd": "18:00",
+    "lunchEnabled": true,
+    "lunchStart": "12:00",
+    "lunchMinutes": 60,
+    "netPay": false,
+    "deductionRate": null,
+    "clockStyle": "minimal",
+    "hideAmount": false,
+    "theme": "light"
   }
 }

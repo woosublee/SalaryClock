@@ -894,5 +894,89 @@
       "deductionRate": 0,
       "hasShift": true
     }
+  },
+  {
+    "label": "공제율 직접 입력 — 근무 중",
+    "settings": "customRate",
+    "at": [
+      2026,
+      8,
+      22,
+      14,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 62916.666666666664,
+      "perSecond": 4.369212962962963,
+      "progress": 0.5,
+      "elapsedPaidMs": 14400000,
+      "totalPaidMs": 28800000,
+      "msUntilStart": 0,
+      "msUntilEnd": 14400000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 62916.666666666664,
+      "dailyTotal": 125833.33333333333,
+      "workDays": 20,
+      "deductionRate": 0.245,
+      "hasShift": true
+    }
+  },
+  {
+    "label": "달력 모드 근무일수 — 근무 중",
+    "settings": "calendarMode",
+    "at": [
+      2026,
+      8,
+      22,
+      14,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 79365.07936507936,
+      "perSecond": 5.511463844797178,
+      "progress": 0.5,
+      "elapsedPaidMs": 14400000,
+      "totalPaidMs": 28800000,
+      "msUntilStart": 0,
+      "msUntilEnd": 14400000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 79365.07936507936,
+      "dailyTotal": 158730.15873015873,
+      "workDays": 21,
+      "deductionRate": 0,
+      "hasShift": true
+    }
+  },
+  {
+    "label": "수동 근무일수 — 근무 중",
+    "settings": "manualMode",
+    "at": [
+      2026,
+      8,
+      22,
+      14,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 92592.5925925926,
+      "perSecond": 6.4300411522633745,
+      "progress": 0.5,
+      "elapsedPaidMs": 14400000,
+      "totalPaidMs": 28800000,
+      "msUntilStart": 0,
+      "msUntilEnd": 14400000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 92592.5925925926,
+      "dailyTotal": 185185.1851851852,
+      "workDays": 18,
+      "deductionRate": 0,
+      "hasShift": true
+    }
   }
 ]
