@@ -81,13 +81,27 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// 설정 창을 연다. 이미 떠 있으면 새로 만들지 않고 앞으로 가져온다.
+    /// 설정 창을 연다. 창(NSWindow)은 재사용하지만 그 안의 SettingsView는 열 때마다
+    /// 새로 만든다 — SettingsView의 draft는 @State라 한 번 초기화되면 창을 취소로
+    /// 닫아도 메모리에 남아 있어서, 창만 재사용하고 뷰를 그대로 두면 다음에 열 때
+    /// 저장하지 않은 값이 되돌아온다. 웹이 SettingsPanel을 열릴 때마다
+    /// key={revision}으로 다시 마운트해 이 문제를 피하는 것과 같은 이유로,
+    /// 여기서는 NSHostingController를 매번 새로 만들어 SettingsView가
+    /// SettingsStore.shared.settings에서 다시 초기화되게 한다.
+    ///
     /// LSUIElement 앱은 기본적으로 창을 앞으로 못 가져오므로 activate가 필요하다.
     private func openSettings() {
         popover.performClose(nil)
         startTimer(interval: 1)
 
+        let hosting = NSHostingController(
+            rootView: SettingsView(onDone: { [weak self] in
+                self?.settingsWindow?.close()
+            })
+        )
+
         if let w = settingsWindow {
+            w.contentViewController = hosting
             w.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
@@ -100,11 +114,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         window.title = "SalaryClock 설정"
         window.isReleasedWhenClosed = false
-        window.contentViewController = NSHostingController(
-            rootView: SettingsView(onDone: { [weak self] in
-                self?.settingsWindow?.close()
-            })
-        )
+        window.contentViewController = hosting
         window.center()
         settingsWindow = window
         window.makeKeyAndOrderFront(nil)

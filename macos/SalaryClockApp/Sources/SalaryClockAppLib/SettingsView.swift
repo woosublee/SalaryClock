@@ -25,6 +25,8 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("설정").font(.system(size: 18, weight: .bold))
 
+            // 실수령액 토글·공제율은 웹처럼 급여 박스 안, 금액 바로 아래에 둔다 —
+            // 근무시간·점심 밑으로 내려서 급여 묶음을 깨뜨리지 않는다.
             field("급여") {
                 Picker("", selection: $draft.payMode) {
                     Text("연봉").tag(PayMode.annual)
@@ -34,19 +36,41 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
                 .labelsHidden()
 
+                // 웹의 금액칸(text-xl, 오른쪽 정렬, "원" 접미사)과 같은 강조를 준다.
+                // "원"이 숫자와 겹치지 않도록 필드 자체에 오른쪽 여백을 비워 두고
+                // 그 자리에 접미사를 얹는다.
                 TextField("", value: $draft.payAmount, format: .number)
                     .textFieldStyle(.roundedBorder)
+                    .multilineTextAlignment(.trailing)
+                    .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                    .padding(.trailing, 22)
+                    .overlay(alignment: .trailing) {
+                        Text("원")
+                            .font(.system(size: 13))
+                            .foregroundStyle(theme.dim)
+                            .padding(.trailing, 10)
+                    }
                 Text(formatKoreanUnits(draft.payAmount))
                     .font(.system(size: 11))
                     .foregroundStyle(theme.dim)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+
+                Toggle("실수령액 기준으로 보기", isOn: $draft.netPay)
+                // 같은 급여를 넣어도 웹과 맥이 다른 금액을 보여준 원인 중 하나가
+                // 이 필드의 부재였다 — 근무일수(auto)는 웹과 같은 계산이라 문제가
+                // 아니었고, 공제율을 웹은 직접 입력할 수 있는데 맥은 항상 추정치만
+                // 썼다. deductionRate가 nil이면 추정치를, 있으면 그 값을 그대로
+                // 쓴다 (SalaryClockCore.deductionRateFor).
+                if draft.netPay {
+                    deductionSection
+                }
             }
 
-            field("근무 시간") {
-                HStack {
-                    timeField($draft.workStart)
-                    Text("–").foregroundStyle(theme.dim)
-                    timeField($draft.workEnd)
-                }
+            // 웹은 출근·퇴근을 각자 라벨을 단 칸으로 나란히 보여준다 — 하나의
+            // "근무 시간" 헤더에 대시로 묶지 않는다.
+            HStack(alignment: .top, spacing: 12) {
+                field("출근") { timeField($draft.workStart) }
+                field("퇴근") { timeField($draft.workEnd) }
             }
 
             field("점심") {
@@ -63,15 +87,6 @@ struct SettingsView: View {
                 }
             }
 
-            Toggle("실수령액 기준으로 보기", isOn: $draft.netPay)
-            // 같은 급여를 넣어도 웹과 맥이 다른 금액을 보여준 원인 중 하나가
-            // 이 필드의 부재였다 — 근무일수(auto)는 웹과 같은 계산이라 문제가
-            // 아니었고, 공제율을 웹은 직접 입력할 수 있는데 맥은 항상 추정치만
-            // 썼다. deductionRate가 nil이면 추정치를, 있으면 그 값을 그대로
-            // 쓴다 (SalaryClockCore.deductionRateFor).
-            if draft.netPay {
-                deductionSection
-            }
             Toggle("로그인할 때 자동 실행", isOn: $launchAtLogin)
                 .onChange(of: launchAtLogin) { _, on in
                     // 등록이 실패해도 앱은 계속 돌아야 한다. 토글만 되돌린다.
@@ -114,7 +129,9 @@ struct SettingsView: View {
     }
 
     /// 점심은 시작~종료 시각으로 입력받고, 저장은 무급 분(lunchStart + lunchMinutes)으로
-    /// 한다 — 웹 SettingsPanel의 lunchEndValue/setLunchEnd와 같은 구조다.
+    /// 한다 — 웹 SettingsPanel의 lunchEndValue/setLunchEnd와 같은 구조다. 실제 계산은
+    /// SettingsFieldMath.swift의 순수 함수(lunchEndTime/lunchMinutesFromEnd)로 뽑아
+    /// 테스트한다.
     ///
     /// 종료 시각을 읽을 때는 시작+무급분을 그대로 계산해서 보여주므로, 시작
     /// 시각을 바꾸면 무급 길이는 유지된 채 종료 시각이 따라 이동한다(값을
@@ -122,15 +139,10 @@ struct SettingsView: View {
     /// lunchMinutes를 다시 계산해 저장한다.
     private var lunchEndBinding: Binding<String> {
         Binding(
-            get: {
-                guard let start = parseHHmm(draft.lunchStart) else { return "13:00" }
-                return formatHHmm(start + draft.lunchMinutes)
-            },
+            get: { lunchEndTime(start: draft.lunchStart, minutes: draft.lunchMinutes) },
             set: { newValue in
-                guard isValidHHmm(newValue), let start = parseHHmm(draft.lunchStart),
-                      let end = parseHHmm(newValue)
-                else { return }
-                draft.lunchMinutes = durationMinutes(start, end)
+                guard let minutes = lunchMinutesFromEnd(start: draft.lunchStart, end: newValue) else { return }
+                draft.lunchMinutes = minutes
             }
         )
     }
@@ -160,21 +172,18 @@ struct SettingsView: View {
     private var effectiveRate: Double { draft.deductionRate ?? estimatedDeductions.rate }
 
     /// 공제율 입력칸. 비우면 nil(추정치 사용), 숫자를 넣으면 그 값(0..1
-    /// 분수)으로 저장한다 — 웹 SettingsPanel의 deductionRate 입력과 같다.
+    /// 분수)으로 저장한다 — 웹 SettingsPanel의 deductionRate 입력과 같다. 해석은
+    /// SettingsFieldMath.swift의 parseDeductionRateInput/deductionRateText로 뽑아
+    /// 테스트한다.
     private var deductionRateBinding: Binding<String> {
         Binding(
-            get: {
-                guard let r = draft.deductionRate else { return "" }
-                return String(format: "%.1f", r * 100)
-            },
+            get: { deductionRateText(draft.deductionRate) },
             set: { newValue in
-                let trimmed = newValue.trimmingCharacters(in: .whitespaces)
-                if trimmed.isEmpty {
-                    draft.deductionRate = nil
-                } else if let pct = Double(trimmed) {
-                    draft.deductionRate = pct / 100
+                switch parseDeductionRateInput(newValue) {
+                case .useEstimate: draft.deductionRate = nil
+                case .rate(let r): draft.deductionRate = r
+                case .ignore: break
                 }
-                // 숫자로 읽을 수 없는 중간 입력 상태는 무시하고 이전 값을 지킨다.
             }
         )
     }
