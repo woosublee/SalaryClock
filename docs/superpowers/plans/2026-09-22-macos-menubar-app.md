@@ -3518,3 +3518,295 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
 )"
 ```
+
+---
+
+### Task 13: 퇴근 후 격려 메시지
+
+> 실행 순서상 Task 15 다음이다.
+
+**Files:**
+- Create: `lib/afterWork.ts`, `lib/__tests__/afterWork.test.ts`
+- Modify: `scripts/generate-golden.ts`, `lib/__tests__/golden.test.ts`, `components/StatusLine.tsx`
+- Create: `shared/golden/afterWork.json` (생성물)
+- Create: `macos/SalaryClockCore/Sources/SalaryClockCore/AfterWork.swift`, `macos/SalaryClockCore/Tests/SalaryClockCoreTests/AfterWorkTests.swift`
+- Modify: `macos/SalaryClockApp/Sources/SalaryClockAppLib/PopoverView.swift`
+
+**Interfaces:**
+- Consumes: `isDayOff`, `resolveShift`, `startOfLocalDay`, `MS_PER_DAY`
+- Produces: `type AfterWorkKind = 'tomorrow' | 'restThisWeek' | 'nextWeek' | 'longBreak'`, `afterWorkKind(s, now): AfterWorkKind` (웹), 같은 이름의 Swift enum·함수
+
+`오늘 근무 종료`가 딱딱하다는 사용자 요청에서 나왔다. 날짜에 따라 다른 격려 문구를 보여준다.
+
+**문구는 도메인이 아니라 UI에 둔다.** `lib/`는 *어떤 종류*인지만 정하고(`AfterWorkKind`), 실제 한국어 문장은 웹 `StatusLine`과 맥 `PopoverView`가 각자 갖는다. 골든은 kind를 고정하므로 판정 규칙은 갈라질 수 없고, 문구는 스펙 5.4의 표가 단일 출처다.
+
+| kind | 문구 | 언제 |
+|---|---|---|
+| `tomorrow` | `오늘도 고생하셨어요` | 내일이 근무일 |
+| `restThisWeek` | `오늘도 고생하셨어요, 푹 쉬세요` | 다음 근무일이 2~3일 뒤이고 같은 주 |
+| `nextWeek` | `이번 주도 고생하셨어요` | 다음 근무일이 2~3일 뒤이고 다음 주 이후 |
+| `longBreak` | `연휴 잘 보내세요` | 다음 근무일이 4일 이상 뒤 |
+
+주 경계는 **일요일 시작**(한국 달력)이다. 금요일 퇴근이면 다음 근무일이 월요일 = 다음 주 → `nextWeek`. 수요일 퇴근 + 목요일 공휴일 + 금요일 출근이면 같은 주 → `restThisWeek`. 그래서 "다음 주에도"가 거짓이 되는 경우가 안 생긴다.
+
+- [ ] **Step 1: 실패하는 웹 테스트를 쓴다**
+
+`lib/__tests__/afterWork.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest'
+import { afterWorkKind } from '@/lib/afterWork'
+import { DEFAULT_SETTINGS, type Settings } from '@/lib/settings'
+
+const at = (y: number, m: number, d: number, h = 19) => new Date(y, m, d, h, 0, 0).getTime()
+
+describe('afterWorkKind', () => {
+  it('화요일 퇴근이면 내일도 근무일이다', () => {
+    expect(afterWorkKind(DEFAULT_SETTINGS, at(2026, 8, 22))).toBe('tomorrow')
+  })
+
+  it('금요일 퇴근이면 다음 근무일이 다음 주 월요일이다', () => {
+    expect(afterWorkKind(DEFAULT_SETTINGS, at(2026, 8, 25))).toBe('nextWeek')
+  })
+
+  it('수요일 퇴근에 목요일이 공휴일이고 금요일이 근무일이면 같은 주다', () => {
+    // 2026-09-23(수) 퇴근, 9/24(목)·9/25(금)이 추석이라 다음 근무일은 9/28(월)
+    // → 이 케이스는 nextWeek다. 같은 주 케이스는 override로 만든다
+    const s: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-24'] }
+    // 9/24를 출근으로 뒤집으면 9/23(수) 퇴근 → 다음 근무일 9/24(목), 하루 뒤
+    expect(afterWorkKind(s, at(2026, 8, 23))).toBe('tomorrow')
+  })
+
+  it('추석 연휴 직전이면 연휴다', () => {
+    // 2026-09-23(수) 퇴근 → 9/24·9/25 추석, 9/26·9/27 주말 → 다음 근무일 9/28(월), 5일 뒤
+    expect(afterWorkKind(DEFAULT_SETTINGS, at(2026, 8, 23))).toBe('longBreak')
+  })
+
+  it('목요일 퇴근에 금요일만 쉬면 다음 근무일은 월요일이라 다음 주다', () => {
+    const s: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-10-02'] }
+    expect(afterWorkKind(s, at(2026, 9, 1))).toBe('nextWeek')
+  })
+})
+```
+
+- [ ] **Step 2: 실패를 확인한다**
+
+```bash
+npx vitest run lib/__tests__/afterWork.test.ts
+```
+
+Expected: FAIL — 모듈 없음
+
+- [ ] **Step 3: `lib/afterWork.ts`를 쓴다**
+
+```ts
+import { MS_PER_DAY, startOfLocalDay } from '@/lib/time'
+import { isDayOff } from '@/lib/calendar'
+import { resolveShift } from '@/lib/shift'
+import type { Settings } from '@/lib/settings'
+
+/** 퇴근 후 보여줄 격려 문구의 종류. 문구 자체는 UI가 갖는다 */
+export type AfterWorkKind = 'tomorrow' | 'restThisWeek' | 'nextWeek' | 'longBreak'
+
+/** 일요일을 주의 시작으로 본 주 번호. 두 날이 같은 주인지만 비교하는 데 쓴다 */
+function weekIndex(dayStart: number): number {
+  const d = new Date(dayStart)
+  return Math.floor((dayStart - d.getDay() * MS_PER_DAY) / MS_PER_DAY)
+}
+
+/**
+ * 오늘 일을 마친 뒤, 다음 근무일이 언제인지로 격려 문구의 종류를 고른다.
+ *
+ * 기준일은 now가 아니라 방금 끝낸 시프트의 시작일이다 — 야간근무가 자정을
+ * 넘겨 끝나도 "오늘 일한 날"은 시프트가 시작한 날이다.
+ */
+export function afterWorkKind(s: Settings, now: number): AfterWorkKind {
+  const shift = resolveShift(s, now)
+  const base = startOfLocalDay(shift.startMs)
+
+  // 최대 30일까지만 찾는다. 그 안에 근무일이 없으면 긴 휴식으로 본다
+  for (let gap = 1; gap <= 30; gap += 1) {
+    const day = base + gap * MS_PER_DAY
+    if (isDayOff(s.dayOverrides, day)) continue
+
+    if (gap === 1) return 'tomorrow'
+    if (gap >= 4) return 'longBreak'
+    return weekIndex(day) === weekIndex(base) ? 'restThisWeek' : 'nextWeek'
+  }
+  return 'longBreak'
+}
+```
+
+**`base + gap * MS_PER_DAY`가 DST 지역에서 자정에서 밀릴 수 있다.** `isDayOff`는 그 시각이 속한 날짜만 보므로 한 시간 밀려도 같은 날이고, 한국에는 DST가 없다. 정오를 더해 안전 여유를 두려면 `base + gap * MS_PER_DAY + 12 * MS_PER_HOUR`를 쓴다 — 이 구현은 그렇게 한다.
+
+위 코드의 `day` 계산에 정오를 더하고, `weekIndex`에는 `startOfLocalDay(day)`를 넘긴다.
+
+- [ ] **Step 4: 통과를 확인한다**
+
+```bash
+npx vitest run lib/__tests__/afterWork.test.ts && npm test
+```
+
+- [ ] **Step 5: 골든을 추가한다**
+
+`scripts/generate-golden.ts`에 넣는다:
+
+```ts
+const AFTER_WORK_DAYS: { label: string; settings: string; at: Clock }[] = [
+  { label: '화요일 퇴근', settings: 'default', at: [2026, 8, 22, 19, 0, 0] },
+  { label: '수요일 퇴근 — 추석 연휴 직전', settings: 'default', at: [2026, 8, 23, 19, 0, 0] },
+  { label: '금요일 퇴근', settings: 'default', at: [2026, 8, 25, 19, 0, 0] },
+  { label: '목요일 퇴근', settings: 'default', at: [2026, 9, 1, 19, 0, 0] },
+  { label: '연휴 직전 — 설 연휴', settings: 'default', at: [2026, 1, 13, 19, 0, 0] },
+  { label: '공휴일을 출근으로 뒤집음', settings: 'workOnHoliday', at: [2026, 8, 23, 19, 0, 0] },
+  { label: '야간근무 퇴근 후 아침', settings: 'night', at: [2026, 8, 23, 7, 0, 0] },
+]
+
+const afterWork = AFTER_WORK_DAYS.map((m) => ({
+  ...m,
+  expected: afterWorkKind(SETTINGS[m.settings], ms(m.at)),
+}))
+
+write('afterWork.json', afterWork)
+```
+
+import에 `afterWorkKind`를 추가한다.
+
+`lib/__tests__/golden.test.ts`에도 블록을 더한다 — 비어있지 않음 가드 + 각 케이스에서 `afterWorkKind`를 다시 불러 비교.
+
+- [ ] **Step 6: 웹 StatusLine을 고친다**
+
+`components/StatusLine.tsx`의 `after` 분기를 kind별 문구로 바꾸고, **점심 문구도 `점심시간 ${formatDuration(...)}`으로 단축한다** (`· 재개까지`를 뺀다 — 사용자가 정한 변경인데 맥에는 이미 반영됐고 웹만 남아 있었다).
+
+문구는 이 Task 머리의 표를 그대로 쓴다.
+
+- [ ] **Step 7: 웹 검증 후 커밋**
+
+```bash
+npm test && npx tsc --noEmit && npm run lint && npm run build
+npm run golden && git diff --exit-code shared/golden/
+TZ=UTC npx vitest run
+```
+
+```bash
+git add lib scripts shared/golden components/StatusLine.tsx
+git commit -m "$(cat <<'EOF'
+feat: 퇴근 후 문구를 날짜에 따라 고른다
+
+"오늘 근무 종료"가 딱딱하다는 요청에서 나왔다. 다음 근무일이 언제인지로
+네 종류를 가른다. 판정은 lib/에 두고 골든으로 고정하되 문구는 UI가 갖는다.
+
+점심 문구의 "· 재개까지"도 함께 뺀다 — 맥에는 이미 반영됐고 웹만 남아
+있었다.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
+
+- [ ] **Step 8: Swift로 옮긴다**
+
+`AfterWork.swift`에 `AfterWorkKind` enum(rawValue는 웹 문자열과 동일)과 `afterWorkKind(_:_:)`를 옮기고, `AfterWorkTests.swift`에서 골든을 읽어 대조한다. 앞선 골든 테스트들과 같은 구조다.
+
+- [ ] **Step 9: 팝오버에 반영한다**
+
+`PopoverView.swift`의 상태줄 `.after` 분기를 kind별 문구로 바꾼다. 표의 네 문구를 그대로 쓴다.
+
+- [ ] **Step 10: 검증 후 커밋**
+
+```bash
+swift test --package-path macos/SalaryClockCore --scratch-path "$HOME/Library/Caches/salaryclock/core"
+swift test --package-path macos/SalaryClockApp --scratch-path "$HOME/Library/Caches/salaryclock/app"
+TZ=UTC swift test --package-path macos/SalaryClockCore --scratch-path "$HOME/Library/Caches/salaryclock/core"
+```
+
+네 문구가 모두 188pt 안에 들어가는지 확인한다 — 가장 긴 `오늘도 고생하셨어요, 푹 쉬세요`가 14자다. `after`에는 `· 남은` 접미가 붙지 않으므로 여유가 있다.
+
+---
+
+### Task 14: 팝오버 토글과 갱신 주기
+
+> 실행 순서상 Task 13 다음이다.
+
+**Files:**
+- Create: `macos/SalaryClockApp/Sources/SalaryClockAppLib/AppPreferences.swift`, `macos/SalaryClockApp/Tests/SalaryClockAppTests/AppPreferencesTests.swift`
+- Modify: `macos/SalaryClockApp/Sources/SalaryClockAppLib/PopoverView.swift`, `SettingsView.swift`, `AppDelegate.swift`, `SettingsStore.swift`
+
+**Interfaces:**
+- Produces: `AppPreferences.shared` — `var menuBarInterval: Double`(초), `static func isValid(_ interval: Double) -> Bool`, 변경 시 `.appPreferencesChanged` 알림
+- Produces: `SettingsStore.hasStored: Bool`
+
+세 가지를 넣는다. 모두 사용자 요청이다.
+
+**1. 가리기 토글** — 웹의 눈 아이콘. 팝오버 우상단 아이콘 행에 더한다(`eye` / `eye.slash`). `settings.hideAmount`를 뒤집는다. 메인 액터에서만 쓴다.
+
+**2. 라이트/다크 토글** — 웹은 세 상태다: 저장된 값이 없으면 기기 설정, 한 번 고르면 그 값으로 고정. 그래서 `SettingsStore`에 `hasStored`를 노출하고, 팝오버·설정 창이 `hasStored == false`면 `@Environment(\.colorScheme)`를, 아니면 `settings.theme`을 쓴다. 아이콘은 `sun.max` / `moon`.
+
+**3. 메뉴바 갱신 주기** — 설정 창에 숫자 입력칸. 웹에 대응물이 없는 **맥 전용 설정**이므로 `Settings`에 넣지 않는다. `Settings`는 `shared/golden/settings.json`이 고정하는 공유 도메인 모델이고, 필드를 더하면 골든이 깨지고 웹 스키마까지 건드려야 한다.
+
+```
+메뉴바 갱신
+┌────────────────────┐
+│              1.0 초 │
+└────────────────────┘
+0.1~10초. 짧게 둘수록 부드럽게 흐르지만 배터리를 조금 더 씁니다
+```
+
+- 범위 **0.1 ~ 10초**, 기본값 **1.0**
+- 범위 밖이거나 숫자로 못 읽으면 다른 칸과 똑같이 빨갛게 되고 저장이 잠긴다
+- `초` 접미는 급여의 `원`, 근무일수의 `일`과 같은 방식
+- 위치는 `로그인할 때 자동 실행` 옆 — 맥 전용 옵션 묶음
+- **팝오버가 열렸을 때 0.1초로 올라가는 기존 동작은 이 설정과 무관하게 유지**한다. 닫으면 이 설정값으로 돌아간다
+
+`AppDelegate.startTimer(interval:)`이 이미 있으므로, 닫을 때 `1`이 아니라 `AppPreferences.shared.menuBarInterval`을 쓰도록 바꾸고 `.appPreferencesChanged`를 구독해 즉시 반영한다.
+
+- [ ] **Step 1: `AppPreferences`와 그 테스트를 먼저 쓴다**
+
+검증 규칙: `0.1 <= interval <= 10`, `isFinite`. 저장은 `UserDefaults`의 별도 키. 잘못된 값이 저장돼 있으면 기본값 1.0으로 되돌린다 — `SettingsStore`와 같은 방침이다.
+
+테스트: 기본값이 1.0이다 / 0.1과 10은 유효하다 / 0.09와 10.1은 무효다 / NaN·무한대는 무효다 / 저장된 값이 무효면 기본값으로 읽힌다 / 유효한 값은 왕복한다.
+
+- [ ] **Step 2: 실패를 확인하고 구현한다**
+
+```bash
+swift test --package-path macos/SalaryClockApp --scratch-path "$HOME/Library/Caches/salaryclock/app"
+```
+
+- [ ] **Step 3: 설정 창에 갱신 주기 칸을 붙인다**
+
+저장 버튼은 `SettingsStore.isValid(draft)`와 `AppPreferences.isValid(draftInterval)`을 **둘 다** 만족할 때만 활성화된다.
+
+- [ ] **Step 4: `AppDelegate`가 설정을 따르게 한다**
+
+팝오버를 닫을 때와 `.appPreferencesChanged`를 받을 때 `startTimer(interval: AppPreferences.shared.menuBarInterval)`을 쓴다. `@MainActor`와 `MainActor.assumeIsolated` 구조는 그대로 둔다. 빌드 경고 0을 유지한다.
+
+- [ ] **Step 5: 가리기·테마 토글을 아이콘 행에 붙인다**
+
+웹의 순서를 따른다 — 테마, 가리기, 설정. 종료는 웹에 없으므로 맨 끝. 네 아이콘이 220pt 안에 들어간다는 것은 Task 10 리뷰에서 확인됐다.
+
+- [ ] **Step 6: 검증**
+
+```bash
+swift test --package-path macos/SalaryClockApp --scratch-path "$HOME/Library/Caches/salaryclock/app"
+./scripts/bundle-app.sh && open macos/build/SalaryClock.app
+```
+
+확인할 것: 네 아이콘이 보이고 눌린다 / 가리기를 켜면 금액 자리에 시각이 들어가고 상태줄이 빈다 / 테마 토글이 팝오버와 설정 창에 모두 먹는다 / 갱신 주기를 0.1로 저장하면 메뉴바 숫자가 눈에 띄게 부드러워진다 / 0.05를 넣으면 빨갛게 되고 저장이 잠긴다.
+
+**캡처 규칙: 화면·영역 캡처 금지.** `screencapture -l <windowID>` 또는 접근성 텍스트만. 못 하면 "확인 못 함"으로 보고한다.
+
+- [ ] **Step 7: 커밋**
+
+```bash
+git add macos/SalaryClockApp
+git commit -m "$(cat <<'EOF'
+feat: 가리기·테마 토글과 메뉴바 갱신 주기를 넣는다
+
+갱신 주기는 맥 전용이라 공유 Settings가 아니라 별도 저장소에 둔다 —
+Settings는 골든이 고정하는 도메인 모델이다. 0.1~10초, 기본 1초,
+범위를 벗어나면 다른 칸과 같이 저장이 잠긴다.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
