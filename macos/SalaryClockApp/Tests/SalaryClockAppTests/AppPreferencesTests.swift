@@ -61,4 +61,22 @@ struct AppPreferencesTests {
             #expect(AppPreferences.shared.menuBarInterval == 0.5)
         }
     }
+
+    /// 0이나 NaN이 그대로 저장되면 `startTimer(interval:)`이 런루프가 도는
+    /// 만큼 깨어나는 타이머를 건다. setter가 경계에서 막고 직전 값을 지킨다.
+    @Test("무효한 값을 넣으면 무시하고 직전 값을 지킨다")
+    func invalidAssignmentIsIgnored() {
+        withCleanDefaults {
+            AppPreferences.shared.menuBarInterval = 0.5
+
+            for bad in [0, .nan, .infinity, -1, 10.1, 0.09] as [Double] {
+                AppPreferences.shared.menuBarInterval = bad
+                #expect(AppPreferences.shared.menuBarInterval == 0.5)
+            }
+
+            // 저장소에도 새지 않았는지 — reload가 0.5를 그대로 돌려줘야 한다.
+            AppPreferences.shared.reload()
+            #expect(AppPreferences.shared.menuBarInterval == 0.5)
+        }
+    }
 }

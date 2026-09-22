@@ -31,9 +31,22 @@ public final class AppPreferences: @unchecked Sendable {
         cached = Self.load()
     }
 
+    /// 유효한 값만 담긴다 — 무효한 값은 조용히 무시하고 직전 값을 지킨다.
+    ///
+    /// 검사를 `load()`에만 두면 "저장된 값은 유효하다"는 약속이 읽는 쪽에만
+    /// 걸린다. 그러면 `0`이나 `NaN`이 들어왔을 때 그대로 저장되고, 그 값이
+    /// 그대로 `startTimer(interval:)`에 넘어가 런루프가 도는 만큼 타이머가
+    /// 깨어난다. 지금은 유일한 호출부(설정 창 저장 버튼)가 같은 `isValid`
+    /// 뒤에 있어 일어나지 않지만, 불변식은 그 호출부가 아니라 여기서 지킨다.
+    ///
+    /// 범위로 자르지(clamp) 않는 이유는 둘이다. 하나, `NaN`은 자를 대상이
+    /// 없어 어차피 특례가 필요하다. 둘, 자르면 사용자가 넣은 적 없는 값을
+    /// 대신 저장하게 된다 — 직전 값은 적어도 사용자가 골랐던 유효한 값이다.
+    /// 바뀐 게 없으므로 알림도 보내지 않는다(타이머를 헛되이 다시 걸지 않는다).
     public var menuBarInterval: Double {
         get { lock.withLock { cached } }
         set {
+            guard Self.isValid(newValue) else { return }
             lock.withLock { cached = newValue }
             Self.save(newValue)
             NotificationCenter.default.post(name: .appPreferencesChanged, object: nil)
