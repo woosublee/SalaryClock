@@ -23,6 +23,8 @@ export function StatusLine({ earnings, hidden }: Props) {
         return '오늘 근무 종료'
       case 'working':
         return `퇴근까지 ${formatDuration(earnings.msUntilEnd)}`
+      case 'dayoff':
+        return ''
     }
   })()
 

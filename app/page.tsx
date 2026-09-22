@@ -54,6 +54,10 @@ export default function Home() {
   const iconButton =
     'rounded-lg p-2 text-slate-400 transition-colors hover:text-slate-700 dark:hover:text-slate-200'
 
+  // 쉬는 날에는 가리기 화면을 그대로 쓴다. 날짜와 시각만 남아 앱이 시계가 된다.
+  const dayOff = earnings.phase === 'dayoff'
+  const minimal = settings.hideAmount || dayOff
+
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center gap-6 bg-white px-4 py-10 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <div className="absolute right-4 top-4 flex items-center gap-1">
@@ -65,15 +69,17 @@ export default function Home() {
         >
           <ThemeIcon mode={settings.theme} />
         </button>
-        <button
-          onClick={() => update({ ...settings, hideAmount: !settings.hideAmount })}
-          aria-label={settings.hideAmount ? '금액 보이기' : '금액 가리기'}
-          aria-pressed={settings.hideAmount}
-          title={settings.hideAmount ? '금액 보이기' : '금액 가리기'}
-          className={iconButton}
-        >
-          <EyeIcon off={settings.hideAmount} />
-        </button>
+        {!dayOff && (
+          <button
+            onClick={() => update({ ...settings, hideAmount: !settings.hideAmount })}
+            aria-label={settings.hideAmount ? '금액 보이기' : '금액 가리기'}
+            aria-pressed={settings.hideAmount}
+            title={settings.hideAmount ? '금액 보이기' : '금액 가리기'}
+            className={iconButton}
+          >
+            <EyeIcon off={settings.hideAmount} />
+          </button>
+        )}
         <button onClick={() => setPanelOpen(true)} aria-label="설정 열기" className={iconButton}>
           <GearIcon />
         </button>
@@ -87,7 +93,7 @@ export default function Home() {
         workStart={settings.workStart}
         workEnd={settings.workEnd}
         paidHours={earnings.totalPaidMs / 3_600_000}
-        minimal={settings.hideAmount}
+        minimal={minimal}
       />
 
       <AnalogClock now={now} shift={earnings.shift} style={settings.clockStyle} />
@@ -97,13 +103,13 @@ export default function Home() {
         TimeDisplay가 시각 바로 아래에 붙인다. 두 블록과 아래 상태줄은 높이를
         똑같이 유지하므로 가리기를 눌러도 시계가 제자리에 있는다.
       */}
-      {settings.hideAmount ? (
+      {minimal ? (
         <TimeDisplay now={now} earnings={earnings} />
       ) : (
         <EarningsDisplay earnings={earnings} />
       )}
 
-      <StatusLine earnings={earnings} hidden={settings.hideAmount} />
+      <StatusLine earnings={earnings} hidden={minimal} />
 
       {showPanel && (
         // revision을 key로 주면 설정이 바뀔 때마다 폼이 새로 마운트된다.

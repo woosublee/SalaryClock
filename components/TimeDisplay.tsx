@@ -25,6 +25,8 @@ export function TimeDisplay({ now, earnings }: { now: number; earnings: Earnings
         return earnings.msUntilEnd
       case 'after':
         return null
+      case 'dayoff':
+        return null
     }
   })()
 
