@@ -119,6 +119,16 @@ const MOMENTS: { label: string; settings: string; at: Clock }[] = [
   { label: '공휴일 표 없는 해', settings: 'default', at: [2028, 8, 22, 14, 0, 0] },
   { label: '야간근무 자정 넘김', settings: 'night', at: [2026, 8, 23, 3, 0, 0] },
   { label: '야간근무 종료 후 아침', settings: 'night', at: [2026, 8, 23, 7, 0, 0] },
+  // resolveShift가 "끝난 시프트와 오늘 출근 중 가까운 쪽"을 고르는 근접성
+  // 단서를 가장 직접 겨냥한다. 어제 06:00 종료와 오늘 22:00 시작의 중간점은
+  // 14:00 — 21:00은 그 뒤라 오늘 출근이 더 가까워 before가 나와야 한다.
+  { label: '야간근무 다음 출근 한 시간 전', settings: 'night', at: [2026, 8, 23, 21, 0, 0] },
+  // 중간점(14:00) 바로 이전. 어제 종료(06:00, 7시간 전)가 오늘 출근(22:00,
+  // 9시간 후)보다 가까우므로 after가 나와야 한다 — 근접성 규칙의 반대쪽 절반.
+  { label: '야간근무 사이 — 중간점 이전', settings: 'night', at: [2026, 8, 23, 13, 0, 0] },
+  // 중간점(14:00) 바로 이후. 오늘 출근(22:00, 7시간 후)이 어제 종료(06:00,
+  // 9시간 전)보다 가까우므로 before가 나와야 한다.
+  { label: '야간근무 사이 — 중간점 이후', settings: 'night', at: [2026, 8, 23, 15, 0, 0] },
   { label: '야간근무가 공휴일 새벽으로 넘어감', settings: 'night', at: [2026, 8, 24, 3, 0, 0] },
   { label: '공휴일에 시작한 야간근무', settings: 'night', at: [2026, 8, 25, 3, 0, 0] },
   { label: '시급제 근무 중', settings: 'hourly', at: [2026, 8, 22, 14, 0, 0] },
@@ -241,6 +251,8 @@ const AFTER_WORK_DAYS: { label: string; settings: string; at: Clock }[] = [
   { label: '연휴 직전 — 설 연휴', settings: 'default', at: [2026, 1, 13, 19, 0, 0] },
   { label: '공휴일을 출근으로 뒤집음', settings: 'workOnHoliday', at: [2026, 8, 23, 19, 0, 0] },
   { label: '야간근무 퇴근 후 아침', settings: 'night', at: [2026, 8, 23, 7, 0, 0] },
+  // before phase도 afterWorkKind가 흔들리지 않는지 본다 — 3번 항목 참고.
+  { label: '야간근무 다음 출근 한 시간 전', settings: 'night', at: [2026, 8, 23, 21, 0, 0] },
   {
     label: '추석 연휴 중 금요일만 출근 — 같은 주',
     settings: 'workFridayOfHolidayWeek',

@@ -91,6 +91,19 @@
     "expected": "tomorrow"
   },
   {
+    "label": "야간근무 다음 출근 한 시간 전",
+    "settings": "night",
+    "at": [
+      2026,
+      8,
+      23,
+      21,
+      0,
+      0
+    ],
+    "expected": "longBreak"
+  },
+  {
     "label": "추석 연휴 중 금요일만 출근 — 같은 주",
     "settings": "workFridayOfHolidayWeek",
     "at": [
