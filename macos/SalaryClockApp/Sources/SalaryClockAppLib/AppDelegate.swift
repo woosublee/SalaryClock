@@ -1,6 +1,7 @@
 import AppKit
 import SalaryClockCore
 
+@MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var timer: Timer?
@@ -31,7 +32,16 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func startTimer(interval: TimeInterval) {
         timer?.invalidate()
-        let t = Timer(timeInterval: interval, repeats: true) { [weak self] _ in self?.tick() }
+        let t = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
+            // Timer 콜백 클로저 자체는 격리가 없어 컴파일러 입장에서는 어느
+            // 스레드에서 불릴지 증명할 수 없다. 하지만 이 타이머는 바로 아래에서
+            // RunLoop.main에 .common 모드로만 등록하므로 실행 스레드는 항상
+            // 메인 스레드다 — 그 사실을 우리가 보증한다는 뜻으로
+            // assumeIsolated를 쓴다. 아무 데서나 호출되는 콜백에 붙이면 안 된다.
+            MainActor.assumeIsolated {
+                self?.tick()
+            }
+        }
         // .common 모드에 넣지 않으면 메뉴나 팝오버를 여는 순간 숫자가 멈춘다.
         RunLoop.main.add(t, forMode: .common)
         timer = t

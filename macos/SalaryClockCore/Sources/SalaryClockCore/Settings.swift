@@ -52,3 +52,13 @@ public struct Settings: Codable, Equatable, Sendable {
 
     public static let `default` = Settings()
 }
+
+/// 웹 `lib/settings.ts`의 `ClockStyle` 유니언과 1:1로 맞아야 한다.
+///
+/// `clockStyle`이 Swift에서는 enum이 아니라 그냥 String이라(뷰가 아직
+/// 하나뿐이라 굳이 enum으로 안 묶었다) 유효성 검사가 이 목록에 기대야 한다.
+/// core가 "유효한 설정이 뭔지"를 정의하는 쪽이라 여기 둔다.
+public let validClockStyles: Set<String> = [
+    "minimal", "numerals", "grain", "rings", "sector",
+    "dots", "countdown", "level", "sundial", "pulse",
+]
