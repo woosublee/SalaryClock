@@ -89,3 +89,20 @@ export function clearMonthOverrides(
   const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`
   return overrides.filter((d) => !d.startsWith(prefix))
 }
+
+/**
+ * 그 날짜가 쉬는 날인가.
+ *
+ * 기본값은 주말·공휴일이고, overrides에 든 날짜는 기본값을 뒤집는다.
+ * workDaysMode와 무관하게 반영한다 — 달력에서 "이날은 쉰다"고 찍은 건
+ * 근무일수를 어떤 방식으로 세는지와 별개로 참인 사실이다.
+ */
+export function isDayOff(overrides: readonly string[], dateMs: number): boolean {
+  const d = new Date(dateMs)
+  const year = d.getFullYear()
+  const month = d.getMonth()
+  const day = d.getDate()
+
+  const defaultOff = isDefaultOff(year, month, day)
+  return overrides.includes(dateKey(year, month, day)) ? !defaultOff : defaultOff
+}
