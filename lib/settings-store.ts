@@ -1,5 +1,6 @@
 import {
   DEFAULT_SETTINGS,
+  STORAGE_KEY,
   clearSettings,
   loadSettings,
   saveSettings,
@@ -34,7 +35,35 @@ function emit(next: SettingsSnapshot): void {
   listeners.forEach((listener) => listener())
 }
 
+/**
+ * 다른 창이나 탭에서 설정이 바뀌면 따라간다.
+ *
+ * 데스크톱 앱은 위젯 창과 설정 창이 따로 뜨는데, 둘은 같은 localStorage를
+ * 공유하면서도 각자의 메모리 캐시를 갖는다. storage 이벤트를 듣지 않으면
+ * 설정 창에서 연봉을 바꿔도 위젯이 옛 금액을 계속 세고 있게 된다.
+ *
+ * 이 이벤트는 값을 바꾼 창 자신에게는 오지 않는다. 그쪽은 updateSettings가
+ * 이미 캐시를 갱신했으므로 그래도 된다.
+ */
+let storageBound = false
+
+function bindStorageEvents(): void {
+  if (storageBound || typeof window === 'undefined') return
+  storageBound = true
+  window.addEventListener('storage', (e) => {
+    if (e.key !== null && e.key !== STORAGE_KEY) return
+    const loaded = loadSettings()
+    emit({
+      settings: loaded.settings,
+      hasStored: loaded.hasStored,
+      isLoaded: true,
+      revision: (cache?.revision ?? 0) + 1,
+    })
+  })
+}
+
 export function subscribe(listener: () => void): () => void {
+  bindStorageEvents()
   listeners.add(listener)
   return () => {
     listeners.delete(listener)
