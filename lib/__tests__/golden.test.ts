@@ -13,6 +13,15 @@ import { estimateDeductions } from '@/lib/deductions'
 import { effectiveWorkDays } from '@/lib/workdays'
 import { isDayOff } from '@/lib/calendar'
 import { DEFAULT_SETTINGS, type Settings } from '@/lib/settings'
+import {
+  formatWon,
+  formatPerSecond,
+  formatDuration,
+  formatClockTime,
+  formatDateKo,
+  formatKoreanUnits,
+} from '@/lib/format'
+import { handAngles, dialAngle, arcBetween } from '@/lib/clock'
 
 const dir = path.resolve(import.meta.dirname, '..', '..', 'shared', 'golden')
 const read = (name: string) => JSON.parse(readFileSync(path.join(dir, name), 'utf8'))
@@ -104,6 +113,67 @@ describe('golden — workdays', () => {
       expect(effectiveWorkDays(DEFAULT_SETTINGS, ms(c.at))).toBe(c.expected.autoWorkDays)
       expect(isDayOff([], ms(c.at))).toBe(c.expected.isDayOff)
       expect(isDayOff(overrides, ms(c.at))).toBe(c.expected.isDayOffWithOverride)
+    })
+  }
+})
+
+describe('golden — format', () => {
+  const f = read('format.json')
+
+  it('케이스가 비어 있지 않다', () => {
+    expect(f.won.length).toBeGreaterThan(0)
+  })
+
+  for (const c of f.won) {
+    it(`formatWon(${c.n})`, () => expect(formatWon(c.n)).toBe(c.expected))
+  }
+  for (const c of f.wonOneDecimal) {
+    it(`formatWon(${c.n}, 1)`, () => expect(formatWon(c.n, 1)).toBe(c.expected))
+  }
+  for (const c of f.perSecond) {
+    it(`formatPerSecond(${c.n})`, () => expect(formatPerSecond(c.n)).toBe(c.expected))
+  }
+  for (const c of f.duration) {
+    it(`formatDuration(${c.ms})`, () => expect(formatDuration(c.ms)).toBe(c.expected))
+  }
+  for (const c of f.koreanUnits) {
+    it(`formatKoreanUnits(${c.n})`, () => expect(formatKoreanUnits(c.n)).toBe(c.expected))
+  }
+  for (const c of f.dateKo) {
+    it(`formatDateKo(${c.at.join(',')})`, () => expect(formatDateKo(ms(c.at))).toBe(c.expected))
+  }
+  for (const c of f.clockTime) {
+    it(`formatClockTime(${c.at.join(',')})`, () =>
+      expect(formatClockTime(ms(c.at))).toBe(c.expected))
+  }
+})
+
+describe('golden — clock', () => {
+  const c = read('clock.json')
+  const msMilli = (a: number[]) => new Date(a[0], a[1], a[2], a[3], a[4], a[5], a[6]).getTime()
+
+  it('케이스가 비어 있지 않다', () => {
+    expect(c.hands.length).toBeGreaterThan(0)
+  })
+
+  for (const h of c.hands) {
+    it(`handAngles(${h.at.join(',')})`, () => {
+      const got = handAngles(msMilli(h.at))
+      expect(got.hour).toBeCloseTo(h.expected.hour, 9)
+      expect(got.minute).toBeCloseTo(h.expected.minute, 9)
+      expect(got.second).toBeCloseTo(h.expected.second, 9)
+    })
+  }
+  for (const d of c.dial) {
+    it(`dialAngle(${d.at.join(',')})`, () =>
+      expect(dialAngle(msMilli(d.at))).toBeCloseTo(d.expected, 9))
+  }
+  for (const a of c.arcs) {
+    it(`arcBetween — ${a.label} (${a.settings})`, () => {
+      const sh = resolveShift(SETTINGS[a.settings], ms(a.at))
+      const got = arcBetween(sh.startMs, sh.endMs)
+      expect(got.startDeg).toBeCloseTo(a.expected.startDeg, 9)
+      expect(got.sweepDeg).toBeCloseTo(a.expected.sweepDeg, 9)
     })
   }
 })

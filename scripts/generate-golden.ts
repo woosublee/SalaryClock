@@ -15,6 +15,15 @@ import { resolveShift } from '@/lib/shift'
 import { estimateDeductions } from '@/lib/deductions'
 import { effectiveWorkDays } from '@/lib/workdays'
 import { isDayOff } from '@/lib/calendar'
+import {
+  formatWon,
+  formatPerSecond,
+  formatDuration,
+  formatClockTime,
+  formatDateKo,
+  formatKoreanUnits,
+} from '@/lib/format'
+import { handAngles, dialAngle, arcBetween } from '@/lib/clock'
 
 /** [year, month(0-based), day, hour, minute, second] */
 type Clock = [number, number, number, number, number, number]
@@ -195,3 +204,60 @@ write('earnings.json', earnings)
 write('shift.json', shifts)
 write('deductions.json', deductions)
 write('workdays.json', workdays)
+
+/** 내림 규칙과 소수 자리 처리를 고정한다. 반올림하면 안 벌은 돈이 먼저 뜬다. */
+const FORMAT_AMOUNTS = [0, 0.4, 0.9, 1, 999.99, 1234.56, 83412.49, 166666.66666666666, 1_0000_0000]
+
+const formats = {
+  won: FORMAT_AMOUNTS.map((n) => ({ n, expected: formatWon(n) })),
+  wonOneDecimal: FORMAT_AMOUNTS.map((n) => ({ n, expected: formatWon(n, 1) })),
+  perSecond: [0, 0.04, 5.79, 99.94, 99.96, 100, 1234.5].map((n) => ({
+    n,
+    expected: formatPerSecond(n),
+  })),
+  duration: [0, -1, 999, 1000, 59_000, 60_000, 3_599_000, 3_600_000, 32_401_000, 86_399_000].map(
+    (ms) => ({ ms, expected: formatDuration(ms) }),
+  ),
+  koreanUnits: [0, 1, 9999, 10_000, 100_000_000, 123_456_789, 40_000_000].map((n) => ({
+    n,
+    expected: formatKoreanUnits(n),
+  })),
+  dateKo: MOMENTS.map((m) => ({ at: m.at, expected: formatDateKo(ms(m.at)) })),
+  clockTime: MOMENTS.map((m) => ({ at: m.at, expected: formatClockTime(ms(m.at)) })),
+}
+
+/** 스위프 운동. 밀리초를 버리면 1초마다 6도씩 튀는 쿼츠 시계가 된다. */
+const CLOCK_MOMENTS: [number, number, number, number, number, number, number][] = [
+  [2026, 8, 22, 0, 0, 0, 0],
+  [2026, 8, 22, 0, 0, 0, 500],
+  [2026, 8, 22, 3, 0, 0, 0],
+  [2026, 8, 22, 9, 30, 15, 250],
+  [2026, 8, 22, 12, 0, 0, 0],
+  [2026, 8, 22, 15, 45, 30, 750],
+  [2026, 8, 22, 23, 59, 59, 999],
+]
+
+const clocks = {
+  hands: CLOCK_MOMENTS.map((c) => {
+    const t = new Date(c[0], c[1], c[2], c[3], c[4], c[5], c[6]).getTime()
+    const h = handAngles(t)
+    return { at: c, expected: { hour: h.hour, minute: h.minute, second: h.second } }
+  }),
+  dial: CLOCK_MOMENTS.map((c) => {
+    const t = new Date(c[0], c[1], c[2], c[3], c[4], c[5], c[6]).getTime()
+    return { at: c, expected: dialAngle(t) }
+  }),
+  arcs: MOMENTS.map((m) => {
+    const sh = resolveShift(SETTINGS[m.settings], ms(m.at))
+    const a = arcBetween(sh.startMs, sh.endMs)
+    return {
+      label: m.label,
+      settings: m.settings,
+      at: m.at,
+      expected: { startDeg: a.startDeg, sweepDeg: a.sweepDeg },
+    }
+  }),
+}
+
+write('format.json', formats)
+write('clock.json', clocks)
