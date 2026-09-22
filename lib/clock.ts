@@ -68,7 +68,19 @@ export function arcPath(cx: number, cy: number, r: number, arc: Arc): string {
   return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`
 }
 
-export function shiftArcs(shift: Shift, now: number) {
+const EMPTY_ARC: Arc = { startDeg: 0, sweepDeg: 0 }
+
+/**
+ * 시프트를 문자판 위의 호 셋으로.
+ *
+ * 휴무일에는 시프트가 없다(null). 빈 호를 돌려주면 arcPath가 빈 d를 만들어
+ * 얼굴들이 아무것도 그리지 않는다 — 얼굴마다 분기를 넣을 필요가 없다.
+ */
+export function shiftArcs(shift: Shift | null, now: number) {
+  if (shift === null) {
+    return { work: EMPTY_ARC, progress: EMPTY_ARC, lunch: null }
+  }
+
   const clampedNow = Math.min(Math.max(now, shift.startMs), shift.endMs)
   return {
     work: arcBetween(shift.startMs, shift.endMs),

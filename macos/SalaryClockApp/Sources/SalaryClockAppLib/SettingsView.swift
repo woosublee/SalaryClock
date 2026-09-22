@@ -1,0 +1,423 @@
+import SwiftUI
+import ServiceManagement
+import SalaryClockCore
+
+/// 지금 이 순간의 (연, 월) — 달력 모드가 처음 열릴 때 보여줄 달.
+/// SalaryClockCore의 `appCalendar`는 core 모듈 내부에만 보이므로(internal)
+/// 여기서 같은 규칙(그레고리력 고정, 기기 시간대)으로 새로 만든다.
+/// month는 0-based로 맞춘다.
+private func calendarComponents() -> (year: Int, month: Int) {
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone.current
+    let now = Date()
+    return (cal.component(.year, from: now), cal.component(.month, from: now) - 1)
+}
+
+/// 웹 SettingsPanel에서 맥이 쓰는 항목만 남긴 폼.
+///
+/// macOS 기본 Form 스타일(회색 배경, 오른쪽 정렬 라벨)을 쓰지 않는다 —
+/// 그러면 웹과 다른 화면이 된다. 라벨을 왼쪽 위에 두고 입력칸을 폭 가득
+/// 채우는 웹의 배치를 따른다.
+struct SettingsView: View {
+    var onDone: () -> Void
+
+    // SwiftUI도 Settings라는 타입(Settings 씬)을 갖고 있어 이름이 겹친다 —
+    // PopoverView의 TickModel과 같은 이유로 항상 core 쪽을 가리키도록 모듈명을 붙인다.
+    @State private var draft: SalaryClockCore.Settings = SettingsStore.shared.settings
+    @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
+    // 공제율 직접 입력 섹션을 펼쳤는지 — 웹 SettingsPanel의 showAdvanced와 같다.
+    @State private var showAdvanced = false
+    // 달력이 보여주는 달 — 패널이 열린 시각의 달로 고정한다. 웹 SettingsPanel의
+    // panelYear/panelMonth와 같다(월 이동 없음 — 웹에 없는 기능을 더하지 않는다).
+    @State private var calendarYear = calendarComponents().year
+    @State private var calendarMonth = calendarComponents().month
+    // 달력을 펼쳤는지 — Settings에 안 담기는 순수 뷰 상태다. 웹 SettingsPanel의
+    // showCalendar와 같다. 저장하지 않는다.
+    @State private var showCalendar = false
+    /// 메뉴바 갱신 주기 입력칸의 원문. 숫자로 못 읽는 값도 그대로 담아 두고
+    /// 빨갛게 보여줘야 하므로(다른 시각 입력칸과 같은 규칙) Double이 아니라
+    /// String으로 갖는다.
+    @State private var intervalText = SettingsView.formatInterval(AppPreferences.shared.menuBarInterval)
+    /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
+    @Environment(\.colorScheme) private var systemScheme
+
+    /// 웹 `loadSettings`와 같은 세 상태 규칙: 저장된 값이 없으면(hasStored ==
+    /// false) 기기 설정을 따르고, 한 번이라도 저장했으면 그 값에 고정한다.
+    /// 테마를 고르는 토글 자체는 팝오버에만 있으므로, 여기서는 draft.theme을
+    /// 그대로 읽기만 한다.
+    private var effectiveScheme: ColorScheme {
+        guard SettingsStore.shared.hasStored else { return systemScheme }
+        return draft.theme == .dark ? .dark : .light
+    }
+
+    private var theme: Theme { Theme(scheme: effectiveScheme) }
+    private var intervalValue: Double? { Double(intervalText) }
+    private var intervalValid: Bool { intervalValue.map(AppPreferences.isValid) ?? false }
+    private var isValid: Bool { SettingsStore.isValid(draft) && intervalValid }
+
+    private static func formatInterval(_ v: Double) -> String { String(format: "%.1f", v) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("설정").font(.system(size: 18, weight: .bold))
+
+            // 실수령액 토글·공제율은 웹처럼 급여 박스 안, 금액 바로 아래에 둔다 —
+            // 근무시간·점심 밑으로 내려서 급여 묶음을 깨뜨리지 않는다.
+            field("급여") {
+                Picker("", selection: $draft.payMode) {
+                    Text("연봉").tag(PayMode.annual)
+                    Text("월급").tag(PayMode.monthly)
+                    Text("시급").tag(PayMode.hourly)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+
+                // 웹의 금액칸(text-xl, 오른쪽 정렬, "원" 접미사)과 같은 강조를 준다.
+                // "원"이 숫자와 겹치지 않도록 필드 자체에 오른쪽 여백을 비워 두고
+                // 그 자리에 접미사를 얹는다.
+                TextField("", value: $draft.payAmount, format: .number)
+                    .textFieldStyle(.roundedBorder)
+                    .multilineTextAlignment(.trailing)
+                    .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                    .padding(.trailing, 22)
+                    .overlay(alignment: .trailing) {
+                        Text("원")
+                            .font(.system(size: 13))
+                            .foregroundStyle(theme.dim)
+                            .padding(.trailing, 10)
+                    }
+                Text(formatKoreanUnits(draft.payAmount))
+                    .font(.system(size: 11))
+                    .foregroundStyle(theme.dim)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+
+                Toggle("실수령액 기준으로 보기", isOn: $draft.netPay)
+                // 같은 급여를 넣어도 웹과 맥이 다른 금액을 보여준 원인 중 하나가
+                // 이 필드의 부재였다 — 근무일수(auto)는 웹과 같은 계산이라 문제가
+                // 아니었고, 공제율을 웹은 직접 입력할 수 있는데 맥은 항상 추정치만
+                // 썼다. deductionRate가 nil이면 추정치를, 있으면 그 값을 그대로
+                // 쓴다 (SalaryClockCore.deductionRateFor).
+                if draft.netPay {
+                    deductionSection
+                }
+            }
+
+            // 웹은 출근·퇴근을 각자 라벨을 단 칸으로 나란히 보여준다 — 하나의
+            // "근무 시간" 헤더에 대시로 묶지 않는다.
+            HStack(alignment: .top, spacing: 12) {
+                field("출근") { timeField($draft.workStart) }
+                field("퇴근") { timeField($draft.workEnd) }
+            }
+
+            field("점심") {
+                Toggle("점심시간 제외", isOn: $draft.lunchEnabled)
+                if draft.lunchEnabled {
+                    HStack {
+                        timeField($draft.lunchStart)
+                        Text("–").foregroundStyle(theme.dim)
+                        timeField(lunchEndBinding)
+                    }
+                    Text("무급 \(draft.lunchMinutes)분")
+                        .font(.system(size: 11))
+                        .foregroundStyle(theme.dim)
+                }
+            }
+
+            workDaysSection
+
+            // 웹에 대응물이 없는 맥 전용 옵션 묶음 — 로그인 자동 실행과
+            // 메뉴바 갱신 주기를 나란히 둔다.
+            Toggle("로그인할 때 자동 실행", isOn: $launchAtLogin)
+                .onChange(of: launchAtLogin) { _, on in
+                    // 등록이 실패해도 앱은 계속 돌아야 한다. 토글만 되돌린다.
+                    do {
+                        if on { try SMAppService.mainApp.register() }
+                        else { try SMAppService.mainApp.unregister() }
+                    } catch {
+                        launchAtLogin = SMAppService.mainApp.status == .enabled
+                    }
+                }
+
+            field("메뉴바 갱신") {
+                TextField("", text: $intervalText)
+                    .textFieldStyle(.roundedBorder)
+                    .multilineTextAlignment(.trailing)
+                    .font(.system(size: 13, design: .monospaced))
+                    .foregroundStyle(intervalValid ? theme.foreground : .red)
+                    .padding(.trailing, 18)
+                    .overlay(alignment: .trailing) {
+                        Text("초")
+                            .font(.system(size: 13))
+                            .foregroundStyle(theme.dim)
+                            .padding(.trailing, 10)
+                    }
+                Text("0.1~10초. 짧게 둘수록 부드럽게 흐르지만 배터리를 조금 더 씁니다")
+                    .font(.system(size: 10))
+                    .foregroundStyle(theme.dim)
+            }
+
+            if !isValid {
+                Text("설정값이 올바르지 않습니다")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.red)
+            }
+
+            HStack {
+                Spacer()
+                Button("닫기", action: onDone)
+                Button("저장") {
+                    SettingsStore.shared.settings = draft
+                    // isValid가 true일 때만 이 버튼이 눌리므로 intervalValue는
+                    // 항상 유효한 값을 담고 있다 — if let은 안전망일 뿐이다.
+                    if let interval = intervalValue {
+                        AppPreferences.shared.menuBarInterval = interval
+                    }
+                    onDone()
+                }
+                .disabled(!isValid)
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 340)
+        .background(theme.background)
+        // preferredColorScheme만으로는 하위 뷰의 @Environment(\.colorScheme)가
+        // 바뀌지 않는다. MonthCalendarView는 그 키로 Theme을 만들므로, 심어주지
+        // 않으면 밝은 맥에서 어두운 테마를 골랐을 때 달력 칸만 하얗게 남는다.
+        .environment(\.colorScheme, effectiveScheme)
+        .preferredColorScheme(effectiveScheme)
+    }
+
+    @ViewBuilder
+    private func field<C: View>(_ label: String, @ViewBuilder content: () -> C) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label).font(.system(size: 12, weight: .medium)).foregroundStyle(theme.secondary)
+            content()
+        }
+    }
+
+    /// 점심은 시작~종료 시각으로 입력받고, 저장은 무급 분(lunchStart + lunchMinutes)으로
+    /// 한다 — 웹 SettingsPanel의 lunchEndValue/setLunchEnd와 같은 구조다. 실제 계산은
+    /// SettingsFieldMath.swift의 순수 함수(lunchEndTime/lunchMinutesFromEnd)로 뽑아
+    /// 테스트한다.
+    ///
+    /// 종료 시각을 읽을 때는 시작+무급분을 그대로 계산해서 보여주므로, 시작
+    /// 시각을 바꾸면 무급 길이는 유지된 채 종료 시각이 따라 이동한다(값을
+    /// 따로 맞춰주는 코드가 필요 없다). 종료 시각을 직접 바꾸면 그 차이만큼
+    /// lunchMinutes를 다시 계산해 저장한다.
+    private var lunchEndBinding: Binding<String> {
+        Binding(
+            get: { lunchEndTime(start: draft.lunchStart, minutes: draft.lunchMinutes) },
+            set: { newValue in
+                guard let minutes = lunchMinutesFromEnd(start: draft.lunchStart, end: newValue) else { return }
+                draft.lunchMinutes = minutes
+            }
+        )
+    }
+
+    /// "HH:mm"을 그대로 받는다. 형식이 깨지면 저장 버튼이 잠긴다.
+    private func timeField(_ value: Binding<String>) -> some View {
+        TextField("HH:mm", text: value)
+            .textFieldStyle(.roundedBorder)
+            .frame(width: 70)
+            .foregroundStyle(isValidHHmm(value.wrappedValue) ? theme.foreground : .red)
+    }
+
+    /// 지금 이 설정으로 계산한 월 세전 환산액. 공제율 추정치의 기준이 된다 —
+    /// 웹 SettingsPanel의 previewShift/gross와 같다. draft가 아직 유효하지
+    /// 않을 때(시각 입력 중 등)는 마지막으로 저장된 값으로 미리보기를
+    /// 계산해 화면이 요동치지 않게 한다.
+    private var previewGross: Double {
+        let now = Int((Date().timeIntervalSince1970 * 1000).rounded())
+        let s = isValid ? draft : SettingsStore.shared.settings
+        let shift = resolveShift(s, now)
+        let workDays = effectiveWorkDays(s, now)
+        return monthlyGross(s, shift, workDays)
+    }
+
+    private var estimatedDeductions: Deductions { estimateDeductions(previewGross) }
+    /// 실제로 적용되는 공제율 — 직접 입력했으면 그 값, 아니면 추정치.
+    private var effectiveRate: Double { draft.deductionRate ?? estimatedDeductions.rate }
+
+    /// 공제율 입력칸. 비우면 nil(추정치 사용), 숫자를 넣으면 그 값(0..1
+    /// 분수)으로 저장한다 — 웹 SettingsPanel의 deductionRate 입력과 같다. 해석은
+    /// SettingsFieldMath.swift의 parseDeductionRateInput/deductionRateText로 뽑아
+    /// 테스트한다.
+    private var deductionRateBinding: Binding<String> {
+        Binding(
+            get: { deductionRateText(draft.deductionRate) },
+            set: { newValue in
+                switch parseDeductionRateInput(newValue) {
+                case .useEstimate: draft.deductionRate = nil
+                case .rate(let r): draft.deductionRate = r
+                case .ignore: break
+                }
+            }
+        )
+    }
+
+    /// 실수령액 기준일 때만 의미가 있는 공제율 직접 입력.
+    ///
+    /// 웹 SettingsPanel의 같은 구간은 "공제 내역 · 직접 설정"이라 부르고
+    /// 4대보험·소득세 내역 줄까지 펼친다. 맥은 공제율 칸만 옮겼으므로 라벨도
+    /// 있는 것만 약속한다 — 없는 내역을 문구로 내걸지 않는다.
+    private var deductionSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("−\(String(format: "%.1f", effectiveRate * 100))%")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(theme.dim)
+                Spacer()
+                Button(showAdvanced ? "접기" : "공제율 직접 설정") {
+                    showAdvanced.toggle()
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 11))
+                .underline()
+                .foregroundStyle(theme.dim)
+            }
+
+            if showAdvanced {
+                HStack {
+                    Text("공제율").font(.system(size: 11)).foregroundStyle(theme.dim)
+                    TextField(
+                        String(format: "%.1f", estimatedDeductions.rate * 100),
+                        text: deductionRateBinding
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 70)
+                    Text("%").font(.system(size: 11)).foregroundStyle(theme.dim)
+                }
+                Text("비워두면 추정치를 씁니다. 명세서의 공제 합계 ÷ 세전 금액")
+                    .font(.system(size: 10))
+                    .foregroundStyle(theme.dim)
+            }
+        }
+    }
+
+    // MARK: - 근무일수
+
+    /// 지금 시각을 epoch ms로 — auto 안내 문구와 effectiveWorkDays 계산이 쓴다.
+    private var nowMs: Int { Int((Date().timeIntervalSince1970 * 1000).rounded()) }
+
+    /// auto 기준 이번 달 근무일수 — "자동 N일로" 링크의 N.
+    private var autoWorkDaysCount: Int { workdayInfo(nowMs).workdays }
+
+    /// auto 모드 안내 — 웹 SettingsPanel의 workDaysMode === 'auto' 분기와
+    /// 글자 하나까지 같다.
+    private var autoWorkDaysHint: String {
+        let info = workdayInfo(nowMs)
+        return info.hasHolidayData
+            ? "평일 \(info.weekdays)일 − 공휴일 \(info.holidays)일. 달이 바뀌면 따라갑니다"
+            : "평일 \(info.weekdays)일. 이 해의 공휴일 자료가 없어 주말만 뺐습니다"
+    }
+
+    /// 웹 SettingsPanel의 "근무일수" 구간 — 모드를 직접 고르는 UI가 아니다.
+    /// 숫자를 고치면 manual로, 달력에서 날짜를 찍으면 calendar로 자연히
+    /// 넘어간다. "자동 N일로" 링크가 auto로 돌아가는 유일한 길이다.
+    private var workDaysSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("월 근무일수")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(theme.secondary)
+                Spacer()
+                // showCalendar는 Settings에 안 담기는 순수 뷰 상태다 — 저장하지 않는다.
+                Button(showCalendar ? "달력 접기" : "달력에서 고르기") {
+                    showCalendar.toggle()
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 11))
+                .underline()
+                .foregroundStyle(theme.calendarClearButton)
+            }
+
+            workDaysField
+            workDaysHint
+
+            if showCalendar {
+                MonthCalendarView(
+                    year: calendarYear,
+                    month: calendarMonth,
+                    overrides: draft.dayOverrides,
+                    onToggle: { date in
+                        draft.workDaysMode = .calendar
+                        draft.dayOverrides = toggleOverride(draft.dayOverrides, date)
+                    },
+                    onClearMonth: {
+                        // 지우기는 이 달의 override만 지운다 — 모드는 그대로 둔다.
+                        draft.dayOverrides = clearMonthOverrides(draft.dayOverrides, calendarYear, calendarMonth)
+                    }
+                )
+            }
+        }
+    }
+
+    /// 숫자 한 칸 — 보여주는 값은 지금 모드의 effectiveWorkDays다(auto일 때도
+    /// draft.workDaysPerMonth가 아니라 계산된 값을 보여준다). 고치면
+    /// workDaysMode를 manual로, workDaysPerMonth를 그 값으로 한 번에 바꾼다 —
+    /// 웹 입력칸의 onChange와 같다.
+    private var workDaysField: some View {
+        TextField("", value: workDaysBinding, format: .number)
+            .textFieldStyle(.roundedBorder)
+            .multilineTextAlignment(.trailing)
+            .font(.system(size: 13, design: .monospaced))
+            .padding(.trailing, 18)
+            .overlay(alignment: .trailing) {
+                Text("일")
+                    .font(.system(size: 13))
+                    .foregroundStyle(theme.dim)
+                    .padding(.trailing, 10)
+            }
+    }
+
+    private var workDaysBinding: Binding<Double> {
+        Binding(
+            get: { effectiveWorkDays(draft, nowMs) },
+            set: { newValue in
+                draft.workDaysMode = .manual
+                draft.workDaysPerMonth = newValue
+            }
+        )
+    }
+
+    /// 모드에 따라 바뀌는 안내 줄. calendar·manual은 "자동 N일로" 링크를
+    /// 오른쪽에 둔다 — 누르면 workDaysMode만 auto로 돌아가고 dayOverrides는
+    /// 그대로 남는다(달력을 다시 열면 찍어둔 날이 그대로 있다).
+    private var workDaysHint: some View {
+        Group {
+            switch draft.workDaysMode {
+            case .auto:
+                Text(autoWorkDaysHint)
+            case .calendar:
+                HStack {
+                    Text("달력에서 고른 날로 셉니다")
+                    Spacer()
+                    resetToAutoButton
+                }
+            case .manual:
+                HStack {
+                    Text("직접 입력한 값으로 고정됩니다")
+                    Spacer()
+                    resetToAutoButton
+                }
+            }
+        }
+        .font(.system(size: 11))
+        .foregroundStyle(theme.dim)
+    }
+
+    /// "자동 N일로" — 미리 만든 String을 그대로 넘긴다. Button(_:)에 보간
+    /// 리터럴을 바로 주면 LocalizedStringKey 경로를 타면서 N에 몰래 천 단위
+    /// 쉼표가 붙을 수 있다(MonthCalendarView 헤더에서 실제로 겪은 문제다).
+    private var resetToAutoLabel: String { "자동 \(autoWorkDaysCount)일로" }
+
+    private var resetToAutoButton: some View {
+        Button(resetToAutoLabel) {
+            draft.workDaysMode = .auto
+        }
+        .buttonStyle(.plain)
+        .underline()
+        .foregroundStyle(theme.dim)
+    }
+}

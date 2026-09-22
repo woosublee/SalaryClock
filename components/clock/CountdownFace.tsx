@@ -17,8 +17,10 @@ export function CountdownFace({ now, shift, className }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
 
-  const clampedNow = Math.min(Math.max(now, shift.startMs), shift.endMs)
-  const remaining = arcBetween(clampedNow, shift.endMs)
+  const remaining =
+    shift === null
+      ? { startDeg: 0, sweepDeg: 0 }
+      : arcBetween(Math.min(Math.max(now, shift.startMs), shift.endMs), shift.endMs)
 
   return (
     <svg viewBox="0 0 200 200" className={className} role="img" aria-label="퇴근까지 남은 시간">
@@ -50,11 +52,13 @@ export function CountdownFace({ now, shift, className }: ClockFaceProps) {
         />
       )}
 
-      {/* 퇴근 지점 표식 */}
-      {(() => {
-        const p = polarPoint(CX, CY, RING_R, arcs.work.startDeg + arcs.work.sweepDeg)
-        return <circle cx={p.x} cy={p.y} r={4} className="fill-amber-600 dark:fill-amber-400" />
-      })()}
+      {/* 퇴근 지점 표식. 근무가 없는 날은 arcs.work가 0이라 12시 자리에 점이
+          찍히므로, 남은 얼굴들과 마찬가지로 shift가 없으면 아예 그리지 않는다. */}
+      {shift !== null &&
+        (() => {
+          const p = polarPoint(CX, CY, RING_R, arcs.work.startDeg + arcs.work.sweepDeg)
+          return <circle cx={p.x} cy={p.y} r={4} className="fill-amber-600 dark:fill-amber-400" />
+        })()}
 
       {Array.from({ length: 12 }, (_, i) => {
         const outer = polarPoint(CX, CY, DIAL_R, i * 30)

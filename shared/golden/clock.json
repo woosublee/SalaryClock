@@ -1,0 +1,812 @@
+{
+  "hands": [
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected": {
+        "hour": 0,
+        "minute": 0,
+        "second": 0
+      }
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        0,
+        0,
+        0,
+        500
+      ],
+      "expected": {
+        "hour": 0.004166666666666667,
+        "minute": 0.05,
+        "second": 3
+      }
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        3,
+        0,
+        0,
+        0
+      ],
+      "expected": {
+        "hour": 90,
+        "minute": 0,
+        "second": 0
+      }
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        9,
+        30,
+        15,
+        250
+      ],
+      "expected": {
+        "hour": 285.12708333333336,
+        "minute": 181.525,
+        "second": 91.5
+      }
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        12,
+        0,
+        0,
+        0
+      ],
+      "expected": {
+        "hour": 0,
+        "minute": 0,
+        "second": 0
+      }
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        15,
+        45,
+        30,
+        750
+      ],
+      "expected": {
+        "hour": 112.75625,
+        "minute": 273.075,
+        "second": 184.49999999999997
+      }
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        23,
+        59,
+        59,
+        999
+      ],
+      "expected": {
+        "hour": 359.99999166666663,
+        "minute": 359.9999,
+        "second": 359.994
+      }
+    }
+  ],
+  "dial": [
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected": 0
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        0,
+        0,
+        0,
+        500
+      ],
+      "expected": 0.004166666666666667
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        3,
+        0,
+        0,
+        0
+      ],
+      "expected": 90
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        9,
+        30,
+        15,
+        250
+      ],
+      "expected": 285.12708333333336
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        12,
+        0,
+        0,
+        0
+      ],
+      "expected": 0
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        15,
+        45,
+        30,
+        750
+      ],
+      "expected": 112.75625
+    },
+    {
+      "at": [
+        2026,
+        8,
+        22,
+        23,
+        59,
+        59,
+        999
+      ],
+      "expected": 359.99999166666663
+    }
+  ],
+  "arcs": [
+    {
+      "label": "출근 1초 전",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        8,
+        59,
+        59
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "출근 정각",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        9,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "점심 직전",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        11,
+        59,
+        59
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "점심 정각",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        12,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "점심 종료 정각",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        13,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "퇴근 1초 전",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        17,
+        59,
+        59
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "퇴근 정각",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        18,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "퇴근 직후",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        18,
+        0,
+        1
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "자정 1초 전",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        22,
+        23,
+        59,
+        59
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "자정 직후",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        23,
+        0,
+        0,
+        1
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "새벽 00:30",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        23,
+        0,
+        30,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "토요일 한낮",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        26,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "일요일 한낮",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        27,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "추석 연휴 한낮",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        24,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "월말 근무 중",
+      "settings": "default",
+      "at": [
+        2026,
+        8,
+        30,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "공휴일 표 없는 해",
+      "settings": "default",
+      "at": [
+        2028,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "야간근무 자정 넘김",
+      "settings": "night",
+      "at": [
+        2026,
+        8,
+        23,
+        3,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "야간근무 종료 후 아침",
+      "settings": "night",
+      "at": [
+        2026,
+        8,
+        23,
+        7,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "야간근무 다음 출근 한 시간 전",
+      "settings": "night",
+      "at": [
+        2026,
+        8,
+        23,
+        21,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "야간근무 사이 — 중간점 이전",
+      "settings": "night",
+      "at": [
+        2026,
+        8,
+        23,
+        13,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "야간근무 사이 — 중간점 이후",
+      "settings": "night",
+      "at": [
+        2026,
+        8,
+        23,
+        15,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "야간근무가 공휴일 새벽으로 넘어감",
+      "settings": "night",
+      "at": [
+        2026,
+        8,
+        24,
+        3,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "공휴일에 시작한 야간근무",
+      "settings": "night",
+      "at": [
+        2026,
+        8,
+        25,
+        3,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "시급제 근무 중",
+      "settings": "hourly",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "월급제 근무 중",
+      "settings": "monthly",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "실수령 기준 근무 중",
+      "settings": "net",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "실수령 기준 시급제 근무 중",
+      "settings": "hourlyNet",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "점심 없는 설정 — 근무 중",
+      "settings": "noLunch",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "점심 없는 설정 — 점심 시간대",
+      "settings": "noLunch",
+      "at": [
+        2026,
+        8,
+        22,
+        12,
+        30,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "크리스마스(2026 연말 공휴일)",
+      "settings": "default",
+      "at": [
+        2026,
+        11,
+        25,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "설날 연휴(2027 공휴일 표)",
+      "settings": "default",
+      "at": [
+        2027,
+        1,
+        8,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "야간근무 연말 — 자정 전",
+      "settings": "night",
+      "at": [
+        2026,
+        11,
+        31,
+        23,
+        59,
+        59
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "야간근무 연말 — 자정 직후",
+      "settings": "night",
+      "at": [
+        2027,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "expected": {
+        "startDeg": 300,
+        "sweepDeg": 240
+      }
+    },
+    {
+      "label": "override로 쉬는 평일",
+      "settings": "offToday",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "override로 출근한 공휴일",
+      "settings": "workOnHoliday",
+      "at": [
+        2026,
+        8,
+        24,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "공제율 직접 입력 — 근무 중",
+      "settings": "customRate",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "달력 모드 근무일수 — 근무 중",
+      "settings": "calendarMode",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    },
+    {
+      "label": "수동 근무일수 — 근무 중",
+      "settings": "manualMode",
+      "at": [
+        2026,
+        8,
+        22,
+        14,
+        0,
+        0
+      ],
+      "expected": {
+        "startDeg": 270,
+        "sweepDeg": 270
+      }
+    }
+  ]
+}

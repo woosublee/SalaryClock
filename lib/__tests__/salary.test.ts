@@ -16,13 +16,13 @@ describe('perSecondRate', () => {
   it('연봉을 12개월 × 근무일수 × 유급초로 나눈다', () => {
     const shift = resolveShift(DEFAULT_SETTINGS, at(14))
     const expected = 40_000_000 / (12 * WORK_DAYS * PAID_SECONDS_PER_DAY)
-    expect(perSecondRate(DEFAULT_SETTINGS, shift, at(14))).toBeCloseTo(expected, 10)
+    expect(perSecondRate(DEFAULT_SETTINGS, shift)).toBeCloseTo(expected, 10)
   })
 
   it('월급은 12를 곱하지 않는다', () => {
     const s: Settings = { ...DEFAULT_SETTINGS, payMode: 'monthly', payAmount: 4_000_000 }
     const shift = resolveShift(s, at(14))
-    expect(perSecondRate(s, shift, at(14))).toBeCloseTo(
+    expect(perSecondRate(s, shift)).toBeCloseTo(
       4_000_000 / (WORK_DAYS * PAID_SECONDS_PER_DAY),
       10,
     )
@@ -36,7 +36,7 @@ describe('perSecondRate', () => {
       workDaysPerMonth: 1,
     }
     const shift = resolveShift(s, at(14))
-    expect(perSecondRate(s, shift, at(14))).toBeCloseTo(12_000 / 3600, 10)
+    expect(perSecondRate(s, shift)).toBeCloseTo(12_000 / 3600, 10)
   })
 })
 
@@ -76,7 +76,7 @@ describe('computeEarnings — 금액', () => {
 
   it('근무 1시간 뒤에는 1시간치가 쌓인다', () => {
     const e = computeEarnings(DEFAULT_SETTINGS, at(10))
-    const rate = perSecondRate(DEFAULT_SETTINGS, resolveShift(DEFAULT_SETTINGS, at(10)), at(10))
+    const rate = perSecondRate(DEFAULT_SETTINGS, resolveShift(DEFAULT_SETTINGS, at(10)))
     expect(e.earned).toBeCloseTo(rate * 3600, 6)
   })
 
@@ -158,6 +158,19 @@ describe('computeEarnings — 야간근무', () => {
 
   it('자정 이후 경과분이 이어서 쌓인다', () => {
     expect(computeEarnings(night, at(3)).progress).toBeCloseTo(5 / 8, 10)
+  })
+
+  it('출근 1시간 전인 21:00에는 출근까지 남은 시간을 보여준다', () => {
+    const e = computeEarnings(night, at(21))
+    expect(e.phase).toBe('before')
+    expect(e.msUntilStart).toBe(1 * HOUR)
+    expect(e.earned).toBe(0)
+  })
+
+  it('퇴근 직후 07:00에는 어제 시프트의 총액을 유지한다', () => {
+    const e = computeEarnings(night, at(7))
+    expect(e.phase).toBe('after')
+    expect(e.earned).toBeCloseTo(e.dailyTotal, 10)
   })
 })
 
@@ -242,5 +255,61 @@ describe('computeEarnings — 하루 총액은 근무시간 길이와 무관하�
     const seven = computeEarnings({ ...hourly, lunchMinutes: 120 }, at(19))
     expect(seven.dailyTotal).toBeLessThan(eight.dailyTotal)
     expect(seven.perSecond).toBeCloseTo(eight.perSecond, 10)
+  })
+})
+
+describe('computeEarnings — 휴무일', () => {
+  // 2026-09-26은 토요일, 09-24는 추석 연휴(목), 09-22는 화요일
+  const sat = (h: number) => new Date(2026, 8, 26, h, 0, 0).getTime()
+  const holiday = (h: number) => new Date(2026, 8, 24, h, 0, 0).getTime()
+
+  it('토요일 근무시간 한복판에도 phase가 dayoff다', () => {
+    expect(computeEarnings(DEFAULT_SETTINGS, sat(14)).phase).toBe('dayoff')
+  })
+
+  it('토요일에는 금액이 쌓이지 않는다', () => {
+    const e = computeEarnings(DEFAULT_SETTINGS, sat(14))
+    expect(e.earned).toBe(0)
+    expect(e.perSecond).toBe(0)
+    expect(e.progress).toBe(0)
+    expect(e.dailyTotal).toBe(0)
+  })
+
+  it('휴무일에는 시계에 그릴 시프트가 없다', () => {
+    expect(computeEarnings(DEFAULT_SETTINGS, sat(14)).shift).toBeNull()
+  })
+
+  it('평일 공휴일도 휴무일이다', () => {
+    expect(computeEarnings(DEFAULT_SETTINGS, holiday(14)).phase).toBe('dayoff')
+  })
+
+  it('override로 평일을 쉬게 만들 수 있다', () => {
+    const s: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-22'] }
+    expect(computeEarnings(s, at(14)).phase).toBe('dayoff')
+  })
+
+  it('override로 공휴일에 출근하면 평소대로 쌓인다', () => {
+    const s: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-24'] }
+    const e = computeEarnings(s, holiday(14))
+    expect(e.phase).toBe('working')
+    expect(e.earned).toBeGreaterThan(0)
+  })
+
+  it('평일에는 영향이 없다', () => {
+    expect(computeEarnings(DEFAULT_SETTINGS, at(14)).phase).toBe('working')
+  })
+})
+
+describe('computeEarnings — 자정 초기화', () => {
+  it('자정 직후에는 금액이 0이고 출근 전이다', () => {
+    const e = computeEarnings(DEFAULT_SETTINGS, at(0, 30))
+    expect(e.phase).toBe('before')
+    expect(e.earned).toBe(0)
+  })
+
+  it('자정 직전에는 아직 오늘 총액이 남아 있다', () => {
+    const e = computeEarnings(DEFAULT_SETTINGS, at(23, 59))
+    expect(e.phase).toBe('after')
+    expect(e.earned).toBeGreaterThan(0)
   })
 })

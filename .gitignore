@@ -45,3 +45,6 @@ next-env.d.ts
 
 # playwright mcp 산출물
 .playwright-mcp
+
+# superpowers SDD 작업 디렉터리 (스크래치)
+.superpowers/

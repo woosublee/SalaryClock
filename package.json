@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "golden": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-alias.mjs scripts/generate-golden.ts",
+    "palette": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-alias.mjs scripts/extract-palette.ts",
+    "palette:swift": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-alias.mjs scripts/generate-palette-swift.ts",
+    "swift:test:core": "swift test --package-path macos/SalaryClockCore --scratch-path \"$HOME/Library/Caches/salaryclock/core\"",
+    "swift:test:app": "swift test --package-path macos/SalaryClockApp --scratch-path \"$HOME/Library/Caches/salaryclock/app\""
   },
   "dependencies": {
     "next": "16.3.5",

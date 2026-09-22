@@ -42,7 +42,7 @@ export const CLOCK_STYLE_LABELS: Record<ClockStyle, string> = {
 
 interface Props {
   now: number
-  shift: Shift
+  shift: Shift | null
   style: ClockStyle
   className?: string
 }

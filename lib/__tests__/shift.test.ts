@@ -50,6 +50,14 @@ describe('resolveShift — 주간근무 (9 to 6)', () => {
   it('출근 시각 정각은 근무 중으로 본다', () => {
     expect(resolveShift(DEFAULT_SETTINGS, at(9)).startMs).toBe(at(9))
   })
+
+  it('자정 직후에는 어제 시프트를 버리고 오늘 시프트를 고른다', () => {
+    expect(resolveShift(DEFAULT_SETTINGS, at(0, 30)).startMs).toBe(at(9))
+  })
+
+  it('자정 직전에는 아직 오늘 시프트를 유지한다', () => {
+    expect(resolveShift(DEFAULT_SETTINGS, at(23, 59)).startMs).toBe(at(9))
+  })
 })
 
 describe('resolveShift — 야간근무', () => {
@@ -77,6 +85,27 @@ describe('resolveShift — 야간근무', () => {
 
   it('야간근무 유급 시간은 8시간에서 점심 1시간을 뺀 7시간이다', () => {
     expect(resolveShift(night, at(3)).paidMs).toBe(7 * HOUR)
+  })
+
+  // 어제 시프트는 오늘 06:00에 끝나므로 "오늘 안에 끝났는가"만 보면 21:00에도
+  // 그게 걸려 출근 1시간 전에 어제 총액이 남는다. 중간점(06:00과 22:00의 가운데
+  // 인 14:00)을 지나면 오늘 출근 쪽으로 넘어가야 한다.
+  it('저녁 21:00에는 오늘 출근할 시프트를 고른다 (출근 전)', () => {
+    const shift = resolveShift(night, at(21))
+    expect(shift.startMs).toBe(at(22))
+    expect(shift.endMs).toBe(at(6) + DAY)
+  })
+
+  it('중간점 정각(14:00)까지는 방금 끝난 어제 시프트를 유지한다', () => {
+    expect(resolveShift(night, at(14)).startMs).toBe(at(22) - DAY)
+  })
+
+  it('중간점을 1ms라도 지나면 오늘 시프트로 넘어간다', () => {
+    expect(resolveShift(night, at(14) + 1).startMs).toBe(at(22))
+  })
+
+  it('한낮 12:00에는 아직 어제 시프트다 (퇴근이 더 가깝다)', () => {
+    expect(resolveShift(night, at(12)).startMs).toBe(at(22) - DAY)
   })
 })
 

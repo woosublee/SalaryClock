@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   dateKey,
   isDefaultOff,
+  isDayOff,
   monthCells,
   workdaysFromCalendar,
   toggleOverride,
@@ -151,5 +152,38 @@ describe('overridesInMonth / clearMonthOverrides', () => {
 
   it('그 달 것만 지운다', () => {
     expect(clearMonthOverrides(all, 2026, 8)).toEqual(['2026-10-05'])
+  })
+})
+
+describe('isDayOff', () => {
+  const day = (y: number, m: number, d: number) => new Date(y, m, d, 12, 0, 0).getTime()
+
+  it('평일은 쉬는 날이 아니다', () => {
+    expect(isDayOff([], day(2026, 8, 22))).toBe(false)
+  })
+
+  it('토요일은 쉬는 날이다', () => {
+    expect(isDayOff([], day(2026, 8, 26))).toBe(true)
+  })
+
+  it('일요일은 쉬는 날이다', () => {
+    expect(isDayOff([], day(2026, 8, 27))).toBe(true)
+  })
+
+  it('평일 공휴일은 쉬는 날이다', () => {
+    expect(isDayOff([], day(2026, 8, 24))).toBe(true)
+  })
+
+  it('override로 평일을 쉬는 날로 만든다', () => {
+    expect(isDayOff(['2026-09-22'], day(2026, 8, 22))).toBe(true)
+  })
+
+  it('override로 공휴일에 출근한 것으로 만든다', () => {
+    expect(isDayOff(['2026-09-24'], day(2026, 8, 24))).toBe(false)
+  })
+
+  it('하루 중 어느 시각이든 결과가 같다', () => {
+    expect(isDayOff([], new Date(2026, 8, 26, 0, 0, 0).getTime())).toBe(true)
+    expect(isDayOff([], new Date(2026, 8, 26, 23, 59, 59).getTime())).toBe(true)
   })
 })

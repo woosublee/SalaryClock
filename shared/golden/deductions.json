@@ -1,0 +1,158 @@
+[
+  {
+    "gross": 200000,
+    "expected": {
+      "pension": 17550,
+      "health": 7090.000000000001,
+      "longTermCare": 918.1550000000002,
+      "employment": 1799.9999999999998,
+      "incomeTax": 0,
+      "total": 27358.155,
+      "rate": 0.136790775
+    }
+  },
+  {
+    "gross": 500000,
+    "expected": {
+      "pension": 22500,
+      "health": 17725,
+      "longTermCare": 2295.3875000000003,
+      "employment": 4500,
+      "incomeTax": 88.49449125000022,
+      "total": 47108.88199125,
+      "rate": 0.0942177639825
+    }
+  },
+  {
+    "gross": 1500000,
+    "expected": {
+      "pension": 67500,
+      "health": 53175,
+      "longTermCare": 6886.1625,
+      "employment": 13499.999999999998,
+      "incomeTax": 16971.73347375,
+      "total": 158032.89597375,
+      "rate": 0.1053552639825
+    }
+  },
+  {
+    "gross": 2000000,
+    "expected": {
+      "pension": 90000,
+      "health": 70900,
+      "longTermCare": 9181.550000000001,
+      "employment": 18000,
+      "incomeTax": 28197.727965,
+      "total": 216279.277965,
+      "rate": 0.1081396389825
+    }
+  },
+  {
+    "gross": 3000000,
+    "expected": {
+      "pension": 135000,
+      "health": 106350,
+      "longTermCare": 13772.325,
+      "employment": 26999.999999999996,
+      "incomeTax": 100253.98304166667,
+      "total": 382376.3080416667,
+      "rate": 0.12745876934722222
+    }
+  },
+  {
+    "gross": 3500000,
+    "expected": {
+      "pension": 157500,
+      "health": 124075.00000000001,
+      "longTermCare": 16067.712500000003,
+      "employment": 31499.999999999996,
+      "incomeTax": 167020.61910416666,
+      "total": 496163.33160416665,
+      "rate": 0.14176095188690477
+    }
+  },
+  {
+    "gross": 5000000,
+    "expected": {
+      "pension": 225000,
+      "health": 177250,
+      "longTermCare": 22953.875,
+      "employment": 45000,
+      "incomeTax": 375478.860625,
+      "total": 845682.735625,
+      "rate": 0.16913654712499998
+    }
+  },
+  {
+    "gross": 6000000,
+    "expected": {
+      "pension": 270000,
+      "health": 212700,
+      "longTermCare": 27544.65,
+      "employment": 53999.99999999999,
+      "incomeTax": 534506.0790666667,
+      "total": 1098750.7290666667,
+      "rate": 0.1831251215111111
+    }
+  },
+  {
+    "gross": 10000000,
+    "expected": {
+      "pension": 286650,
+      "health": 354500,
+      "longTermCare": 45907.75,
+      "employment": 90000,
+      "incomeTax": 1555478.5995833334,
+      "total": 2332536.3495833334,
+      "rate": 0.23325363495833334
+    }
+  },
+  {
+    "gross": 20000000,
+    "expected": {
+      "pension": 286650,
+      "health": 709000,
+      "longTermCare": 91815.5,
+      "employment": 180000,
+      "incomeTax": 5320457.754333335,
+      "total": 6587923.254333335,
+      "rate": 0.3293961627166668
+    }
+  },
+  {
+    "gross": 30000000,
+    "expected": {
+      "pension": 286650,
+      "health": 1063500,
+      "longTermCare": 137723.25,
+      "employment": 270000,
+      "incomeTax": 9243869.103333334,
+      "total": 11001742.353333334,
+      "rate": 0.36672474511111114
+    }
+  },
+  {
+    "gross": 50000000,
+    "expected": {
+      "pension": 286650,
+      "health": 1772500.0000000002,
+      "longTermCare": 229538.75000000003,
+      "employment": 449999.99999999994,
+      "incomeTax": 17511267.464166667,
+      "total": 20249956.214166667,
+      "rate": 0.40499912428333334
+    }
+  },
+  {
+    "gross": 100000000,
+    "expected": {
+      "pension": 286650,
+      "health": 3545000.0000000005,
+      "longTermCare": 459077.50000000006,
+      "employment": 899999.9999999999,
+      "incomeTax": 39289944.05416667,
+      "total": 44480671.55416667,
+      "rate": 0.4448067155416667
+    }
+  }
+]

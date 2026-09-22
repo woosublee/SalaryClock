@@ -2,8 +2,9 @@ import type { Settings } from '@/lib/settings'
 import { resolveShift, paidMsBetween, type Shift } from '@/lib/shift'
 import { effectiveWorkDays } from '@/lib/workdays'
 import { estimateDeductions } from '@/lib/deductions'
+import { isDayOff } from '@/lib/calendar'
 
-export type Phase = 'before' | 'working' | 'lunch' | 'after'
+export type Phase = 'before' | 'working' | 'lunch' | 'after' | 'dayoff'
 
 export interface Earnings {
   phase: Phase
@@ -30,8 +31,8 @@ export interface Earnings {
   deductionRate: number
   /** 실수령 기준으로 계산했는지 */
   isNet: boolean
-  /** 이 계산에 쓰인 시프트. 화면에서 두 번 계산해 어긋나는 것을 막는다 */
-  shift: Shift
+  /** 이 계산에 쓰인 시프트. 휴무일이면 null — 시계에 그릴 근무 구간이 없다 */
+  shift: Shift | null
 }
 
 /**
@@ -52,8 +53,10 @@ export function deductionRateFor(s: Settings, gross: number): number {
   return estimateDeductions(gross).rate
 }
 
-export function perSecondRate(s: Settings, shift: Shift, now: number): number {
-  const workDays = effectiveWorkDays(s, now)
+export function perSecondRate(s: Settings, shift: Shift): number {
+  // 근무일수도 시프트 시작일 기준이다. now로 세면 야간근무가 달을 넘는 순간
+  // 다음 달 근무일수로 바뀌어 근무 중에 금액이 튄다.
+  const workDays = effectiveWorkDays(s, shift.startMs)
   const paidSecondsPerDay = shift.paidMs / 1000
   if (paidSecondsPerDay <= 0 || workDays <= 0) return 0
 
@@ -82,9 +85,34 @@ function phaseOf(shift: Shift, now: number): Phase {
 
 export function computeEarnings(s: Settings, now: number): Earnings {
   const shift = resolveShift(s, now)
+  // 휴무일 판정과 같은 기준으로 센다 — now가 아니라 시프트 시작일이다.
+  const workDays = effectiveWorkDays(s, shift.startMs)
+
+  // 판정은 now가 아니라 시프트 시작일 기준이다. now로 보면 야간근무가 자정을
+  // 넘는 순간 다음 날이 공휴일인지에 따라 근무 중에 0이 되어버린다.
+  if (isDayOff(s.dayOverrides, shift.startMs)) {
+    return {
+      phase: 'dayoff',
+      earned: 0,
+      perSecond: 0,
+      progress: 0,
+      elapsedPaidMs: 0,
+      // 0이 아니다. 쉬는 날에도 설정줄은 그날의 유급 시간을 그대로 보여준다.
+      totalPaidMs: shift.paidMs,
+      msUntilStart: 0,
+      msUntilEnd: 0,
+      msUntilLunchEnd: 0,
+      remainingAmount: 0,
+      dailyTotal: 0,
+      workDays,
+      deductionRate: deductionRateFor(s, monthlyGross(s, shift, workDays)),
+      isNet: s.netPay,
+      shift: null,
+    }
+  }
+
   const phase = phaseOf(shift, now)
-  const workDays = effectiveWorkDays(s, now)
-  const rate = perSecondRate(s, shift, now)
+  const rate = perSecondRate(s, shift)
 
   const totalPaidMs = shift.paidMs
   const elapsedPaidMs = paidMsBetween(shift, shift.startMs, now)

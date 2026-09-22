@@ -4,6 +4,7 @@ import {
   dialAngle,
   arcBetween,
   polarPoint,
+  arcPath,
   shiftArcs,
   angleInArc,
   sectorPath,
@@ -169,5 +170,25 @@ describe('sectorPath', () => {
 
   it('길이가 0이면 빈 문자열이다', () => {
     expect(sectorPath(100, 100, 50, { startDeg: 0, sweepDeg: 0 })).toBe('')
+  })
+})
+
+describe('shiftArcs — 시프트 없음', () => {
+  const now = new Date(2026, 8, 26, 14, 0, 0).getTime()
+
+  it('근무 구간 호가 비어 있다', () => {
+    expect(shiftArcs(null, now).work.sweepDeg).toBe(0)
+  })
+
+  it('진행 호가 비어 있다', () => {
+    expect(shiftArcs(null, now).progress.sweepDeg).toBe(0)
+  })
+
+  it('점심 구간이 없다', () => {
+    expect(shiftArcs(null, now).lunch).toBeNull()
+  })
+
+  it('빈 호는 그려지지 않는다', () => {
+    expect(arcPath(100, 100, 92, shiftArcs(null, now).work)).toBe('')
   })
 })
