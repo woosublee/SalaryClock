@@ -9,8 +9,8 @@ public func dateKey(_ year: Int, _ month: Int, _ day: Int) -> String {
 func weekday(_ year: Int, _ month: Int, _ day: Int) -> Int {
     var c = DateComponents()
     c.year = year; c.month = month + 1; c.day = day; c.hour = 12
-    let date = Calendar.current.date(from: c)!
-    return Calendar.current.component(.weekday, from: date) - 1
+    let date = appCalendar.date(from: c)!
+    return appCalendar.component(.weekday, from: date) - 1
 }
 
 /// 아무것도 지정하지 않았을 때 쉬는 날인가 — 주말이거나 공휴일.
@@ -27,7 +27,7 @@ public func isDefaultOff(_ year: Int, _ month: Int, _ day: Int) -> Bool {
 /// 근무일수를 어떤 방식으로 세는지와 별개로 참인 사실이다.
 public func isDayOff(_ overrides: [String], _ dateMs: Int) -> Bool {
     let date = Date(timeIntervalSince1970: Double(dateMs) / 1000)
-    let cal = Calendar.current
+    let cal = appCalendar
     let year = cal.component(.year, from: date)
     let month = cal.component(.month, from: date) - 1
     let day = cal.component(.day, from: date)

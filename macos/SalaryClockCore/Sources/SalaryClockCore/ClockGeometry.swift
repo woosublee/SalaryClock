@@ -20,8 +20,22 @@ public struct ShiftArcs: Sendable {
 }
 
 /// 그 시각의 자정 이후 경과 밀리초. 로컬 시각 기준.
+///
+/// `now - startOfLocalDay(now)`처럼 경과 시간으로 구하지 않고, 벽시계 성분
+/// (시·분·초·밀리초)을 그대로 더해서 만든다. DST로 로컬 하루가 23시간 또는
+/// 25시간이 되는 날에는 두 계산이 갈린다 — 경과 시간 쪽은 자정 이후 실제로
+/// 흐른 시간을 재므로 그 시각의 벽시계가 가리키는 시각과 최대 한 시간까지
+/// 어긋난다. 웹(`lib/clock.ts`)은 `Date.getHours()` 등으로 벽시계 성분을 직접
+/// 읽으므로, 여기서도 같은 방식으로 맞춘다 — 초 단위까지는 Calendar로,
+/// 밀리초는 시간대가 항상 분 단위 오프셋이라는 점을 이용해 epoch에서 직접 뗀다.
 private func msIntoDay(_ now: Int) -> Int {
-    now - startOfLocalDay(now)
+    let date = Date(timeIntervalSince1970: Double(now) / 1000)
+    let comps = appCalendar.dateComponents([.hour, .minute, .second], from: date)
+    let msOfSecond = ((now % 1000) + 1000) % 1000
+    return (comps.hour ?? 0) * MS_PER_HOUR
+        + (comps.minute ?? 0) * MS_PER_MINUTE
+        + (comps.second ?? 0) * 1000
+        + msOfSecond
 }
 
 /// 12시 방향 0도, 시계방향 증가.

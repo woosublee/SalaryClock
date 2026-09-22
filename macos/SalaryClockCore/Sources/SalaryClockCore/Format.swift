@@ -39,7 +39,7 @@ private let WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"]
 /// "2026년 9월 22일 (화)"
 public func formatDateKo(_ now: Int) -> String {
     let date = Date(timeIntervalSince1970: Double(now) / 1000)
-    let cal = Calendar.current
+    let cal = appCalendar
     let dow = cal.component(.weekday, from: date) - 1
     return "\(cal.component(.year, from: date))년 \(cal.component(.month, from: date))월 "
         + "\(cal.component(.day, from: date))일 (\(WEEKDAYS[dow]))"
@@ -48,7 +48,7 @@ public func formatDateKo(_ now: Int) -> String {
 /// "16:53:21" — 24시간제. 오전/오후를 안 쓰면 폭이 고정돼 숫자가 흔들리지 않는다.
 public func formatClockTime(_ now: Int) -> String {
     let date = Date(timeIntervalSince1970: Double(now) / 1000)
-    let cal = Calendar.current
+    let cal = appCalendar
     return String(
         format: "%02d:%02d:%02d",
         cal.component(.hour, from: date),

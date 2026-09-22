@@ -53,6 +53,17 @@ func secondHandSweeps() {
     expectClose(b.second, 3, "0.5초 = 3도")
 }
 
+@Test("DST로 하루가 25시간인 날에도 바늘은 벽시계를 따른다")
+func handsFollowWallClockAcrossDST() {
+    // 2026-11-01은 미국 서머타임 해제일이다. 14:00은 자정에서 실제로 15시간
+    // 지난 시점이지만 벽시계는 14시를 가리킨다. 경과 시간으로 계산하면 90도,
+    // 벽시계로 계산하면 60도가 나온다.
+    let h = handAngles(Golden.ms([2026, 10, 1, 14, 0, 0]))
+    expectClose(h.hour, 60, "시침")
+    expectClose(h.minute, 0, "분침")
+    expectClose(h.second, 0, "초침")
+}
+
 @Test("시프트가 없으면 빈 호를 돌려준다")
 func emptyArcsWhenNoShift() {
     let arcs = shiftArcs(nil, Golden.ms([2026, 8, 26, 14, 0, 0]))

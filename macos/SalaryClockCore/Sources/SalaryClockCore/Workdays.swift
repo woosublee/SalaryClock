@@ -14,14 +14,14 @@ public struct WorkdayInfo: Sendable {
 private func daysInMonth(_ year: Int, _ month: Int) -> Int {
     var c = DateComponents()
     c.year = year; c.month = month + 1
-    let date = Calendar.current.date(from: c)!
-    return Calendar.current.range(of: .day, in: .month, for: date)!.count
+    let date = appCalendar.date(from: c)!
+    return appCalendar.range(of: .day, in: .month, for: date)!.count
 }
 
 /// 그 시각이 속한 달의 평일(월~금) 수
 public func weekdaysInMonth(_ now: Int) -> Int {
     let date = Date(timeIntervalSince1970: Double(now) / 1000)
-    let cal = Calendar.current
+    let cal = appCalendar
     let year = cal.component(.year, from: date)
     let month = cal.component(.month, from: date) - 1
 
@@ -33,7 +33,7 @@ public func weekdaysInMonth(_ now: Int) -> Int {
 
 public func workdayInfo(_ now: Int) -> WorkdayInfo {
     let date = Date(timeIntervalSince1970: Double(now) / 1000)
-    let cal = Calendar.current
+    let cal = appCalendar
     let year = cal.component(.year, from: date)
     let month = cal.component(.month, from: date) - 1
 
@@ -73,7 +73,7 @@ public func effectiveWorkDays(_ s: Settings, _ now: Int) -> Double {
         return s.workDaysPerMonth
     case .calendar:
         let date = Date(timeIntervalSince1970: Double(now) / 1000)
-        let cal = Calendar.current
+        let cal = appCalendar
         return Double(
             workdaysFromCalendar(
                 cal.component(.year, from: date),
