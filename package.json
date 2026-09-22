@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "golden": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-alias.mjs scripts/generate-golden.ts"
+    "golden": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-alias.mjs scripts/generate-golden.ts",
+    "palette": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-alias.mjs scripts/extract-palette.ts"
   },
   "dependencies": {
     "next": "16.3.5",
