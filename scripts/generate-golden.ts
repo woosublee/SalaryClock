@@ -40,8 +40,13 @@ const night: Settings = {
   lunchMinutes: 60,
 }
 const hourly: Settings = { ...DEFAULT_SETTINGS, payMode: 'hourly', payAmount: 12_000 }
+// hourly는 netPay가 false라 monthlyGross까지 가지 않는다. 시급의 월 환산
+// 분기를 실제로 지나가는 케이스가 하나는 있어야 한다.
+const hourlyNet: Settings = { ...hourly, netPay: true }
 const monthly: Settings = { ...DEFAULT_SETTINGS, payMode: 'monthly', payAmount: 3_000_000 }
 const net: Settings = { ...DEFAULT_SETTINGS, netPay: true }
+// 점심 끄기. 이게 없으면 점심을 늘 빼는 구현이 모든 케이스를 통과한다.
+const noLunch: Settings = { ...DEFAULT_SETTINGS, lunchEnabled: false }
 const offToday: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-22'] }
 const workOnHoliday: Settings = { ...DEFAULT_SETTINGS, dayOverrides: ['2026-09-24'] }
 
@@ -49,7 +54,9 @@ const SETTINGS: Record<string, Settings> = {
   default: DEFAULT_SETTINGS,
   night,
   hourly,
+  hourlyNet,
   monthly,
+  noLunch,
   net,
   offToday,
   workOnHoliday,
@@ -80,6 +87,13 @@ const MOMENTS: { label: string; settings: string; at: Clock }[] = [
   { label: '시급제 근무 중', settings: 'hourly', at: [2026, 8, 22, 14, 0, 0] },
   { label: '월급제 근무 중', settings: 'monthly', at: [2026, 8, 22, 14, 0, 0] },
   { label: '실수령 기준 근무 중', settings: 'net', at: [2026, 8, 22, 14, 0, 0] },
+  { label: '실수령 기준 시급제 근무 중', settings: 'hourlyNet', at: [2026, 8, 22, 14, 0, 0] },
+  { label: '점심 없는 설정 — 근무 중', settings: 'noLunch', at: [2026, 8, 22, 14, 0, 0] },
+  { label: '점심 없는 설정 — 점심 시간대', settings: 'noLunch', at: [2026, 8, 22, 12, 30, 0] },
+  { label: '크리스마스(2026 연말 공휴일)', settings: 'default', at: [2026, 11, 25, 14, 0, 0] },
+  { label: '설날 연휴(2027 공휴일 표)', settings: 'default', at: [2027, 1, 8, 14, 0, 0] },
+  { label: '야간근무 연말 — 자정 전', settings: 'night', at: [2026, 11, 31, 23, 59, 59] },
+  { label: '야간근무 연말 — 자정 직후', settings: 'night', at: [2027, 0, 1, 0, 0, 1] },
   { label: 'override로 쉬는 평일', settings: 'offToday', at: [2026, 8, 22, 14, 0, 0] },
   { label: 'override로 출근한 공휴일', settings: 'workOnHoliday', at: [2026, 8, 24, 14, 0, 0] },
 ]
@@ -127,7 +141,11 @@ const shifts = MOMENTS.map((m) => {
   }
 })
 
-const GROSSES = [1_500_000, 2_000_000, 3_000_000, 3_500_000, 5_000_000, 6_000_000, 10_000_000]
+// 양 끝을 넣어 연금 하한과 상위 세율 구간·세액공제 한도까지 닿게 한다.
+const GROSSES = [
+  500_000, 1_500_000, 2_000_000, 3_000_000, 3_500_000, 5_000_000, 6_000_000, 10_000_000,
+  30_000_000,
+]
 
 const deductions = GROSSES.map((gross) => {
   const d = estimateDeductions(gross)
@@ -141,6 +159,8 @@ const DAYS: Clock[] = [
   [2026, 8, 27, 12, 0, 0],
   [2026, 0, 1, 12, 0, 0],
   [2026, 1, 17, 12, 0, 0],
+  [2026, 11, 25, 12, 0, 0],
+  [2027, 1, 8, 12, 0, 0],
   [2028, 8, 22, 12, 0, 0],
 ]
 

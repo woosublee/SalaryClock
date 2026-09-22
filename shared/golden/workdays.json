@@ -96,6 +96,36 @@
     },
     {
       "at": [
+        2026,
+        11,
+        25,
+        12,
+        0,
+        0
+      ],
+      "expected": {
+        "autoWorkDays": 22,
+        "isDayOff": true,
+        "isDayOffWithOverride": true
+      }
+    },
+    {
+      "at": [
+        2027,
+        1,
+        8,
+        12,
+        0,
+        0
+      ],
+      "expected": {
+        "autoWorkDays": 18,
+        "isDayOff": true,
+        "isDayOffWithOverride": true
+      }
+    },
+    {
+      "at": [
         2028,
         8,
         22,

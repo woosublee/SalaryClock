@@ -644,6 +644,202 @@
     }
   },
   {
+    "label": "실수령 기준 시급제 근무 중",
+    "settings": "hourlyNet",
+    "at": [
+      2026,
+      8,
+      22,
+      14,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 42826.003578840006,
+      "perSecond": 2.9740280263083334,
+      "progress": 0.5,
+      "elapsedPaidMs": 14400000,
+      "totalPaidMs": 28800000,
+      "msUntilStart": 0,
+      "msUntilEnd": 14400000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 42826.003578840006,
+      "dailyTotal": 85652.00715768001,
+      "workDays": 20,
+      "deductionRate": 0.1077915921075,
+      "hasShift": true
+    }
+  },
+  {
+    "label": "점심 없는 설정 — 근무 중",
+    "settings": "noLunch",
+    "at": [
+      2026,
+      8,
+      22,
+      14,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 92592.5925925926,
+      "perSecond": 5.1440329218107,
+      "progress": 0.5555555555555556,
+      "elapsedPaidMs": 18000000,
+      "totalPaidMs": 32400000,
+      "msUntilStart": 0,
+      "msUntilEnd": 14400000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 74074.07407407409,
+      "dailyTotal": 166666.6666666667,
+      "workDays": 20,
+      "deductionRate": 0,
+      "hasShift": true
+    }
+  },
+  {
+    "label": "점심 없는 설정 — 점심 시간대",
+    "settings": "noLunch",
+    "at": [
+      2026,
+      8,
+      22,
+      12,
+      30,
+      0
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 64814.81481481482,
+      "perSecond": 5.1440329218107,
+      "progress": 0.3888888888888889,
+      "elapsedPaidMs": 12600000,
+      "totalPaidMs": 32400000,
+      "msUntilStart": 0,
+      "msUntilEnd": 19800000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 101851.85185185187,
+      "dailyTotal": 166666.6666666667,
+      "workDays": 20,
+      "deductionRate": 0,
+      "hasShift": true
+    }
+  },
+  {
+    "label": "크리스마스(2026 연말 공휴일)",
+    "settings": "default",
+    "at": [
+      2026,
+      11,
+      25,
+      14,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "dayoff",
+      "earned": 0,
+      "perSecond": 0,
+      "progress": 0,
+      "elapsedPaidMs": 0,
+      "totalPaidMs": 28800000,
+      "msUntilStart": 0,
+      "msUntilEnd": 0,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 0,
+      "dailyTotal": 0,
+      "workDays": 22,
+      "deductionRate": 0,
+      "hasShift": false
+    }
+  },
+  {
+    "label": "설날 연휴(2027 공휴일 표)",
+    "settings": "default",
+    "at": [
+      2027,
+      1,
+      8,
+      14,
+      0,
+      0
+    ],
+    "expected": {
+      "phase": "dayoff",
+      "earned": 0,
+      "perSecond": 0,
+      "progress": 0,
+      "elapsedPaidMs": 0,
+      "totalPaidMs": 28800000,
+      "msUntilStart": 0,
+      "msUntilEnd": 0,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 0,
+      "dailyTotal": 0,
+      "workDays": 18,
+      "deductionRate": 0,
+      "hasShift": false
+    }
+  },
+  {
+    "label": "야간근무 연말 — 자정 전",
+    "settings": "night",
+    "at": [
+      2026,
+      11,
+      31,
+      23,
+      59,
+      59
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 43284.03078403078,
+      "perSecond": 6.012506012506012,
+      "progress": 0.2856746031746032,
+      "elapsedPaidMs": 7199000,
+      "totalPaidMs": 25200000,
+      "msUntilStart": 0,
+      "msUntilEnd": 21601000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 108231.12073112071,
+      "dailyTotal": 151515.1515151515,
+      "workDays": 22,
+      "deductionRate": 0,
+      "hasShift": true
+    }
+  },
+  {
+    "label": "야간근무 연말 — 자정 직후",
+    "settings": "night",
+    "at": [
+      2027,
+      0,
+      1,
+      0,
+      0,
+      1
+    ],
+    "expected": {
+      "phase": "working",
+      "earned": 43296.05579605579,
+      "perSecond": 6.012506012506012,
+      "progress": 0.28575396825396826,
+      "elapsedPaidMs": 7201000,
+      "totalPaidMs": 25200000,
+      "msUntilStart": 0,
+      "msUntilEnd": 21599000,
+      "msUntilLunchEnd": 0,
+      "remainingAmount": 108219.0957190957,
+      "dailyTotal": 151515.1515151515,
+      "workDays": 22,
+      "deductionRate": 0,
+      "hasShift": true
+    }
+  },
+  {
     "label": "override로 쉬는 평일",
     "settings": "offToday",
     "at": [
