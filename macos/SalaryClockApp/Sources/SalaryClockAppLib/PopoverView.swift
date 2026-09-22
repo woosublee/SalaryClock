@@ -97,10 +97,18 @@ struct PopoverView: View {
     private var controls: some View {
         HStack(spacing: 2) {
             IconButton(systemName: themeIconName, label: themeLabel, theme: theme, action: toggleTheme)
-            IconButton(
-                systemName: model.settings.hideAmount ? "eye.slash" : "eye",
-                label: hideAmountLabel, theme: theme, action: toggleHideAmount
-            )
+            // 쉬는 날에는 가릴 금액이 없으므로 토글을 숨긴다 — 웹
+            // app/page.tsx의 `{!dayOff && ...}`와 같다. 누른들 화면은 그대로인데
+            // hideAmount만 몰래 뒤집혀 연휴가 끝난 뒤까지 금액이 가려진다.
+            //
+            // 조건은 `hidden`이 아니라 phase로 본다. `hidden`은 사용자가 스스로
+            // 가렸을 때도 true라, 그걸로 걸면 다시 켤 버튼까지 같이 사라진다.
+            if model.earnings.phase != .dayoff {
+                IconButton(
+                    systemName: model.settings.hideAmount ? "eye.slash" : "eye",
+                    label: hideAmountLabel, theme: theme, action: toggleHideAmount
+                )
+            }
             IconButton(systemName: "gearshape", label: "설정", theme: theme, action: onSettings)
             IconButton(systemName: "power", label: "종료", theme: theme, action: onQuit)
         }
