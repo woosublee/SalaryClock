@@ -106,15 +106,16 @@ Tauri를 유지하면 메뉴바 숫자를 1초마다 갱신하기 위해 웹뷰�
 판정 재료는 `lib/calendar.ts`에 이미 있다.
 
 ```ts
-/** 그 날이 쉬는 날인가 — 주말·공휴일에 dayOverrides를 반영한 결과 */
-export function isDayOff(s: Settings, dateMs: number): boolean
+/** 그 날이 쉬는 날인가 — 주말·공휴일에 overrides를 반영한 결과 */
+export function isDayOff(overrides: readonly string[], dateMs: number): boolean
 ```
 
 `dayOverrides`는 **`workDaysMode`와 무관하게 반영한다.** 달력에서 "이날은
 쉰다"고 찍은 건 근무일수를 어떤 방식으로 세는지와 별개로 참인 사실이다.
 
 **판정 대상은 `now`가 아니라 시프트의 시작일이다.** `computeEarnings`는
-`isDayOff(s, shift.startMs)`로 부른다. `now`로 판정하면 야간근무가 자정을
+`isDayOff(s.dayOverrides, shift.startMs)`로 부른다. `Settings`가 아니라
+override 목록만 받는 건 `calendar.ts`가 설정 타입을 모르게 두려는 것이다. `now`로 판정하면 야간근무가 자정을
 넘는 순간 다음 날이 공휴일인지에 따라 근무 중에 금액이 0이 된다. 시작일로
 보면 주간근무에서는 결과가 같고(시프트가 오늘 시작하므로) 야간근무만
 바로잡힌다.
@@ -404,6 +405,7 @@ shared/golden/
   shift.json         resolveShift
   deductions.json    estimateDeductions
   workdays.json      effectiveWorkDays / isDayOff
+  settings.json      위 파일들이 이름으로 가리키는 설정 묶음
   palette.json       웹에서 실제로 쓰는 색 토큰 (5.1)
 ```
 
@@ -513,3 +515,16 @@ Next.js 빌드는 `app/` 기준이라 `macos/`가 생겨도 Vercel 배포에 영
   이슈 #1의 `/widget` 라우트 구상이 그쪽 출발점이다
 - 배포 — 코드 서명 + 공증 + GitHub Releases. 이슈 #1의 `tauri-action` 자리에
   `xcodebuild` + `notarytool`이 들어간다
+
+### 열린 질문 — 일요일 밤에 시작한 야간근무는 근무 시프트인가
+
+야간근무(22:00–06:00) 설정에서 월요일 한낮을 보면 `resolveShift`가 일요일
+22:00에 시작한 시프트를 고른다. 그 시프트의 시작일이 일요일이라 `isDayOff`가
+휴무일이라 답하고, 앱은 근무일인 월요일에 시계 화면으로 접힌다. 금액은
+산술적으로 맞다 — 그 일요일 밤 시프트는 아무것도 벌지 않았다. 다만 3.1의
+표대로라면 `after`가 나와야 한다.
+
+제대로 고치려면 "일요일 밤에 시작해 월요일 아침에 끝나는 시프트를 근무로
+볼 것인가"를 먼저 정해야 한다. 근무로 본다면 휴무일 판정을 시작일이 아니라
+종료일이나 시프트 전체로 옮겨야 하고, 그러면 3.2가 막은 자정 넘김 문제가
+반대 방향으로 돌아온다. 설계 결정이 나기 전까지는 코드를 건드리지 않는다.
