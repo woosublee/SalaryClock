@@ -9,6 +9,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastRingMinute = -1
     private let model = TickModel()
     private var popover: NSPopover!
+    private var settingsWindow: NSWindow?
 
     public override init() {
         super.init()
@@ -80,7 +81,35 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func openSettings() { /* Task 11에서 채운다 */ }
+    /// 설정 창을 연다. 이미 떠 있으면 새로 만들지 않고 앞으로 가져온다.
+    /// LSUIElement 앱은 기본적으로 창을 앞으로 못 가져오므로 activate가 필요하다.
+    private func openSettings() {
+        popover.performClose(nil)
+        startTimer(interval: 1)
+
+        if let w = settingsWindow {
+            w.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 340, height: 460),
+            styleMask: [.titled, .closable],
+            backing: .buffered, defer: false
+        )
+        window.title = "SalaryClock 설정"
+        window.isReleasedWhenClosed = false
+        window.contentViewController = NSHostingController(
+            rootView: SettingsView(onDone: { [weak self] in
+                self?.settingsWindow?.close()
+            })
+        )
+        window.center()
+        settingsWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
 
     /// 매 tick마다 Date()로 전부 다시 계산한다. 누적하지 않으므로 타이머가
     /// 드리프트하든 절전에서 깨어나든 다음 tick에 저절로 맞는다.
