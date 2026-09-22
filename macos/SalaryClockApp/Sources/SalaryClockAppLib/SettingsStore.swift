@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SalaryClockCore
 
@@ -14,7 +15,9 @@ public extension Notification.Name {
 public final class SettingsStore: @unchecked Sendable {
     public static let shared = SettingsStore()
 
-    private static let key = "settings.v2"
+    /// 테스트가 `UserDefaults.standard`에서 직접 지울 수 있도록 private로 감추지
+    /// 않는다 — `@testable import`로만 보이는 internal이다(`AppPreferences.key`와 같다).
+    static let key = "settings.v2"
     private let lock = NSLock()
     private var cached: Settings
     private var cachedHasStored: Bool
@@ -50,8 +53,35 @@ public final class SettingsStore: @unchecked Sendable {
         guard let data = UserDefaults.standard.data(forKey: key),
               let decoded = try? JSONDecoder().decode(Settings.self, from: data),
               isValid(decoded)
-        else { return (.default, false) }
+        else { return (defaultSeededWithDeviceTheme(), false) }
         return (decoded, true)
+    }
+
+    /// 저장된 값이 없을 때의 기본 설정. 웹 `lib/settings.ts`의
+    /// `{ ...DEFAULT_SETTINGS, theme: deviceTheme() }`와 같다.
+    ///
+    /// `Settings.default.theme`는 `.light`라, 이 자리에서 기기 외형을 심어두지
+    /// 않으면 사용자가 처음으로 무언가를 저장하는 순간(가리기 토글이든 설정
+    /// 창의 저장이든) `hasStored`만 true가 되고 테마는 `.light`로 굳어
+    /// 다크모드 맥이 갑자기 하얘진다. 뷰가 아니라 여기서 심어야 첫 저장에
+    /// 그대로 딸려 나간다.
+    ///
+    /// 웹은 저장값이 깨졌을 때만 이 씨앗 없이 `DEFAULT_SETTINGS`를 쓰지만,
+    /// 그 경우도 `hasStored`가 false라 화면은 어차피 기기 외형을 따라간다 —
+    /// 여기서는 두 갈래를 나누지 않고 첫 저장까지 일관되게 기기 외형을 남긴다.
+    private static func defaultSeededWithDeviceTheme() -> Settings {
+        var s = Settings.default
+        s.theme = deviceTheme()
+        return s
+    }
+
+    /// 기기의 다크모드 설정. 웹 `deviceTheme()`의 `matchMedia('(prefers-color-scheme: dark)')`에
+    /// 해당한다. `NSAppearance.currentDrawing()`은 그리기 문맥 밖에서도 앱(없으면
+    /// 시스템)의 실효 외형을 돌려주므로 앱이 뜨기 전에 불려도 안전하다.
+    /// 웹이 못 읽을 때 밝은 쪽으로 보는 것처럼, 판정이 안 되면 `.light`로 둔다.
+    static func deviceTheme() -> ThemeMode {
+        let appearance = NSAppearance.currentDrawing()
+        return appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .dark : .light
     }
 
     private static func save(_ s: Settings) {
