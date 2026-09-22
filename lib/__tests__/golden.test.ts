@@ -90,19 +90,20 @@ describe('golden — deductions', () => {
 })
 
 describe('golden — workdays', () => {
-  const cases = read('workdays.json')
+  // override 목록도 파일에서 읽는다. 여기 다시 적으면 파일이 주장하는 것과
+  // 테스트가 보는 것이 조용히 갈라진다.
+  const { overrides, cases } = read('workdays.json')
 
   it('케이스가 비어 있지 않다', () => {
     expect(cases.length).toBeGreaterThan(0)
+    expect(overrides.length).toBeGreaterThan(0)
   })
 
   for (const c of cases) {
     it(`at ${c.at.join('-')}`, () => {
       expect(effectiveWorkDays(DEFAULT_SETTINGS, ms(c.at))).toBe(c.expected.autoWorkDays)
       expect(isDayOff([], ms(c.at))).toBe(c.expected.isDayOff)
-      expect(isDayOff(['2026-09-22', '2026-09-24'], ms(c.at))).toBe(
-        c.expected.isDayOffWithOverride,
-      )
+      expect(isDayOff(overrides, ms(c.at))).toBe(c.expected.isDayOffWithOverride)
     })
   }
 })

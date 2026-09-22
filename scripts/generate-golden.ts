@@ -144,14 +144,23 @@ const DAYS: Clock[] = [
   [2028, 8, 22, 12, 0, 0],
 ]
 
-const workdays = DAYS.map((at) => ({
-  at,
-  expected: {
-    autoWorkDays: effectiveWorkDays(DEFAULT_SETTINGS, ms(at)),
-    isDayOff: isDayOff([], ms(at)),
-    isDayOffWithOverride: isDayOff(['2026-09-22', '2026-09-24'], ms(at)),
-  },
-}))
+/**
+ * isDayOffWithOverride를 만든 override 목록. 파일에 같이 적어야 다른 언어가
+ * 그 불리언을 재현할 수 있다. 여기서만 정의하고 테스트는 파일에서 읽는다.
+ */
+const WORKDAY_OVERRIDES = ['2026-09-22', '2026-09-24']
+
+const workdays = {
+  overrides: WORKDAY_OVERRIDES,
+  cases: DAYS.map((at) => ({
+    at,
+    expected: {
+      autoWorkDays: effectiveWorkDays(DEFAULT_SETTINGS, ms(at)),
+      isDayOff: isDayOff([], ms(at)),
+      isDayOffWithOverride: isDayOff(WORKDAY_OVERRIDES, ms(at)),
+    },
+  })),
+}
 
 const outDir = path.resolve(import.meta.dirname, '..', 'shared', 'golden')
 mkdirSync(outDir, { recursive: true })
