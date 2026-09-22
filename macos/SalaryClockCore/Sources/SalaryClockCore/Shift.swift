@@ -56,10 +56,19 @@ private func contains(_ shift: Shift, _ now: Int) -> Bool {
 ///
 ///   1. now를 품는 시프트가 있으면        → 그것        (근무 중 · 점심)
 ///   2. 없고, 오늘 안에 끝난 것이 있으면  → 그것        (퇴근 후 — 총액 유지)
+///      단, 오늘 출근할 시프트가 더 가까우면 그쪽에 넘긴다 (출근 전)
 ///   3. 그 외                              → 오늘 시작할 시프트 (출근 전 — 0원)
 ///
-/// 원본은 lib/shift.ts다. 자정을 특별히 다루지 않는데도 초기화가 나오고,
-/// 야간근무(22:00–06:00)는 1단계에 걸려 자정에 끊기지 않는다.
+/// 원본은 lib/shift.ts다. 2단계에서 두 힘이 맞선다.
+///
+/// 하나는 "자정에 초기화". 예전 규칙인 "시간적으로 가장 가까운 시프트"는
+/// 00:30에 어제 18:00 퇴근이 오늘 09:00 출근보다 가까워서 어제 총액을
+/// 자정 너머까지 남겼다. "오늘 안에 끝났는가"가 이걸 막는다.
+///
+/// 다른 하나는 "출근 전 카운트다운". 야간근무(22:00–06:00)는 어제 시프트가
+/// 오늘 06:00에 끝나므로 그 조건만으로는 21:59까지 계속 걸려, 출근 1분 전에도
+/// `출근까지`가 안 뜬다. 그래서 2단계 안에서만 근접성을 다시 꺼내 끝난
+/// 시프트와 오늘 출근 중 가까운 쪽을 고른다. 같으면 끝난 쪽을 남긴다.
 public func resolveShift(_ s: Settings, _ now: Int) -> Shift {
     let today = startOfLocalDay(now)
     let yesterday = buildShift(s, today - MS_PER_DAY)
@@ -74,11 +83,14 @@ public func resolveShift(_ s: Settings, _ now: Int) -> Shift {
 
     // 둘 중 최대 하나만 걸린다. yesterday가 걸리려면 시프트가 자정을 넘어야 하고
     // todayShift가 걸리려면 넘지 않아야 해서, 둘이 동시에 참일 수 없다.
-    if let ended = [yesterday, todayShift].first(where: { $0.endMs <= now && $0.endMs > today }) {
-        return ended
-    }
+    guard let ended = [yesterday, todayShift].first(where: { $0.endMs <= now && $0.endMs > today })
+    else { return todayShift }
 
-    return todayShift
+    // 오늘 출근이 아직 남았는가. ended가 todayShift면 now는 그 종료 이후이므로
+    // 여기는 자정을 넘는 시프트(ended == yesterday)에서만 nil이 아니다.
+    guard now < todayShift.startMs else { return ended }
+
+    return now - ended.endMs <= todayShift.startMs - now ? ended : todayShift
 }
 
 /// 두 시각 사이의 유급 시간(ms). 시프트 밖은 잘라내고 점심은 뺀다.

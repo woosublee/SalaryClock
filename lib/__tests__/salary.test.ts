@@ -159,6 +159,19 @@ describe('computeEarnings — 야간근무', () => {
   it('자정 이후 경과분이 이어서 쌓인다', () => {
     expect(computeEarnings(night, at(3)).progress).toBeCloseTo(5 / 8, 10)
   })
+
+  it('출근 1시간 전인 21:00에는 출근까지 남은 시간을 보여준다', () => {
+    const e = computeEarnings(night, at(21))
+    expect(e.phase).toBe('before')
+    expect(e.msUntilStart).toBe(1 * HOUR)
+    expect(e.earned).toBe(0)
+  })
+
+  it('퇴근 직후 07:00에는 어제 시프트의 총액을 유지한다', () => {
+    const e = computeEarnings(night, at(7))
+    expect(e.phase).toBe('after')
+    expect(e.earned).toBeCloseTo(e.dailyTotal, 10)
+  })
 })
 
 describe('computeEarnings — 근무일수', () => {
