@@ -1,0 +1,1103 @@
+[
+  {
+    "label": "2026년 9월 — 추석이 평일에 걸린 달",
+    "year": 2026,
+    "month": 8,
+    "overrides": [],
+    "expected": {
+      "workdays": 20,
+      "cells": [
+        {
+          "date": "2026-09-01",
+          "day": 1,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-02",
+          "day": 2,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-03",
+          "day": 3,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-04",
+          "day": 4,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-05",
+          "day": 5,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-06",
+          "day": 6,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-07",
+          "day": 7,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-08",
+          "day": 8,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-09",
+          "day": 9,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-10",
+          "day": 10,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-11",
+          "day": 11,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-12",
+          "day": 12,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-13",
+          "day": 13,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-14",
+          "day": 14,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-15",
+          "day": 15,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-16",
+          "day": 16,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-17",
+          "day": 17,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-18",
+          "day": 18,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-19",
+          "day": 19,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-20",
+          "day": 20,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-21",
+          "day": 21,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-22",
+          "day": 22,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-23",
+          "day": 23,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-24",
+          "day": 24,
+          "dow": 4,
+          "kind": "holiday",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-25",
+          "day": 25,
+          "dow": 5,
+          "kind": "holiday",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-26",
+          "day": 26,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-27",
+          "day": 27,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-28",
+          "day": 28,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-29",
+          "day": 29,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-30",
+          "day": 30,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        }
+      ]
+    }
+  },
+  {
+    "label": "2026년 9월 — 평일 하나를 쉬고 토요일 하나를 일함",
+    "year": 2026,
+    "month": 8,
+    "overrides": [
+      "2026-09-22",
+      "2026-09-26"
+    ],
+    "expected": {
+      "workdays": 20,
+      "cells": [
+        {
+          "date": "2026-09-01",
+          "day": 1,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-02",
+          "day": 2,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-03",
+          "day": 3,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-04",
+          "day": 4,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-05",
+          "day": 5,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-06",
+          "day": 6,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-07",
+          "day": 7,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-08",
+          "day": 8,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-09",
+          "day": 9,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-10",
+          "day": 10,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-11",
+          "day": 11,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-12",
+          "day": 12,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-13",
+          "day": 13,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-14",
+          "day": 14,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-15",
+          "day": 15,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-16",
+          "day": 16,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-17",
+          "day": 17,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-18",
+          "day": 18,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-19",
+          "day": 19,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-20",
+          "day": 20,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-21",
+          "day": 21,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-22",
+          "day": 22,
+          "dow": 2,
+          "kind": "custom-off",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-23",
+          "day": 23,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-24",
+          "day": 24,
+          "dow": 4,
+          "kind": "holiday",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-25",
+          "day": 25,
+          "dow": 5,
+          "kind": "holiday",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-26",
+          "day": 26,
+          "dow": 6,
+          "kind": "custom-work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-27",
+          "day": 27,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-09-28",
+          "day": 28,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-29",
+          "day": 29,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-09-30",
+          "day": 30,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        }
+      ]
+    }
+  },
+  {
+    "label": "2026년 2월 — 설 연휴",
+    "year": 2026,
+    "month": 1,
+    "overrides": [],
+    "expected": {
+      "workdays": 17,
+      "cells": [
+        {
+          "date": "2026-02-01",
+          "day": 1,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-02",
+          "day": 2,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-03",
+          "day": 3,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-04",
+          "day": 4,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-05",
+          "day": 5,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-06",
+          "day": 6,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-07",
+          "day": 7,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-08",
+          "day": 8,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-09",
+          "day": 9,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-10",
+          "day": 10,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-11",
+          "day": 11,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-12",
+          "day": 12,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-13",
+          "day": 13,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-14",
+          "day": 14,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-15",
+          "day": 15,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-16",
+          "day": 16,
+          "dow": 1,
+          "kind": "holiday",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-17",
+          "day": 17,
+          "dow": 2,
+          "kind": "holiday",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-18",
+          "day": 18,
+          "dow": 3,
+          "kind": "holiday",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-19",
+          "day": 19,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-20",
+          "day": 20,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-21",
+          "day": 21,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-22",
+          "day": 22,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2026-02-23",
+          "day": 23,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-24",
+          "day": 24,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-25",
+          "day": 25,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-26",
+          "day": 26,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-27",
+          "day": 27,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2026-02-28",
+          "day": 28,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        }
+      ]
+    }
+  },
+  {
+    "label": "2027년 1월 — 다음 해 표",
+    "year": 2027,
+    "month": 0,
+    "overrides": [],
+    "expected": {
+      "workdays": 20,
+      "cells": [
+        {
+          "date": "2027-01-01",
+          "day": 1,
+          "dow": 5,
+          "kind": "holiday",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-02",
+          "day": 2,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-03",
+          "day": 3,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-04",
+          "day": 4,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-05",
+          "day": 5,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-06",
+          "day": 6,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-07",
+          "day": 7,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-08",
+          "day": 8,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-09",
+          "day": 9,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-10",
+          "day": 10,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-11",
+          "day": 11,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-12",
+          "day": 12,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-13",
+          "day": 13,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-14",
+          "day": 14,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-15",
+          "day": 15,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-16",
+          "day": 16,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-17",
+          "day": 17,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-18",
+          "day": 18,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-19",
+          "day": 19,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-20",
+          "day": 20,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-21",
+          "day": 21,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-22",
+          "day": 22,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-23",
+          "day": 23,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-24",
+          "day": 24,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-25",
+          "day": 25,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-26",
+          "day": 26,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-27",
+          "day": 27,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-28",
+          "day": 28,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-29",
+          "day": 29,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2027-01-30",
+          "day": 30,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2027-01-31",
+          "day": 31,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        }
+      ]
+    }
+  },
+  {
+    "label": "2028년 9월 — 공휴일 표가 없는 해",
+    "year": 2028,
+    "month": 8,
+    "overrides": [],
+    "expected": {
+      "workdays": 21,
+      "cells": [
+        {
+          "date": "2028-09-01",
+          "day": 1,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-02",
+          "day": 2,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2028-09-03",
+          "day": 3,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2028-09-04",
+          "day": 4,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-05",
+          "day": 5,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-06",
+          "day": 6,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-07",
+          "day": 7,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-08",
+          "day": 8,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-09",
+          "day": 9,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2028-09-10",
+          "day": 10,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2028-09-11",
+          "day": 11,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-12",
+          "day": 12,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-13",
+          "day": 13,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-14",
+          "day": 14,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-15",
+          "day": 15,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-16",
+          "day": 16,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2028-09-17",
+          "day": 17,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2028-09-18",
+          "day": 18,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-19",
+          "day": 19,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-20",
+          "day": 20,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-21",
+          "day": 21,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-22",
+          "day": 22,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-23",
+          "day": 23,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2028-09-24",
+          "day": 24,
+          "dow": 0,
+          "kind": "weekend",
+          "isWorkday": false
+        },
+        {
+          "date": "2028-09-25",
+          "day": 25,
+          "dow": 1,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-26",
+          "day": 26,
+          "dow": 2,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-27",
+          "day": 27,
+          "dow": 3,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-28",
+          "day": 28,
+          "dow": 4,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-29",
+          "day": 29,
+          "dow": 5,
+          "kind": "work",
+          "isWorkday": true
+        },
+        {
+          "date": "2028-09-30",
+          "day": 30,
+          "dow": 6,
+          "kind": "weekend",
+          "isWorkday": false
+        }
+      ]
+    }
+  }
+]

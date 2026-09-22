@@ -14,7 +14,7 @@ import { computeEarnings } from '@/lib/salary'
 import { resolveShift } from '@/lib/shift'
 import { estimateDeductions } from '@/lib/deductions'
 import { effectiveWorkDays } from '@/lib/workdays'
-import { isDayOff } from '@/lib/calendar'
+import { isDayOff, monthCells, workdaysFromCalendar } from '@/lib/calendar'
 import {
   formatWon,
   formatPerSecond,
@@ -204,6 +204,28 @@ write('earnings.json', earnings)
 write('shift.json', shifts)
 write('deductions.json', deductions)
 write('workdays.json', workdays)
+
+/** 달력 그리드가 그리는 날짜별 상태. 맥의 MonthCalendarView가 같은 칸을 칠해야 한다. */
+const CALENDAR_MONTHS: { label: string; year: number; month: number; overrides: string[] }[] = [
+  { label: '2026년 9월 — 추석이 평일에 걸린 달', year: 2026, month: 8, overrides: [] },
+  { label: '2026년 9월 — 평일 하나를 쉬고 토요일 하나를 일함', year: 2026, month: 8,
+    overrides: ['2026-09-22', '2026-09-26'] },
+  { label: '2026년 2월 — 설 연휴', year: 2026, month: 1, overrides: [] },
+  { label: '2027년 1월 — 다음 해 표', year: 2027, month: 0, overrides: [] },
+  { label: '2028년 9월 — 공휴일 표가 없는 해', year: 2028, month: 8, overrides: [] },
+]
+
+const calendars = CALENDAR_MONTHS.map((m) => ({
+  ...m,
+  expected: {
+    workdays: workdaysFromCalendar(m.year, m.month, m.overrides),
+    cells: monthCells(m.year, m.month, m.overrides).map((c) => ({
+      date: c.date, day: c.day, dow: c.dow, kind: c.kind, isWorkday: c.isWorkday,
+    })),
+  },
+}))
+
+write('calendar.json', calendars)
 
 /** 내림 규칙과 소수 자리 처리를 고정한다. 반올림하면 안 벌은 돈이 먼저 뜬다. */
 const FORMAT_AMOUNTS = [0, 0.4, 0.9, 1, 999.99, 1234.56, 83412.49, 166666.66666666666, 1_0000_0000]

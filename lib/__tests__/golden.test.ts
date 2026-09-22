@@ -11,7 +11,7 @@ import { computeEarnings } from '@/lib/salary'
 import { resolveShift } from '@/lib/shift'
 import { estimateDeductions } from '@/lib/deductions'
 import { effectiveWorkDays } from '@/lib/workdays'
-import { isDayOff } from '@/lib/calendar'
+import { isDayOff, monthCells, workdaysFromCalendar } from '@/lib/calendar'
 import { DEFAULT_SETTINGS, type Settings } from '@/lib/settings'
 import {
   formatWon,
@@ -174,6 +174,30 @@ describe('golden — clock', () => {
       const got = arcBetween(sh.startMs, sh.endMs)
       expect(got.startDeg).toBeCloseTo(a.expected.startDeg, 9)
       expect(got.sweepDeg).toBeCloseTo(a.expected.sweepDeg, 9)
+    })
+  }
+})
+
+describe('golden — calendar', () => {
+  const cases = read('calendar.json')
+
+  it('케이스가 비어 있지 않다', () => {
+    expect(cases.length).toBeGreaterThan(0)
+  })
+
+  for (const m of cases) {
+    it(m.label, () => {
+      expect(workdaysFromCalendar(m.year, m.month, m.overrides)).toBe(m.expected.workdays)
+      const cells = monthCells(m.year, m.month, m.overrides)
+      expect(cells.length).toBe(m.expected.cells.length)
+      cells.forEach((c, i) => {
+        const want = m.expected.cells[i]
+        expect(c.date).toBe(want.date)
+        expect(c.day).toBe(want.day)
+        expect(c.dow).toBe(want.dow)
+        expect(c.kind).toBe(want.kind)
+        expect(c.isWorkday).toBe(want.isWorkday)
+      })
     })
   }
 })

@@ -11,7 +11,7 @@ public struct WorkdayInfo: Sendable {
     public let hasHolidayData: Bool
 }
 
-private func daysInMonth(_ year: Int, _ month: Int) -> Int {
+func daysInMonth(_ year: Int, _ month: Int) -> Int {
     var c = DateComponents()
     c.year = year; c.month = month + 1
     let date = appCalendar.date(from: c)!
