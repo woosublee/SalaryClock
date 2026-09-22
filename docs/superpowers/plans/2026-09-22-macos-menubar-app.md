@@ -22,7 +22,14 @@
 - **색은 `shared/golden/palette.json`에서 생성한다.** hex를 손으로 적지 않는다. `hex`가 3자리(`#fff`)일 수 있고 `lab`이 `null`일 수 있다.
 - **바늘 회전에 애니메이션을 걸지 않는다.** 360°→0°에서 역방향으로 한 바퀴 돈다.
 - **새 Swift 의존성을 추가하지 않는다.** 표준 라이브러리와 Apple 프레임워크만 쓴다.
-- Swift 테스트: `swift test --package-path macos/SalaryClockCore`
+- **`swift build`·`swift test`는 반드시 `--scratch-path`를 붙여 iCloud 밖에서 빌드한다.** 이 저장소는 `~/Documents` 안에 있고 그 아래는 iCloud Drive가 동기화한다. iCloud가 빌드 산출물에 확장 속성을 붙이면 `codesign`이 `resource fork, Finder information, or similar detritus not allowed`로 실패한다 — 기본 `.build` 경로로는 테스트가 아예 돌지 않는다. 확인한 사실이다.
+  ```bash
+  swift test  --package-path macos/SalaryClockCore --scratch-path "$HOME/Library/Caches/salaryclock/core"
+  swift test  --package-path macos/SalaryClockApp  --scratch-path "$HOME/Library/Caches/salaryclock/app"
+  swift build --package-path macos/SalaryClockApp  --scratch-path "$HOME/Library/Caches/salaryclock/app"
+  ```
+  짧은 이름으로도 부를 수 있게 `package.json`에 `swift:test:core`·`swift:test:app`을 둔다 (Task 3). `scripts/bundle-app.sh`도 같은 경로를 쓴다 (Task 9).
+- Swift 테스트: 위 명령. **아래 Task 본문에 `swift test --package-path ...`로만 적힌 곳은 전부 `--scratch-path`를 붙여 읽는다.**
 - 웹 테스트(회귀 확인용): `npm test`
 - 커밋 메시지는 한국어, `feat:` / `fix:` / `chore:` / `docs:` 접두사. 말미에 `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`.
 
