@@ -6,7 +6,8 @@ export const CY = 100
 
 export interface ClockFaceProps {
   now: number
-  shift: Shift
+  /** 휴무일이면 null. 근무 구간을 그리지 않는다 */
+  shift: Shift | null
   /** 바깥에서 크기를 정한다. 페이스는 지름을 모른다 */
   className?: string
 }

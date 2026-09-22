@@ -22,7 +22,10 @@ export function LevelFace({ now, shift, className }: ClockFaceProps) {
   const id = useId()
   const clipId = `level-clip-${id}`
 
-  const progress = shift.paidMs === 0 ? 0 : paidMsBetween(shift, shift.startMs, now) / shift.paidMs
+  const progress =
+    shift === null || shift.paidMs === 0
+      ? 0
+      : paidMsBetween(shift, shift.startMs, now) / shift.paidMs
 
   // 수면 높이. 진행 0이면 바닥, 1이면 천장.
   const surfaceY = CY + R - 2 * R * progress

@@ -21,7 +21,9 @@ export function RingsFace({ now, shift, className }: ClockFaceProps) {
   const hands = handAngles(now)
 
   const progress =
-    shift.paidMs === 0 ? 0 : paidMsBetween(shift, shift.startMs, now) / shift.paidMs
+    shift === null || shift.paidMs === 0
+      ? 0
+      : paidMsBetween(shift, shift.startMs, now) / shift.paidMs
 
   const ring = (key: string, r: number, sweepDeg: number, tone: string, width: number) => (
     <g key={key}>

@@ -17,8 +17,10 @@ export function CountdownFace({ now, shift, className }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
 
-  const clampedNow = Math.min(Math.max(now, shift.startMs), shift.endMs)
-  const remaining = arcBetween(clampedNow, shift.endMs)
+  const remaining =
+    shift === null
+      ? { startDeg: 0, sweepDeg: 0 }
+      : arcBetween(Math.min(Math.max(now, shift.startMs), shift.endMs), shift.endMs)
 
   return (
     <svg viewBox="0 0 200 200" className={className} role="img" aria-label="퇴근까지 남은 시간">
