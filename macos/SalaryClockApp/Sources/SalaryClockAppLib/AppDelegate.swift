@@ -142,10 +142,22 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // 보장이 없다 — 실측 결과 자릿수가 같은데도 폭이 몇 pt씩 흔들렸다
         // (monospacedDigitSystemFont가 적용되지 않고 있었다는 뜻). 폰트를
         // attributedTitle 안에 직접 실어 애매함을 없앤다.
+        //
+        // 색도 같은 이유로 명시한다. attributedTitle에 .foregroundColor가 없으면
+        // NSStatusBarButton이 자기 색을 넣어 주는지, 아니면 NSAttributedString의
+        // 기본값인 검정으로 그리는지가 애매하다 — 후자면 어두운 메뉴바에서
+        // 글자가 안 보인다. 눈으로 확인할 수 없는 환경이므로 애매함 자체를
+        // 없앤다. NSColor.labelColor는 동적 색이라 그리는 시점의 NSAppearance
+        // (= 메뉴바의 실효 외형)에 맞춰 밝은 메뉴바에서는 거의 검정,
+        // 어두운 메뉴바에서는 거의 흰색으로 풀린다. Palette의 고정 색은
+        // 웹에서 뽑은 상수라 외형을 따라가지 못하므로 여기에는 쓰지 않는다.
         let titleText = menuBarTitle(e, hideAmount: s.hideAmount).map { " " + $0 } ?? ""
         button.attributedTitle = NSAttributedString(
             string: titleText,
-            attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular)]
+            attributes: [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular),
+                .foregroundColor: NSColor.labelColor,
+            ]
         )
 
         let minute = now / 60_000
