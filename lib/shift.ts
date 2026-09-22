@@ -60,16 +60,18 @@ export function resolveShift(s: Settings, now: number): Shift {
   const today = startOfLocalDay(now)
   const yesterday = buildShift(s, today - MS_PER_DAY)
   const todayShift = buildShift(s, today)
+  // DST로 하루가 25시간인 날에는 today + MS_PER_DAY가 다음 자정보다 앞이라
+  // now가 이 시프트에 걸릴 수 있다. 고정 오프셋 지역에서만 죽은 후보다.
   const tomorrow = buildShift(s, today + MS_PER_DAY)
 
   for (const c of [yesterday, todayShift, tomorrow]) {
     if (contains(c, now)) return c
   }
 
-  const ended = [yesterday, todayShift]
-    .filter((c) => c.endMs <= now && c.endMs > today)
-    .sort((a, b) => b.endMs - a.endMs)
-  if (ended.length > 0) return ended[0]
+  // 둘 중 최대 하나만 걸린다. yesterday가 걸리려면 시프트가 자정을 넘어야 하고
+  // todayShift가 걸리려면 넘지 않아야 해서, 둘이 동시에 참일 수 없다.
+  const ended = [yesterday, todayShift].find((c) => c.endMs <= now && c.endMs > today)
+  if (ended) return ended
 
   return todayShift
 }

@@ -28,7 +28,9 @@ export function StatusLine({ earnings, hidden }: Props) {
     }
   })()
 
-  const showRemaining = earnings.phase !== 'after'
+  // 휴무일에는 남은 금액이 0이라 '· 남은 ₩0'만 남는다. 지금은 페이지가 늘
+  // hidden으로 그려서 안 보이지만, 여기서도 빼 둔다.
+  const showRemaining = earnings.phase !== 'after' && earnings.phase !== 'dayoff'
 
   if (hidden) {
     return <p className="text-center font-mono text-sm tabular-nums">{' '}</p>

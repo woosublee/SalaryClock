@@ -97,6 +97,7 @@ export function computeEarnings(s: Settings, now: number): Earnings {
       perSecond: 0,
       progress: 0,
       elapsedPaidMs: 0,
+      // 0이 아니다. 쉬는 날에도 설정줄은 그날의 유급 시간을 그대로 보여준다.
       totalPaidMs: shift.paidMs,
       msUntilStart: 0,
       msUntilEnd: 0,
