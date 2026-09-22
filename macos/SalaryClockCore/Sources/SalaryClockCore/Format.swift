@@ -9,8 +9,13 @@ private func wonFormatter(_ fractionDigits: Int) -> NumberFormatter {
     f.currencyCode = "KRW"
     f.minimumFractionDigits = fractionDigits
     f.maximumFractionDigits = fractionDigits
-    // 내림은 아래에서 직접 하므로 포매터는 자르지 않는다
-    f.roundingMode = .down
+    // 내림은 formatWon이 이미 끝내고 넘기므로, 여기서는 자릿수를 더 깎을 일이
+    // 없다. 그래도 .down으로 두면 안 된다 — 넘어오는 값은 내림한 "999.9"가
+    // 아니라 그에 가장 가까운 double(999.899999999999977…)이라, 자르는 규칙과
+    // 만나면 ₩999.8이 나올 수 있다. 지금 그렇게 안 보이는 건 ICU가 최단
+    // 십진 표기로 스냅해 주기 때문일 뿐이다. 이미 내린 값이므로 최근접
+    // 반올림은 결과를 바꾸지 않으면서 그 위험만 없앤다.
+    f.roundingMode = .halfEven
     return f
 }
 
@@ -25,8 +30,23 @@ public func formatWon(_ n: Double, fractionDigits: Int = 0) -> String {
 }
 
 /// 초당 적립액. 작은 값에서 0으로 뭉개지지 않도록 소수 1자리를 남긴다.
+///
+/// 웹은 `toFixed(1)`을 쓴다 — double의 실제 값을 십진으로 펼쳐 반올림하되,
+/// 정확히 절반이면 큰 쪽(양의 무한대 쪽)을 고른다. `%.1f`도 같은 실제 값을
+/// 보지만 절반에서 짝수 쪽으로 가서, 시급 ₩900(초당 0.25)에서 웹 "0.3",
+/// 맥 "0.2"로 갈렸다.
+///
+/// 진짜 절반은 소수부가 정확히 .25나 .75일 때뿐이다(1자리 기준으로 절반이
+/// 되는 값 중 2진수로 딱 떨어지는 건 그 둘뿐). 0.15처럼 "보기에 절반"인 값은
+/// 실제로는 0.1499…라 `%.1f`가 이미 웹과 같은 답을 낸다 — 그래서 절반인
+/// 경우에만 올림(`.up` = 양의 무한대 쪽)으로 바꿔 준다.
 public func formatPerSecond(_ n: Double) -> String {
-    n < 100 ? String(format: "%.1f", n) : String(Int(n.rounded()))
+    guard n < 100 else { return String(Int(n.rounded())) }
+    let frac = n - n.rounded(.towardZero)
+    if frac == 0.25 || frac == 0.75 {
+        return String(format: "%.1f", (n * 10).rounded(.up) / 10)
+    }
+    return String(format: "%.1f", n)
 }
 
 public func formatDuration(_ ms: Int) -> String {

@@ -296,14 +296,18 @@ const FORMAT_AMOUNTS = [0, 0.4, 0.9, 1, 999.99, 1234.56, 83412.49, 166666.666666
 const formats = {
   won: FORMAT_AMOUNTS.map((n) => ({ n, expected: formatWon(n) })),
   wonOneDecimal: FORMAT_AMOUNTS.map((n) => ({ n, expected: formatWon(n, 1) })),
-  perSecond: [0, 0.04, 5.79, 99.94, 99.96, 100, 1234.5].map((n) => ({
+  // 0.25는 toFixed(1)이 "0.3"으로 올리는 정확한 절반이다 — 시급 ₩900이면
+  // 실제로 나오는 값이고, Swift의 %.1f는 짝수 반올림이라 "0.2"로 갈렸다.
+  perSecond: [0, 0.04, 0.25, 5.79, 99.94, 99.96, 100, 1234.5].map((n) => ({
     n,
     expected: formatPerSecond(n),
   })),
   duration: [0, -1, 999, 1000, 59_000, 60_000, 3_599_000, 3_600_000, 32_401_000, 86_399_000].map(
     (ms) => ({ ms, expected: formatDuration(ms) }),
   ),
-  koreanUnits: [0, 1, 9999, 10_000, 100_000_000, 123_456_789, 40_000_000].map((n) => ({
+  // 9999.6은 소수 케이스. 입력이 전부 정수면 내림 대신 반올림하는 구현도
+  // 통과한다(9999.6 → 내림 9999원, 반올림 1만원).
+  koreanUnits: [0, 1, 9999, 9999.6, 10_000, 100_000_000, 123_456_789, 40_000_000].map((n) => ({
     n,
     expected: formatKoreanUnits(n),
   })),
