@@ -60,7 +60,7 @@ describe('workdaysInMonth — 주말과 겹친 공휴일', () => {
 
 describe('workdayInfo — 공휴일 표가 없는 해', () => {
   it('표에 없는 해는 평일 수로 되돌아간다', () => {
-    const info = workdayInfo(on(2030, 9, 15))
+    const info = workdayInfo(on(2031, 9, 15))
     expect(info.hasHolidayData).toBe(false)
     expect(info.holidays).toBe(0)
     expect(info.workdays).toBe(info.weekdays)
@@ -69,6 +69,7 @@ describe('workdayInfo — 공휴일 표가 없는 해', () => {
   it('표가 있는 해는 그렇다고 알려준다', () => {
     expect(workdayInfo(on(2026, 9, 22)).hasHolidayData).toBe(true)
     expect(workdayInfo(on(2027, 9, 22)).hasHolidayData).toBe(true)
+    expect(workdayInfo(on(2030, 9, 22)).hasHolidayData).toBe(true)
   })
 })
 
