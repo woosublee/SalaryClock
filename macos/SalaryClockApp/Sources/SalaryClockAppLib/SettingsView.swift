@@ -42,6 +42,8 @@ struct SettingsView: View {
     /// 저장 버튼을 기다리지 않고 토글하는 즉시 반영한다 — draft에 담지 않는
     /// 이유이기도 하다.
     @State private var automaticUpdates = UpdaterController.shared.automaticallyChecks
+    @State private var automaticDownloads = UpdaterController.shared.automaticallyDownloads
+    @State private var updateInterval = UpdateInterval.nearest(to: UpdaterController.shared.checkInterval)
     @ObservedObject private var updater = UpdaterController.shared
     /// 창이 열린 시각. 웹 SettingsPanel의 `panelNow`와 같다 —
     /// `const [panelNow] = useState(now)`로 한 번 얼려 두고 창이 닫힐 때까지
@@ -233,6 +235,30 @@ struct SettingsView: View {
                     .onChange(of: automaticUpdates) { _, on in
                         UpdaterController.shared.automaticallyChecks = on
                     }
+                // 확인을 안 하면 받을 것도 없다. 자동 확인이 꺼져 있을 때
+                // 남은 둘을 흐리게 두지 않고 아예 감춘다 — 웹 설정 패널이
+                // 점심시간을 껐을 때 시각 칸을 감추는 것과 같은 규칙이다.
+                if automaticUpdates {
+                    Toggle("새 버전을 자동으로 받아 설치", isOn: $automaticDownloads)
+                        .onChange(of: automaticDownloads) { _, on in
+                            UpdaterController.shared.automaticallyDownloads = on
+                        }
+                    HStack(spacing: 8) {
+                        Text("확인 주기")
+                            .font(.system(size: 11))
+                            .foregroundStyle(theme.dim)
+                        Picker("", selection: $updateInterval) {
+                            ForEach(UpdateInterval.allCases, id: \.self) { interval in
+                                Text(interval.label).tag(interval)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                        .onChange(of: updateInterval) { _, interval in
+                            UpdaterController.shared.checkInterval = interval.seconds
+                        }
+                    }
+                }
                 HStack(spacing: 8) {
                     Button("지금 확인") { UpdaterController.shared.checkForUpdates() }
                         .disabled(!updater.canCheck)
@@ -240,6 +266,9 @@ struct SettingsView: View {
                         .font(.system(size: 11))
                         .foregroundStyle(theme.dim)
                 }
+                Text(lastCheckLine)
+                    .font(.system(size: 10))
+                    .foregroundStyle(theme.dim)
             } else {
                 // 개발 빌드다. 버튼을 눌러도 할 일이 없으므로 아예 두지 않고
                 // 왜 없는지를 적는다.
@@ -251,6 +280,16 @@ struct SettingsView: View {
                     .foregroundStyle(theme.dim)
             }
         }
+    }
+
+    /// 마지막으로 확인한 시각. 자동 확인이 정말 돌고 있는지는 이 줄로만
+    /// 드러난다 — 켜 두기만 하고 실제로는 안 돌던 경우를 눈으로 잡을 수 있다.
+    private var lastCheckLine: String {
+        guard let date = updater.lastCheck else { return "아직 확인한 적 없음" }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.dateFormat = "M월 d일 HH:mm"
+        return "마지막 확인: \(f.string(from: date))"
     }
 
     /// "1.0.0 (빌드 3)" — 업데이트가 실제로 올라왔는지 확인할 때 이 줄을 본다.
