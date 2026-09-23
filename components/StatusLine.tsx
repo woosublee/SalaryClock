@@ -2,6 +2,7 @@
 
 import type { Earnings } from '@/lib/salary'
 import { formatWon, formatDuration } from '@/lib/format'
+import { Won } from '@/components/Won'
 import { afterWorkKind, type AfterWorkKind } from '@/lib/afterWork'
 import type { Settings } from '@/lib/settings'
 
@@ -57,7 +58,7 @@ export function StatusLine({ earnings, settings, now, hidden }: Props) {
       {showRemaining && (
         <span className="text-slate-400 dark:text-slate-500">
           {' · 남은 '}
-          {formatWon(earnings.remainingAmount)}
+          <Won text={formatWon(earnings.remainingAmount)} />
         </span>
       )}
     </p>

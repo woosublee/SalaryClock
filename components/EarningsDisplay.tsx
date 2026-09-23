@@ -2,6 +2,7 @@
 
 import type { Earnings } from '@/lib/salary'
 import { formatWon, formatPerSecond } from '@/lib/format'
+import { Won } from '@/components/Won'
 
 export function EarningsDisplay({ earnings }: { earnings: Earnings }) {
   return (
@@ -23,7 +24,7 @@ export function EarningsDisplay({ earnings }: { earnings: Earnings }) {
         두 자리는 눈에 안 읽히는 잡음이라 한 자리에서 끊는다.
       */}
       <p className="mt-1.5 font-mono text-5xl font-bold tabular-nums tracking-tight sm:text-6xl">
-        {formatWon(Math.floor(earnings.earned))}
+        <Won text={formatWon(Math.floor(earnings.earned))} />
         <span className="text-slate-400 dark:text-slate-500">
           .{Math.floor((earnings.earned % 1) * 10)}
         </span>
