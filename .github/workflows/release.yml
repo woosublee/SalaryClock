@@ -43,7 +43,8 @@ jobs:
 
       - name: 서명 신원을 임시 키체인에 들인다
         run: |
-          set -euo pipefail
+          set -euxo pipefail
+          echo "--- 단계 시작"
           for name in CERTIFICATE_BASE64 CERTIFICATE_PASSWORD SPARKLE_PRIVATE_KEY; do
             [[ -n "${!name}" ]] || { echo "시크릿이 비어 있다: $name" >&2; exit 1; }
           done
