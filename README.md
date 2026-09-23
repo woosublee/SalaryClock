@@ -2,10 +2,15 @@
 
 지금 이 순간 내 월급이 얼마나 쌓였는지 보여주는 시계.
 
+**https://sc.vicals.com**
+
 연봉과 근무시간을 한 번 입력해두면, 출근한 순간부터 초 단위로 적립되는 금액과
 끊김 없이 흐르는 아날로그 시계를 한 화면에서 보여줍니다.
 
 서버도 데이터베이스도 로그인도 없습니다. 전부 브라우저 안에서 끝납니다.
+
+맥에서는 브라우저를 열지 않고 메뉴바에 바로 띄울 수도 있습니다 — 아래 [맥 메뉴바
+앱](#맥-메뉴바-앱).
 
 ## 무엇을 보여주나
 
@@ -79,6 +84,11 @@ npm run build
 | `lib/calendar.ts` | 달력에서 쉬는 날 고르기 |
 | `hooks/useNow.ts` | rAF 틱. 앱의 유일한 시간 소스 |
 | `components/clock/` | 시계 얼굴 10종 |
+| `macos/SalaryClockCore/` | 맥 앱의 계산 규칙 (웹 `lib/`의 대응물) |
+| `macos/SalaryClockApp/` | 메뉴바·팝오버·설정 창 |
+| `shared/golden/` | 양쪽 테스트가 함께 읽는 기대값 |
+| `release/` | 버전과 릴리스 노트 |
+| `scripts/` | 골든·팔레트 생성, 번들 조립, 서명, 릴리스 |
 
 의존 방향은 `time → settings → shift → {salary, clock}` 한 방향입니다.
 
@@ -108,15 +118,42 @@ Next.js (App Router) · TypeScript · Tailwind CSS · zod · vitest
 
 ## 맥 메뉴바 앱
 
-금액을 메뉴바에 직접 띄우는 네이티브 앱이 `macos/`에 있다.
+금액을 메뉴바에 바로 띄우는 네이티브 앱이 `macos/`에 있습니다. Swift와 SwiftUI로
+만들었고 웹뷰를 쓰지 않습니다. 화면은 웹과 같게 맞췄습니다 — 색은 웹 빌드 결과에서
+뽑아 오고, 시계 얼굴 10종도 같은 수치로 옮겼습니다.
+
+메뉴바에는 금액만 나오고, 누르면 시계와 상세가 담긴 팝오버가 떨어집니다. 가리기를
+켜면 아이콘만 남아서 옆에서 보면 그냥 시계로 보입니다.
+
+### 설치
+
+[릴리스](https://github.com/woosublee/SalaryClock/releases/latest)에서 DMG를 받아
+응용 프로그램 폴더에 넣으면 됩니다.
+
+자체 서명한 앱이라 브라우저로 받으면 macOS가 첫 실행을 막습니다. macOS 13·14에서는
+Finder에서 Control-클릭 후 **열기**를, macOS 15 이상에서는 한 번 실행해 본 뒤
+**시스템 설정 > 개인정보 보호 및 보안 > 보안**에서 **그래도 열기**를 누르세요.
+한 번만 하면 그다음부터는 그냥 열립니다.
+
+새 버전은 앱이 알아서 찾습니다. 앱을 열 때와 하루에 한 번 확인하고, 설정에서 자동
+설치를 켜 둘 수 있습니다.
+
+### 직접 빌드하기
 
 ```bash
-./scripts/install-app.sh      # 빌드해서 /Applications에 설치
+./scripts/create-signing-certificate.sh   # 처음 한 번만
+./scripts/install-app.sh
 open /Applications/SalaryClock.app
 ```
 
-계산 규칙은 웹과 공유한다 — `shared/golden/*.json`을 양쪽 테스트가 함께
-읽으므로, 규칙이 갈라지면 한쪽이 빨개진다.
+서명 인증서를 따로 만드는 이유는 자동 업데이트 때문입니다. ad-hoc 서명은 빌드마다
+신원이 달라져서, 내려받은 새 버전이 지금 쓰는 앱과 같은 곳에서 왔는지 확인할 수
+없습니다. Apple Developer 계정은 필요 없습니다.
+
+### 계산 규칙은 웹과 공유합니다
+
+`shared/golden/*.json`을 양쪽 테스트가 함께 읽습니다. 규칙이 갈라지면 한쪽이
+빨개집니다.
 
 ```bash
 npm test                # 웹
@@ -124,9 +161,23 @@ npm run swift:test:core # 맥 계산 규칙 (SalaryClockCore)
 npm run swift:test:app  # 맥 앱 (SalaryClockApp — 메뉴바 문구·설정 저장·입력 해석)
 ```
 
-`swift test`를 손으로 직접 돌릴 거라면 `--package-path`만으로는 안 된다 —
-이 저장소는 iCloud 동기화 폴더 안에 있어 `--scratch-path`를 따로 줘야
-한다. 이유와 정확한 명령은 설계 문서 10장에 있다.
+`swift test`를 손으로 돌릴 거라면 `--package-path`만으로는 안 됩니다. 이 저장소가
+iCloud 동기화 폴더 안에 있어서 `--scratch-path`를 따로 줘야 합니다. 이유와 정확한
+명령은 설계 문서 10장에 있습니다.
 
-설계와 이식 결정은 `docs/superpowers/specs/2026-09-22-macos-menubar-design.md`에
-있다.
+### 릴리스
+
+`release/version.json`과 `release/notes.md`를 고치고 태그를 밀면 GitHub Actions가
+빌드부터 발행까지 합니다.
+
+```bash
+git tag -a v0.0.5 -m "SalaryClock 0.0.5"
+git push origin v0.0.5
+```
+
+로컬에서 만들어만 보려면 `./scripts/release.sh`, 직접 올리려면 `--publish`를 줍니다.
+발행 전에 태그 중복, 빌드 번호가 올라갔는지, 릴리스 노트가 이번 버전을 가리키는지,
+앱이 실제로 실행되는지를 검사합니다.
+
+설계와 이식 과정의 결정은
+`docs/superpowers/specs/2026-09-22-macos-menubar-design.md`에 적어 두었습니다.
