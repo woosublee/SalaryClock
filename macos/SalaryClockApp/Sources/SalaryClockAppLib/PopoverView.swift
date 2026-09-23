@@ -295,6 +295,9 @@ private struct IconButton: View {
             Image(systemName: systemName)
                 .font(.system(size: 13, weight: .medium))
                 .frame(width: 22, height: 22)
+                // frame으로 22pt를 잡아도 히트 영역은 심볼이 그려진 만큼이다.
+                // 잡아둔 칸 전체를 과녁으로 쓴다.
+                .contentShape(Rectangle())
                 .accessibilityHidden(true)
         }
         .buttonStyle(.plain)

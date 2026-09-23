@@ -87,6 +87,9 @@ struct ClockStylePickerView: View {
                     )
                 )
                 .shadow(color: .black.opacity(0.12), radius: 1, y: 0.5)
+                // 화살표도 동그라미 전체가 과녁이어야 한다 — 기호만 누르게
+                // 두면 9pt짜리 과녁이 된다.
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(direction > 0 ? "다음 시계" : "이전 시계")
@@ -139,6 +142,12 @@ struct ClockStylePickerView: View {
                 RoundedRectangle(cornerRadius: 8)
                     .strokeBorder(border(style, selected: selected), lineWidth: 1)
             )
+            // 칸 전체를 누를 수 있게 한다.
+            //
+            // 고르지 않은 칸은 배경이 투명이라, 이게 없으면 시계 그림이나 글자에
+            // 정확히 닿아야만 눌린다. 고른 칸은 배경이 칠해져 있어 아무 데나
+            // 눌려서, 고르기 전과 후의 반응이 달라지는 이상한 상태가 된다.
+            .contentShape(RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
         .onHover { hovered = $0 ? style : (hovered == style ? nil : hovered) }
