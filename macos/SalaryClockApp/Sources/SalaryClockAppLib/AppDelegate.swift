@@ -11,6 +11,20 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var popover: NSPopover!
     private var settingsWindow: NSWindow?
 
+    /// 팝오버가 열려 있는 동안 메뉴바에 쓸 가리기 상태. 닫혀 있으면 nil이고
+    /// 그때는 설정값을 그대로 따른다.
+    ///
+    /// 가리기를 켜면 메뉴바 타이틀이 빈 문자열이 되고, variableLength 상태
+    /// 항목이 아이콘만 남는 폭으로 줄어든다. 팝오버는 그 버튼에 앵커돼 있어서
+    /// 폭이 변하면 따라 움직인다 — 팝오버 안의 아이콘을 눌렀는데 팝오버 자체가
+    /// 옆으로 미끄러지는 꼴이다.
+    ///
+    /// 그래서 열려 있는 동안에는 메뉴바 폭을 여는 순간의 상태로 묶어두고,
+    /// 닫힐 때 실제 설정으로 맞춘다. 팝오버 안의 금액은 그대로 즉시 가려지므로
+    /// 사용자가 기대하는 피드백은 잃지 않는다 — 어차피 가리려는 대상은
+    /// 팝오버를 닫은 뒤의 메뉴바다.
+    private var menuBarHideAmount: Bool?
+
     public override init() {
         super.init()
     }
@@ -85,6 +99,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             // 델리게이트만 타므로 그쪽 하나로 모은다.
             popover.performClose(nil)
         } else {
+            // 메뉴바 폭을 여는 순간의 상태로 묶어둔다 — 이유는 아래 프로퍼티 주석.
+            menuBarHideAmount = SettingsStore.shared.settings.hideAmount
             tick()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             // 팝오버가 열려 있는 동안만 0.1초로 올려 소수 1자리가 흐르게 한다.
@@ -153,7 +169,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // (= 메뉴바의 실효 외형)에 맞춰 밝은 메뉴바에서는 거의 검정,
         // 어두운 메뉴바에서는 거의 흰색으로 풀린다. Palette의 고정 색은
         // 웹에서 뽑은 상수라 외형을 따라가지 못하므로 여기에는 쓰지 않는다.
-        let titleText = menuBarTitle(e, hideAmount: s.hideAmount).map { " " + $0 } ?? ""
+
+        // 팝오버가 열려 있으면 그때 묶어둔 상태를 쓴다 (menuBarHideAmount 참고).
+        let hideForMenuBar = menuBarHideAmount ?? s.hideAmount
+        let titleText = menuBarTitle(e, hideAmount: hideForMenuBar).map { " " + $0 } ?? ""
         button.attributedTitle = NSAttributedString(
             string: titleText,
             attributes: [
@@ -179,5 +198,8 @@ extension AppDelegate: NSPopoverDelegate {
     /// 닫힌다. 그 경우에도 0.1초 타이머를 1초로 되돌려야 배터리를 안 먹는다.
     public func popoverDidClose(_ notification: Notification) {
         startTimer(interval: AppPreferences.shared.menuBarInterval)
+        // 묶어뒀던 메뉴바 폭을 풀고 실제 설정으로 맞춘다.
+        menuBarHideAmount = nil
+        tick()
     }
 }

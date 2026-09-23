@@ -41,11 +41,25 @@ PLIST
 
 # $APP 자체는 (SCRATCH와 달리) 저장소 안의 macos/build에 조립되므로 iCloud
 # 동기화 대상이다. iCloud가 붙이는 확장 속성(FinderInfo·fileprovider 등)
-# 때문에 codesign이 같은 이유로 실패할 수 있어, 지금 막 쓴 Info.plist까지
-# 포함해 서명 바로 직전에 지운다 — 그 사이에 새로 붙을 여지를 남기지 않는다.
-xattr -cr "$APP"
-
-# 본인 기계에서 쓸 것이라 ad-hoc 서명이면 충분하다. Gatekeeper가 막지 않는다.
-codesign --force --sign - "$APP"
+# 때문에 codesign이 "resource fork, Finder information, or similar detritus
+# not allowed"로 실패한다.
+#
+# 서명 직전에 지우는 것만으로는 부족하다 — 실측: 지운 직후에도 fileprovider
+# 데몬이 번들 최상위에 com.apple.FinderInfo를 다시 붙여 codesign이 깨졌고,
+# 같은 명령을 한 번 더 돌리자 통과했다. 우리가 제어할 수 없는 데몬과의
+# 경합이므로 없앨 수는 없고 흡수한다: 지우고-서명하기를 몇 번 다시 해본다.
+# 본인 기계에서 쓸 것이라 ad-hoc 서명이면 충분하다 — Gatekeeper가 막지 않는다.
+for attempt in 1 2 3; do
+  xattr -cr "$APP"
+  if codesign --force --sign - "$APP" 2>/dev/null; then
+    break
+  fi
+  if [ "$attempt" = 3 ]; then
+    # 마지막 판은 오류를 그대로 보여주고 죽는다 — 삼켜 버리면 서명 없는
+    # 번들이 성공한 척 남는다.
+    xattr -cr "$APP"
+    codesign --force --sign - "$APP"
+  fi
+done
 
 echo "built $APP"
