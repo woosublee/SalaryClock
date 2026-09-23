@@ -193,6 +193,7 @@ scripts/
   release.yml             태그를 밀면 릴리스 (10.2)
   render-app-icon.swift   팔레트 → 아이콘 PNG 두 벌 (10.3)
   generate-app-icon.sh    PNG → Assets.car + AppIcon.icns
+  generate-web-icons.sh   PNG → app/icon.png (웹 파비콘)
   release-common.sh       릴리스 스크립트들이 공유하는 버전·URL
   package-dmg.sh          .app → DMG
   generate-appcast.sh     DMG 서명 → appcast.xml
@@ -770,6 +771,11 @@ appcast와 같은 이야기를 하는지.
 PNG를 저장소에 넣지 않는다. `scripts/render-app-icon.swift`가 빌드할 때마다
 그리고, 색은 `palette.json`에서 읽는다 — 팔레트를 손으로 옮겨 적지 않는
 규칙(5.1)이 여기에도 적용된다. 웹 색이 바뀌면 아이콘도 따라 바뀐다.
+
+웹 파비콘도 같은 그림을 쓴다(`scripts/generate-web-icons.sh`). 다만 웹은 빌드할
+때마다 그릴 수 없어서 — 그리는 코드가 AppKit을 쓰므로 리눅스 빌드 환경에서는 못
+돈다 — 만들어 둔 PNG를 `app/icon.png`으로 저장소에 넣는다. 색이나 모양을 바꾸면
+그 스크립트를 다시 돌려야 한다.
 
 **밝게·어둡게 두 벌을 넣는다.** macOS 26부터 아이콘이 시스템 외형을 따라가는데,
 그러려면 `.icns` 하나가 아니라 두 외형이 다 담긴 `Assets.car`가 있어야 하고
