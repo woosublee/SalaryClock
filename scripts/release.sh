@@ -2,22 +2,47 @@
 # 릴리스 한 판. 빌드 → DMG → appcast → GitHub 릴리스 발행.
 #
 # 사용법:
-#   ./scripts/release.sh          # 검사하고 만들기만 한다(발행 안 함)
-#   ./scripts/release.sh --publish  # GitHub 릴리스까지 올린다
+#   ./scripts/release.sh                      # 검사하고 만들기만 한다(발행 안 함)
+#   ./scripts/release.sh --publish            # 태그를 만들어 밀고 GitHub 릴리스까지
+#   ./scripts/release.sh --publish --skip-tag # 태그가 이미 있는 경우(= CI)
 #
 # 버전은 release/version.json에서만 온다. 올리기 전에 그 파일의
 # buildNumber를 올릴 것 — 올리지 않으면 아래 단조 증가 검사에서 멈춘다.
+#
+# GitHub Actions는 태그가 밀리는 것을 신호로 이 스크립트를 --skip-tag로
+# 부른다(.github/workflows/release.yml). 태그를 만드는 쪽은 사람이고,
+# 만들어진 태그를 산출물로 바꾸는 쪽은 스크립트 하나다 — 로컬에서 돌리든
+# CI에서 돌리든 같은 경로를 지난다.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/release-common.sh"
 
 PUBLISH=0
-[[ "${1:-}" == "--publish" ]] && PUBLISH=1
+SKIP_TAG=0
+for arg in "$@"; do
+  case "$arg" in
+    --publish) PUBLISH=1 ;;
+    --skip-tag) SKIP_TAG=1 ;;
+    *) echo "모르는 인자: $arg" >&2; exit 1 ;;
+  esac
+done
 
 echo "== SalaryClock $RELEASE_VERSION (빌드 $RELEASE_BUILD), 태그 $RELEASE_TAG"
 
-# 1. 이미 나간 태그를 덮어쓰지 않는다. 같은 태그로 다시 올리면 이미 그
-#    버전을 받은 사람들에게는 영영 업데이트가 안 보인다.
-if git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
+# 1. 태그.
+#
+#    직접 만드는 경우(로컬): 이미 있으면 멈춘다. 같은 태그로 다시 올리면 이미
+#    그 버전을 받은 사람들에게는 영영 업데이트가 안 보인다.
+#
+#    이미 있는 경우(CI): 그 태그가 지금 체크아웃한 커밋을 가리키는지 본다.
+#    다른 커밋을 가리키면 태그와 다른 소스로 산출물을 만들게 된다.
+if (( SKIP_TAG == 1 )); then
+  TAGGED="$(git rev-list -n 1 "$RELEASE_TAG" 2>/dev/null || true)"
+  [[ -n "$TAGGED" ]] || { echo "태그가 없다: $RELEASE_TAG" >&2; exit 1; }
+  [[ "$TAGGED" == "$(git rev-parse HEAD)" ]] || {
+    echo "태그 $RELEASE_TAG 가 지금 커밋을 가리키지 않는다" >&2
+    exit 1
+  }
+elif git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
   echo "태그가 이미 있다: $RELEASE_TAG — version.json을 올릴 것" >&2
   exit 1
 fi
@@ -95,8 +120,10 @@ if (( PUBLISH == 0 )); then
 fi
 
 # 7. 발행. 태그를 먼저 만들어 밀고, 그 태그에 산출물을 붙인다.
-git tag -a "$RELEASE_TAG" -m "SalaryClock $RELEASE_VERSION"
-git push origin "$RELEASE_TAG"
+if (( SKIP_TAG == 0 )); then
+  git tag -a "$RELEASE_TAG" -m "SalaryClock $RELEASE_VERSION"
+  git push origin "$RELEASE_TAG"
+fi
 gh release create "$RELEASE_TAG" \
   --repo "$RELEASE_REPO" \
   --title "SalaryClock $RELEASE_VERSION" \

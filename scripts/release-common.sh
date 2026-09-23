@@ -25,6 +25,9 @@ RELEASE_DMG="$RELEASE_BUILD_DIR/$RELEASE_DMG_NAME"
 RELEASE_APPCAST="$RELEASE_BUILD_DIR/appcast.xml"
 
 RELEASE_FEED_URL="https://github.com/$RELEASE_REPO/releases/latest/download/appcast.xml"
+# 번들에 심는 공개키. bundle-app.sh의 기본값과 같아야 한다 — generate-appcast.sh가
+# 둘이 어긋나지 않았는지 확인한다.
+RELEASE_PUBLIC_ED_KEY="${SPARKLE_PUBLIC_ED_KEY:-bJHKi2fte2ii7wO/cga6sMGm13GmxwaYr95lMGaMUwQ=}"
 RELEASE_DOWNLOAD_URL="https://github.com/$RELEASE_REPO/releases/download/$RELEASE_TAG/$RELEASE_DMG_NAME"
 RELEASE_NOTES_URL="https://github.com/$RELEASE_REPO/releases/tag/$RELEASE_TAG"
 

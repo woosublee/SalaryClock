@@ -51,3 +51,6 @@ next-env.d.ts
 
 # git worktree 작업 공간
 .worktrees/
+
+# CI가 번들을 조립하는 곳 (BUILD_DIR). 로컬은 캐시에 조립한다.
+/build/
