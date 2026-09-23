@@ -1,12 +1,12 @@
 import SwiftUI
 import SalaryClockCore
 
-/// 시계 얼굴을 고른다 — 웹 components/ClockStylePicker.tsx.
+/// 시계 페이스를 고른다 — 웹 components/ClockStylePicker.tsx.
 ///
-/// 이름만 나열하면 고를 수가 없다. 얼굴을 실제로 그려서 보여준다.
+/// 이름만 나열하면 고를 수가 없다. 페이스를 실제로 그려서 보여준다.
 /// 시각을 고정해서 받으므로 미리보기 열 개가 초당 몇십 번 다시 그려지지 않는다.
 ///
-/// 얼굴이 늘어나도 아래로 흐르지 않고 한 줄에서 좌우로 넘긴다. 설정 창은
+/// 페이스가 늘어나도 아래로 흐르지 않고 한 줄에서 좌우로 넘긴다. 설정 창은
 /// 위아래로 이미 길어서, 여기까지 세로로 쌓이면 다른 항목이 창 밖으로 밀린다.
 struct ClockStylePickerView: View {
     @Binding var value: String
@@ -96,7 +96,7 @@ struct ClockStylePickerView: View {
         .onHover { hoveredArrow = $0 ? direction : (hoveredArrow == direction ? nil : hoveredArrow) }
     }
 
-    /// 한 화면에서 한 칸을 뺀 만큼 넘긴다 — 경계에 걸친 얼굴이 다음 화면의
+    /// 한 화면에서 한 칸을 뺀 만큼 넘긴다 — 경계에 걸친 페이스가 다음 화면의
     /// 첫 칸으로 이어져 흐름이 끊기지 않는다. 웹이 `clientWidth * 0.8`만큼
     /// 미는 것과 같은 의도다.
     private func page(_ direction: Int) {

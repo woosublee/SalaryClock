@@ -74,7 +74,7 @@ const EMPTY_ARC: Arc = { startDeg: 0, sweepDeg: 0 }
  * 시프트를 문자판 위의 호 셋으로.
  *
  * 휴무일에는 시프트가 없다(null). 빈 호를 돌려주면 arcPath가 빈 d를 만들어
- * 얼굴들이 아무것도 그리지 않는다 — 얼굴마다 분기를 넣을 필요가 없다.
+ * 페이스들이 아무것도 그리지 않는다 — 페이스마다 분기를 넣을 필요가 없다.
  */
 export function shiftArcs(shift: Shift | null, now: number) {
   if (shift === null) {

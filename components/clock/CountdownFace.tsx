@@ -7,10 +7,10 @@ const RING_R = 92
 const DIAL_R = 74
 
 /**
- * 남은 — 다른 얼굴들이 "얼마나 쌓였나"를 그린다면, 이건 "얼마나 남았나"를 그린다.
+ * 남은 — 다른 페이스들이 "얼마나 쌓였나"를 그린다면, 이건 "얼마나 남았나"를 그린다.
  *
  * 호가 차오르는 게 아니라 퇴근 쪽으로 줄어든다. 같은 시간을 반대편에서 보는
- * 것뿐인데 하루의 체감이 완전히 달라져서 얼굴 하나를 따로 뒀다.
+ * 것뿐인데 하루의 체감이 완전히 달라져서 페이스 하나를 따로 뒀다.
  * 색도 쌓임(에메랄드)과 구분해 호박색을 쓴다.
  */
 export function CountdownFace({ now, shift, className }: ClockFaceProps) {
@@ -53,7 +53,7 @@ export function CountdownFace({ now, shift, className }: ClockFaceProps) {
       )}
 
       {/* 퇴근 지점 표식. 근무가 없는 날은 arcs.work가 0이라 12시 자리에 점이
-          찍히므로, 남은 얼굴들과 마찬가지로 shift가 없으면 아예 그리지 않는다. */}
+          찍히므로, 남은 페이스들과 마찬가지로 shift가 없으면 아예 그리지 않는다. */}
       {shift !== null &&
         (() => {
           const p = polarPoint(CX, CY, RING_R, arcs.work.startDeg + arcs.work.sweepDeg)

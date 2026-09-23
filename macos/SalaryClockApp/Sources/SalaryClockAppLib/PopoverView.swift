@@ -44,9 +44,9 @@ struct PopoverView: View {
             VStack(spacing: 12) {
                 dateLine
 
-                // 얼굴은 팝오버 폭(220)에서 좌우 여백 16씩을 뺀 만큼 꽉 채운다.
+                // 페이스는 팝오버 폭(220)에서 좌우 여백 16씩을 뺀 만큼 꽉 채운다.
                 // 스펙 5.3의 비례 축소(132pt)보다 큰데, 숫자판·남은·해시계처럼
-                // 글자와 잔눈금이 들어가는 얼굴은 그 크기에서 읽히지 않는다.
+                // 글자와 잔눈금이 들어가는 페이스는 그 크기에서 읽히지 않는다.
                 ClockFaceView(
                     style: ClockStyle(name: model.settings.clockStyle),
                     now: model.now, shift: model.earnings.shift, theme: theme
@@ -81,7 +81,7 @@ struct PopoverView: View {
         // MonthCalendarView처럼 스스로 그 키를 읽어 Theme을 만드는 뷰에도
         // 고른 테마가 닿게 하려면 환경에 직접 심어야 한다.
         //
-        // 팝오버에는 지금 그런 하위 뷰가 없지만(시계 얼굴은 theme을
+        // 팝오버에는 지금 그런 하위 뷰가 없지만(시계 페이스는 theme을
         // 인자로 받는다) 설정 창과 규칙을 하나로 둔다.
         .environment(\.colorScheme, effectiveScheme)
         .preferredColorScheme(effectiveScheme)

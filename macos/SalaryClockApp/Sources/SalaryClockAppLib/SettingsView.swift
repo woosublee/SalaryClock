@@ -45,7 +45,7 @@ struct SettingsView: View {
     @ObservedObject private var updater = UpdaterController.shared
     /// 창이 열린 시각. 웹 SettingsPanel의 `panelNow`와 같다 —
     /// `const [panelNow] = useState(now)`로 한 번 얼려 두고 창이 닫힐 때까지
-    /// 그 값을 쓴다. 미리보기 얼굴 열 개가 body가 다시 계산될 때마다 새 시각으로
+    /// 그 값을 쓴다. 미리보기 페이스 열 개가 body가 다시 계산될 때마다 새 시각으로
     /// 다시 그려지지 않게 하려면 여기가 고정이어야 한다.
     @State private var panelNow = Int((Date().timeIntervalSince1970 * 1000).rounded())
     /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
@@ -91,8 +91,8 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("설정").font(.system(size: 18, weight: .bold))
 
-            // 웹 SettingsPanel도 시계 얼굴이 급여보다 앞에 온다.
-            field("시계") {
+            // 웹 SettingsPanel도 시계 페이스가 급여보다 앞에 온다.
+            field("시계 페이스") {
                 ClockStylePickerView(
                     value: $draft.clockStyle, now: panelNow,
                     shift: previewShift, theme: theme

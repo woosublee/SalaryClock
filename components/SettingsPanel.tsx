@@ -153,9 +153,9 @@ export function SettingsPanel({
           )}
 
           <div className="mt-5 space-y-5">
-            {/* 시계 얼굴 */}
+            {/* 시계 페이스 */}
             <div>
-              <label className={LABEL}>시계</label>
+              <label className={LABEL}>시계 페이스</label>
               <ClockStylePicker
                 value={draft.clockStyle}
                 now={panelNow}

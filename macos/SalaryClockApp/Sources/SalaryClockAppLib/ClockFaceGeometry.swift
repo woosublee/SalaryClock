@@ -1,8 +1,8 @@
 import SwiftUI
 import SalaryClockCore
 
-/// 모든 얼굴이 같은 좌표계를 쓴다 — 웹 components/clock/types.ts의
-/// `viewBox="0 0 200 200"`. 얼굴은 자기 지름을 모르고, 크기는 바깥에서 정한다.
+/// 모든 페이스가 같은 좌표계를 쓴다 — 웹 components/clock/types.ts의
+/// `viewBox="0 0 200 200"`. 페이스는 자기 지름을 모르고, 크기는 바깥에서 정한다.
 let faceCX: CGFloat = 100
 let faceCY: CGFloat = 100
 let faceSize: CGFloat = 200
@@ -17,7 +17,7 @@ func facePolar(_ r: CGFloat, _ deg: Double) -> CGPoint {
     return CGPoint(x: faceCX + r * cos(rad), y: faceCY + r * sin(rad))
 }
 
-/// 200×200 좌표계를 실제 크기에 맞춰 놓고 그린다. 얼굴마다 반복되는 세 줄을
+/// 200×200 좌표계를 실제 크기에 맞춰 놓고 그린다. 페이스마다 반복되는 세 줄을
 /// 한곳에 모은 것뿐이다.
 func faceCanvas(_ draw: @escaping (inout GraphicsContext) -> Void) -> some View {
     Canvas { ctx, size in
@@ -29,7 +29,7 @@ func faceCanvas(_ draw: @escaping (inout GraphicsContext) -> Void) -> some View 
 
 extension GraphicsContext {
     /// 웹 `arcPath` + `<path stroke>`. 길이가 0이면 아무것도 그리지 않는다 —
-    /// 휴무일에 얼굴마다 분기를 넣지 않아도 되는 이유다.
+    /// 휴무일에 페이스마다 분기를 넣지 않아도 되는 이유다.
     func strokeArc(
         _ arc: Arc, radius: CGFloat, width: CGFloat, color: Color,
         cap: CGLineCap = .round, dash: [CGFloat] = []

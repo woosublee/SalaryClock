@@ -3,10 +3,10 @@ import SalaryClockCore
 
 /// 고리 — 바늘이 없다. 웹 components/clock/RingsFace.tsx.
 ///
-/// 다른 얼굴은 문자판 위 위치로 시각을 읽지만, 여기서는 네 개의 호가
+/// 다른 페이스는 문자판 위 위치로 시각을 읽지만, 여기서는 네 개의 호가
 /// 각각 12시에서 출발해 자란 길이로 읽는다. 바깥이 하루 진행이고,
 /// 안으로 들어올수록 시·분·초로 빨라진다. 초 고리가 1분마다 감겼다 풀리는
-/// 게 이 얼굴의 움직임 전부다.
+/// 게 이 페이스의 움직임 전부다.
 struct RingsFaceView: View {
     let now: Int
     let shift: Shift?

@@ -1,7 +1,7 @@
 import SwiftUI
 import SalaryClockCore
 
-/// 시계 얼굴 10종. 웹 `lib/settings.ts`의 `ClockStyle` 유니언과 1:1이고,
+/// 시계 페이스 10종. 웹 `lib/settings.ts`의 `ClockStyle` 유니언과 1:1이고,
 /// 순서는 웹 `ClockStylePicker`의 `STYLES` 배열과 같다 — 고르는 화면에
 /// 늘어놓는 차례가 곧 이 순서다.
 ///
@@ -35,9 +35,9 @@ enum ClockStyle: String, CaseIterable, Sendable {
     }
 }
 
-/// 고른 얼굴을 그린다 — 웹 `AnalogClock`에 해당한다.
+/// 고른 페이스를 그린다 — 웹 `AnalogClock`에 해당한다.
 ///
-/// 얼굴은 자기 지름을 모른다. 크기는 부르는 쪽이 `.frame`으로 정한다.
+/// 페이스는 자기 지름을 모른다. 크기는 부르는 쪽이 `.frame`으로 정한다.
 struct ClockFaceView: View {
     let style: ClockStyle
     let now: Int

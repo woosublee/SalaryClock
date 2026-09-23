@@ -59,7 +59,7 @@ const TOKENS = [
   'rose-400',
   'rose-950',
   'sky-400',
-  // 시계 얼굴 10종이 쓰는 색. 말끔 하나만 옮겼을 때는 slate/emerald로
+  // 시계 페이스 10종이 쓰는 색. 말끔 하나만 옮겼을 때는 slate/emerald로
   // 충분했지만, 해시계는 stone과 amber로 종이 문자판을 만들고 수위는 sky,
   // 남은은 rose, 파문은 orange를 쓴다.
   'stone-100',

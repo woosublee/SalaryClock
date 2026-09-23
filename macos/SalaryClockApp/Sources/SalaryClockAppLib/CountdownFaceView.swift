@@ -1,11 +1,11 @@
 import SwiftUI
 import SalaryClockCore
 
-/// 남은 — 다른 얼굴들이 "얼마나 쌓였나"를 그린다면, 이건 "얼마나 남았나"를
+/// 남은 — 다른 페이스들이 "얼마나 쌓였나"를 그린다면, 이건 "얼마나 남았나"를
 /// 그린다. 웹 components/clock/CountdownFace.tsx.
 ///
 /// 호가 차오르는 게 아니라 퇴근 쪽으로 줄어든다. 같은 시간을 반대편에서 보는
-/// 것뿐인데 하루의 체감이 완전히 달라져서 얼굴 하나를 따로 뒀다.
+/// 것뿐인데 하루의 체감이 완전히 달라져서 페이스 하나를 따로 뒀다.
 /// 색도 쌓임(에메랄드)과 구분해 호박색을 쓴다.
 struct CountdownFaceView: View {
     let now: Int

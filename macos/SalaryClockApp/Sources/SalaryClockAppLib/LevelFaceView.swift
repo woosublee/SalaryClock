@@ -3,7 +3,7 @@ import SalaryClockCore
 
 /// 수위 — 하루가 물처럼 차오른다. 웹 components/clock/LevelFace.tsx.
 ///
-/// 다른 얼굴은 진행을 테두리에서 말하는데, 이건 문자판 한가운데를 채운다.
+/// 다른 페이스는 진행을 테두리에서 말하는데, 이건 문자판 한가운데를 채운다.
 /// 출근이 바닥, 퇴근이 천장이다. 점심시간에는 수면이 그대로 멈춘다 —
 /// 돈이 안 쌓이는 시간을 따로 표시할 필요 없이 저절로 드러난다.
 ///
@@ -59,7 +59,7 @@ struct LevelFaceView: View {
                     ))
                 )
 
-                // 수면선 하나만 진하게. 물이 어디까지 찼는지가 이 얼굴의 전부다
+                // 수면선 하나만 진하게. 물이 어디까지 찼는지가 이 페이스의 전부다
                 var line = Path()
                 line.move(to: surface[0])
                 for p in surface.dropFirst() { line.addLine(to: p) }
