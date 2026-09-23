@@ -42,7 +42,9 @@ if (( SKIP_TAG == 1 )); then
     echo "태그 $RELEASE_TAG 가 지금 커밋을 가리키지 않는다" >&2
     exit 1
   }
-elif git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
+elif (( PUBLISH == 1 )) && git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
+  # 발행할 때만 막는다. 만들기만 하는 경우(인자 없이 돌릴 때, CI의 시험 실행)는
+  # 이미 나간 버전을 다시 빌드해 보는 것이 정상이다.
   echo "태그가 이미 있다: $RELEASE_TAG — version.json을 올릴 것" >&2
   exit 1
 fi
