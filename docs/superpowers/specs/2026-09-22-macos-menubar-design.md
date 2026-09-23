@@ -189,6 +189,8 @@ scripts/
   bundle-app.sh           swift build → SalaryClock.app (Sparkle 임베드·서명)
   install-app.sh          /Applications 설치
   create-signing-certificate.sh  자체 서명 인증서 만들기 (10.1)
+.github/workflows/
+  release.yml             태그를 밀면 릴리스 (10.2)
   render-app-icon.swift   팔레트 → 아이콘 PNG 두 벌 (10.3)
   generate-app-icon.sh    PNG → Assets.car + AppIcon.icns
   release-common.sh       릴리스 스크립트들이 공유하는 버전·URL
@@ -690,8 +692,14 @@ vitest와 Swift Testing이 같은 파일을 읽는다. 규칙이 갈라지는 �
 
 `scripts/create-signing-certificate.sh`가 만드는 자체 서명 인증서(CN
 `SalaryClock`, RSA-2048, codeSigning, 10년)로 서명한다. 처음 한 번만
-실행하면 되고, 이미 있으면 아무것도 하지 않는다 — **인증서를 새로 만들면
-신원이 바뀌어 이전 버전에서 올라오는 업데이트가 거부된다.**
+실행하면 되고, 이미 있으면 아무것도 하지 않는다.
+
+**신원이 바뀌어도 업데이트가 끊기지는 않는다.** Sparkle은 EdDSA 서명과 코드
+서명 중 하나만 유효하면 통과시킨다 — 소스의 `SUUpdateValidator.m`에 "키 교체가
+신뢰 사슬을 끊지 않도록 하나의 실패를 허용한다"고 적혀 있다. EdDSA 키를 그대로
+두는 한 이미 나간 버전에서도 새 버전이 올라온다. 그래서 CI용으로 인증서를
+다시 만들어 내보낼 수 있었다(`--replace --export`) — `security export`는
+키체인 단위로만 동작해서 기존 인증서를 꺼내려면 다른 앱 신원까지 딸려 나온다.
 
 ad-hoc 서명(`codesign --sign -`)에서 옮겨 온 이유는 자동 업데이트(10.2)다.
 ad-hoc 서명에는 고정된 신원이 없어 빌드마다 다른 서명이 나오고, Sparkle이
@@ -729,9 +737,26 @@ ad-hoc 서명에는 고정된 신원이 없어 빌드마다 다른 서명이 나
 주면 도구가 직접 키체인을 읽는다. 셸 변수나 임시 파일로 꺼내면 프로세스
 목록과 디스크에 남는다.
 
-`release/notes.md`와 `version.json`을 고치고 `scripts/release.sh`를 돌린다.
-인자 없이 돌리면 만들기만 하고, `--publish`를 주면 태그를 밀고 GitHub
-릴리스에 DMG와 appcast를 올린다. 올리기 전에 다섯 가지를 기계로 막는다:
+`release/notes.md`와 `version.json`을 고치고 태그를 밀면
+**GitHub Actions가 릴리스를 만든다**(`.github/workflows/release.yml`).
+
+태그를 만드는 쪽은 사람이고, 태그를 산출물로 바꾸는 쪽은 `scripts/release.sh`
+하나다 — 로컬에서 돌리든 러너에서 돌리든 같은 경로를 지난다. 워크플로가 하는
+일은 스크립트가 필요로 하는 두 키를 러너에 잠깐 들여놓고 끝나면 치우는 것뿐이다.
+
+| | |
+|---|---|
+| `SIGNING_CERTIFICATE_BASE64` | 자체 서명 인증서(p12)를 base64로 |
+| `SIGNING_CERTIFICATE_PASSWORD` | 그 p12의 비밀번호 |
+| `SPARKLE_PRIVATE_KEY` | EdDSA 비밀키 |
+
+러너는 **macOS 26이어야 한다.** 아이콘의 밝게/어둡게 두 벌을 컴파일하는 건
+Xcode 26의 `actool`부터 되고, 그 아래에서는 다크 변형이 조용히 빠진다.
+
+로컬에서도 그대로 돌릴 수 있다. 인자 없이 돌리면 만들기만 하고, `--publish`를
+주면 태그를 밀고 GitHub 릴리스에 DMG와 appcast를 올린다. CI는 태그가 이미
+있으므로 `--publish --skip-tag`로 부르고, 그때는 태그가 지금 커밋을 가리키는지
+확인한다. 올리기 전에 다섯 가지를 기계로 막는다:
 태그 중복, **빌드 번호 단조 증가**(이미 나간 appcast를 직접 읽어 비교한다 —
 로컬 기록이 아니라 사용자가 실제로 보는 값이 기준이다), 릴리스 노트가
 이번 버전을 가리키는지, 작업 트리가 깨끗한지, 번들에 박힌 버전·피드가
