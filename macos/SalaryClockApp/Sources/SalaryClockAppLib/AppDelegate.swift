@@ -11,19 +11,19 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var popover: NSPopover!
     private var settingsWindow: NSWindow?
 
-    /// 팝오버가 열려 있는 동안 메뉴바에 쓸 가리기 상태. 닫혀 있으면 nil이고
-    /// 그때는 설정값을 그대로 따른다.
+    /// 팝오버를 걸어 두는, 보이지 않는 1pt 창.
     ///
-    /// 가리기를 켜면 메뉴바 타이틀이 빈 문자열이 되고, variableLength 상태
-    /// 항목이 아이콘만 남는 폭으로 줄어든다. 팝오버는 그 버튼에 앵커돼 있어서
-    /// 폭이 변하면 따라 움직인다 — 팝오버 안의 아이콘을 눌렀는데 팝오버 자체가
-    /// 옆으로 미끄러지는 꼴이다.
+    /// 팝오버를 상태 항목 버튼에 직접 앵커하면 가리기를 켤 때 같이 미끄러진다.
+    /// 앵커 사각형은 버튼의 로컬 좌표로 저장되는데, 타이틀이 비면서 항목이
+    /// 아이콘만 남는 폭으로 줄면 그 좌표계가 통째로 오른쪽으로 끌려가기
+    /// 때문이다 — 버튼 안 어디에 걸든 소용이 없고, 오른쪽 모서리에 걸면
+    /// 이동량이 오히려 두 배가 된다.
     ///
-    /// 그래서 열려 있는 동안에는 메뉴바 폭을 여는 순간의 상태로 묶어두고,
-    /// 닫힐 때 실제 설정으로 맞춘다. 팝오버 안의 금액은 그대로 즉시 가려지므로
-    /// 사용자가 기대하는 피드백은 잃지 않는다 — 어차피 가리려는 대상은
-    /// 팝오버를 닫은 뒤의 메뉴바다.
-    private var menuBarHideAmount: Bool?
+    /// 그래서 팝오버를 버튼에서 떼어내 화면 좌표에 고정된 창에 건다. 위치는
+    /// 항목의 오른쪽 모서리다. 메뉴바는 오른쪽에서 왼쪽으로 쌓이므로 폭이 변해도
+    /// 그 모서리의 화면 좌표는 그대로고, 항목이 줄면 아이콘이 바로 그 모서리
+    /// 옆으로 오므로 화살표가 가리키는 곳도 두 상태 모두에서 자연스럽다.
+    private var anchorWindow: NSWindow?
 
     public override init() {
         super.init()
@@ -99,13 +99,38 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             // 델리게이트만 타므로 그쪽 하나로 모은다.
             popover.performClose(nil)
         } else {
-            // 메뉴바 폭을 여는 순간의 상태로 묶어둔다 — 이유는 아래 프로퍼티 주석.
-            menuBarHideAmount = SettingsStore.shared.settings.hideAmount
             tick()
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            if let anchor = makeAnchorWindow(for: button), let content = anchor.contentView {
+                anchorWindow = anchor
+                popover.show(relativeTo: content.bounds, of: content, preferredEdge: .minY)
+            } else {
+                // 버튼이 아직 창에 붙어 있지 않으면 화면 좌표를 구할 수 없다.
+                // 그때는 예전처럼 버튼에 건다 — 움직일지언정 열리기는 한다.
+                popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            }
             // 팝오버가 열려 있는 동안만 0.1초로 올려 소수 1자리가 흐르게 한다.
             startTimer(interval: 0.1)
         }
+    }
+
+    /// 상태 항목 오른쪽 모서리에 보이지 않는 1pt 창을 세운다 — 이유는
+    /// anchorWindow 주석. 버튼이 창에 붙어 있지 않으면 nil.
+    private func makeAnchorWindow(for button: NSStatusBarButton) -> NSWindow? {
+        guard let window = button.window else { return nil }
+        let onScreen = window.convertToScreen(button.convert(button.bounds, to: nil))
+        let edge = NSRect(x: onScreen.maxX - 1, y: onScreen.minY, width: 1, height: onScreen.height)
+
+        let w = NSWindow(contentRect: edge, styleMask: .borderless, backing: .buffered, defer: false)
+        w.isOpaque = false
+        w.backgroundColor = .clear
+        w.hasShadow = false
+        // 클릭을 통과시킨다. 메뉴바 위에 투명한 창이 떠 있는 줄 모르게 한다.
+        w.ignoresMouseEvents = true
+        w.level = .statusBar
+        w.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
+        w.isReleasedWhenClosed = false
+        w.orderFront(nil)
+        return w
     }
 
     /// 설정 창을 연다. 창(NSWindow)은 재사용하지만 그 안의 SettingsView는 열 때마다
@@ -170,9 +195,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // 어두운 메뉴바에서는 거의 흰색으로 풀린다. Palette의 고정 색은
         // 웹에서 뽑은 상수라 외형을 따라가지 못하므로 여기에는 쓰지 않는다.
 
-        // 팝오버가 열려 있으면 그때 묶어둔 상태를 쓴다 (menuBarHideAmount 참고).
-        let hideForMenuBar = menuBarHideAmount ?? s.hideAmount
-        let titleText = menuBarTitle(e, hideAmount: hideForMenuBar).map { " " + $0 } ?? ""
+        let titleText = menuBarTitle(e, hideAmount: s.hideAmount).map { " " + $0 } ?? ""
         button.attributedTitle = NSAttributedString(
             string: titleText,
             attributes: [
@@ -198,8 +221,7 @@ extension AppDelegate: NSPopoverDelegate {
     /// 닫힌다. 그 경우에도 0.1초 타이머를 1초로 되돌려야 배터리를 안 먹는다.
     public func popoverDidClose(_ notification: Notification) {
         startTimer(interval: AppPreferences.shared.menuBarInterval)
-        // 묶어뒀던 메뉴바 폭을 풀고 실제 설정으로 맞춘다.
-        menuBarHideAmount = nil
-        tick()
+        anchorWindow?.orderOut(nil)
+        anchorWindow = nil
     }
 }
