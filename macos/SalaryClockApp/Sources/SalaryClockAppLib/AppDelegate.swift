@@ -243,7 +243,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let minute = now / 60_000
         if minute != lastRingMinute {
             lastRingMinute = minute
-            button.image = ringImage(progress: e.progress)
+            // 휴무일에는 진행이 0이라 링이 비어 보인다. 그때는 바늘을 그려
+            // 작은 시계로 만든다 (ringImage 주석).
+            button.image = ringImage(
+                progress: e.progress,
+                clockAt: e.phase == .dayoff ? now : nil
+            )
         }
 
         model.now = now

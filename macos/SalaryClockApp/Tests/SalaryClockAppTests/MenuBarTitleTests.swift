@@ -36,3 +36,23 @@ func titleBeforeWork() {
     #expect(e.phase == .before)
     #expect(menuBarTitle(e, hideAmount: false) == formatWon(0))
 }
+
+/// 휴무일 아이콘에 바늘이 들어가는지.
+///
+/// 그림을 눈으로 볼 수 없으니 "빈 링과 다른 그림이 나온다"까지만 본다. 바늘을
+/// 그리는 코드가 통째로 빠지거나 시각이 전달되지 않으면 두 그림이 같아진다.
+@Test("휴무일 아이콘은 빈 링과 다르다 — 바늘이 그려진다")
+func dayOffIconDrawsHands() {
+    let t = at(2026, 8, 26, 10, 10, 0)
+    let empty = ringImage(progress: 0).tiffRepresentation
+    let clock = ringImage(progress: 0, clockAt: t).tiffRepresentation
+    #expect(empty != nil && clock != nil)
+    #expect(empty != clock)
+}
+
+@Test("바늘은 시각에 따라 달라진다")
+func handsFollowTime() {
+    let a = ringImage(progress: 0, clockAt: at(2026, 8, 26, 3, 0, 0)).tiffRepresentation
+    let b = ringImage(progress: 0, clockAt: at(2026, 8, 26, 9, 0, 0)).tiffRepresentation
+    #expect(a != b)
+}
