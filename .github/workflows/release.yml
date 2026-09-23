@@ -65,7 +65,20 @@ jobs:
           # 이게 없으면 codesign이 키를 쓸 때마다 GUI 승인을 기다리다 멈춘다.
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
-          rm -f "$P12"
+
+          # 자체 서명이라 신뢰 설정을 붙여야 한다. security find-identity -v는
+          # "유효한" 신원만 내놓는데, 신뢰 설정이 없으면 이 인증서가 그 목록에서
+          # 빠지고 bundle-app.sh가 신원이 없다며 멈춘다. 로컬에서는
+          # create-signing-certificate.sh가 같은 일을 한다.
+          #
+          # 인증서는 방금 들어간 키체인에서 꺼낸다. p12에서 openssl로 뽑으면
+          # 안 된다 — 이 p12는 legacy 암호(RC2)로 묶여 있고 러너의 OpenSSL 3는
+          # 그걸 기본 제공자로 못 읽는다.
+          CERT="$RUNNER_TEMP/signing.pem"
+          security find-certificate -c SalaryClock -p "$KEYCHAIN" > "$CERT"
+          sudo security add-trusted-cert -d -r trustRoot -p codeSign \
+            -k /Library/Keychains/System.keychain "$CERT"
+          rm -f "$P12" "$CERT"
 
           security find-identity -v -p codesigning | grep -F '"SalaryClock"'
 
