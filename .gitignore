@@ -48,3 +48,6 @@ next-env.d.ts
 
 # superpowers SDD 작업 디렉터리 (스크래치)
 .superpowers/
+
+# git worktree 작업 공간
+.worktrees/
