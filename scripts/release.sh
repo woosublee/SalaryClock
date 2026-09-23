@@ -56,10 +56,17 @@ fi
 PUBLISHED="$(curl -fsSL "$RELEASE_FEED_URL" 2>/dev/null | sed -n 's/.*<sparkle:version>\([0-9]*\)<\/sparkle:version>.*/\1/p' | head -1 || true)"
 if [[ -n "$PUBLISHED" ]]; then
   if (( RELEASE_BUILD <= PUBLISHED )); then
-    echo "빌드 번호가 올라가지 않았다: 이미 나간 것 $PUBLISHED, 지금 $RELEASE_BUILD" >&2
-    exit 1
+    # 발행할 때만 막는다. 만들기만 하는 경우(CI의 시험 실행)는 이미 나간
+    # 버전을 다시 빌드해 보는 것이 정상이고, 그때까지 막으면 워크플로를
+    # 점검할 방법이 없어진다.
+    if (( PUBLISH == 1 )); then
+      echo "빌드 번호가 올라가지 않았다: 이미 나간 것 $PUBLISHED, 지금 $RELEASE_BUILD" >&2
+      exit 1
+    fi
+    echo "   경고: 빌드 번호가 이미 나간 것과 같거나 낮다 ($PUBLISHED vs $RELEASE_BUILD)"
+  else
+    echo "   이미 나간 빌드 $PUBLISHED → $RELEASE_BUILD"
   fi
-  echo "   이미 나간 빌드 $PUBLISHED → $RELEASE_BUILD"
 else
   echo "   아직 나간 릴리스가 없다 (첫 릴리스)"
 fi
