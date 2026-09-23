@@ -84,6 +84,12 @@ struct MonthCalendarView: View {
                 .aspectRatio(1, contentMode: .fit)
                 .background(theme.calendarBackground(for: cell.kind))
                 .clipShape(RoundedRectangle(cornerRadius: 4))
+                // 칸 전체를 누를 수 있게 한다. 이게 없으면 Text가 실제로
+                // 차지하는 글자 크기만 눌려서, 한 자리 날짜는 11pt짜리 과녁을
+                // 맞혀야 한다 — frame으로 칸을 넓혀도 히트 영역은 따라오지
+                // 않는다. 웹은 <button>에 패딩을 줘서 칸 전체가 과녁이고,
+                // 여기서도 같아야 한다.
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(month + 1)월 \(cell.day)일 \(cell.isWorkday ? "근무" : "휴무")")

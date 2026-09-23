@@ -38,6 +38,11 @@ struct SettingsView: View {
     /// 빨갛게 보여줘야 하므로(다른 시각 입력칸과 같은 규칙) Double이 아니라
     /// String으로 갖는다.
     @State private var intervalText = SettingsView.formatInterval(AppPreferences.shared.menuBarInterval)
+    /// 창이 열린 시각. 웹 SettingsPanel의 `panelNow`와 같다 —
+    /// `const [panelNow] = useState(now)`로 한 번 얼려 두고 창이 닫힐 때까지
+    /// 그 값을 쓴다. 미리보기 얼굴 열 개가 body가 다시 계산될 때마다 새 시각으로
+    /// 다시 그려지지 않게 하려면 여기가 고정이어야 한다.
+    @State private var panelNow = Int((Date().timeIntervalSince1970 * 1000).rounded())
     /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
     @Environment(\.colorScheme) private var systemScheme
 
@@ -51,6 +56,14 @@ struct SettingsView: View {
     }
 
     private var theme: Theme { Theme(scheme: effectiveScheme) }
+
+    /// 미리보기에 쓸 시프트. 웹 `previewShift`와 같은 규칙으로, 편집 중인 값이
+    /// 아직 유효하지 않으면 저장된 설정으로 그린다 — 출근 시각을 지우는 도중에
+    /// 미리보기가 깨지지 않게.
+    private var previewShift: Shift? {
+        let base = SettingsStore.isValid(draft) ? draft : SettingsStore.shared.settings
+        return resolveShift(base, panelNow)
+    }
     private var intervalValue: Double? { Double(intervalText) }
     private var intervalValid: Bool { intervalValue.map(AppPreferences.isValid) ?? false }
     private var isValid: Bool { SettingsStore.isValid(draft) && intervalValid }
@@ -60,6 +73,14 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("설정").font(.system(size: 18, weight: .bold))
+
+            // 웹 SettingsPanel도 시계 얼굴이 급여보다 앞에 온다.
+            field("시계") {
+                ClockStylePickerView(
+                    value: $draft.clockStyle, now: panelNow,
+                    shift: previewShift, theme: theme
+                )
+            }
 
             // 실수령액 토글·공제율은 웹처럼 급여 박스 안, 금액 바로 아래에 둔다 —
             // 근무시간·점심 밑으로 내려서 급여 묶음을 깨뜨리지 않는다.
@@ -163,6 +184,10 @@ struct SettingsView: View {
             }
 
             HStack {
+                // 웹 SettingsPanel도 초기화를 바닥 왼쪽에 따로 떼어 둔다.
+                Button("초기화", action: resetAll)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(theme.iconButton)
                 Spacer()
                 Button("닫기", action: onDone)
                 Button("저장") {
@@ -186,6 +211,25 @@ struct SettingsView: View {
         // 않으면 밝은 맥에서 어두운 테마를 골랐을 때 달력 칸만 하얗게 남는다.
         .environment(\.colorScheme, effectiveScheme)
         .preferredColorScheme(effectiveScheme)
+    }
+
+    /// 설정을 기본값으로 되돌린다 — 웹 `resetSettings`에 대응한다.
+    ///
+    /// 웹은 확인을 묻지 않고 바로 되돌리고 패널을 연 채로 둔다. 여기서도 같다.
+    ///
+    /// 맥에만 있는 항목까지 함께 되돌린다. 사용자에게는 전부 이 창의 항목이라
+    /// 공유 설정만 되돌리면 절반만 초기화된다. 로그인 자동 실행은 저장값이
+    /// 아니라 시스템 등록이지만, 이 창에서 켠 것이므로 같이 내린다.
+    private func resetAll() {
+        SettingsStore.shared.reset()
+        AppPreferences.shared.reset()
+        try? SMAppService.mainApp.unregister()
+
+        draft = SettingsStore.shared.settings
+        intervalText = Self.formatInterval(AppPreferences.shared.menuBarInterval)
+        launchAtLogin = SMAppService.mainApp.status == .enabled
+        showAdvanced = false
+        showCalendar = false
     }
 
     @ViewBuilder
@@ -298,15 +342,14 @@ struct SettingsView: View {
     // MARK: - 근무일수
 
     /// 지금 시각을 epoch ms로 — auto 안내 문구와 effectiveWorkDays 계산이 쓴다.
-    private var nowMs: Int { Int((Date().timeIntervalSince1970 * 1000).rounded()) }
 
     /// auto 기준 이번 달 근무일수 — "자동 N일로" 링크의 N.
-    private var autoWorkDaysCount: Int { workdayInfo(nowMs).workdays }
+    private var autoWorkDaysCount: Int { workdayInfo(panelNow).workdays }
 
     /// auto 모드 안내 — 웹 SettingsPanel의 workDaysMode === 'auto' 분기와
     /// 글자 하나까지 같다.
     private var autoWorkDaysHint: String {
-        let info = workdayInfo(nowMs)
+        let info = workdayInfo(panelNow)
         return info.hasHolidayData
             ? "평일 \(info.weekdays)일 − 공휴일 \(info.holidays)일. 달이 바뀌면 따라갑니다"
             : "평일 \(info.weekdays)일. 이 해의 공휴일 자료가 없어 주말만 뺐습니다"
@@ -373,7 +416,7 @@ struct SettingsView: View {
 
     private var workDaysBinding: Binding<Double> {
         Binding(
-            get: { effectiveWorkDays(draft, nowMs) },
+            get: { effectiveWorkDays(draft, panelNow) },
             set: { newValue in
                 draft.workDaysMode = .manual
                 draft.workDaysPerMonth = newValue

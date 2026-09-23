@@ -58,6 +58,14 @@ public final class AppPreferences: @unchecked Sendable {
         NotificationCenter.default.post(name: .appPreferencesChanged, object: nil)
     }
 
+    /// 저장된 값을 지우고 기본값으로 되돌린다. 설정 창의 초기화가 부른다 —
+    /// 사용자에게는 같은 창의 한 항목이라 공유 설정만 되돌리면 절반만
+    /// 초기화된다.
+    public func reset() {
+        UserDefaults.standard.removeObject(forKey: Self.key)
+        reload()
+    }
+
     /// `0.1 <= interval <= 10`이고 유한해야 한다.
     public static func isValid(_ interval: Double) -> Bool {
         interval.isFinite && range.contains(interval)
