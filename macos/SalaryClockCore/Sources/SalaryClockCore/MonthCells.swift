@@ -51,6 +51,12 @@ public func monthCells(_ year: Int, _ month: Int, _ overrides: [String]) -> [Day
 }
 
 /// 한 날짜의 기본값 뒤집기를 켜고 끈다. 결과는 항상 정렬돼 있다.
+/// 달력에서 달을 옮긴다 — 웹 `stepMonth`와 같다. month는 0-based.
+public func stepMonth(_ year: Int, _ month: Int, _ delta: Int) -> (year: Int, month: Int) {
+    let total = year * 12 + month + delta
+    return (year: Int(floor(Double(total) / 12)), month: ((total % 12) + 12) % 12)
+}
+
 public func toggleOverride(_ overrides: [String], _ date: String) -> [String] {
     overrides.contains(date)
         ? overrides.filter { $0 != date }

@@ -27,8 +27,8 @@ struct SettingsView: View {
     @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
     // 공제율 직접 입력 섹션을 펼쳤는지 — 웹 SettingsPanel의 showAdvanced와 같다.
     @State private var showAdvanced = false
-    // 달력이 보여주는 달 — 패널이 열린 시각의 달로 고정한다. 웹 SettingsPanel의
-    // panelYear/panelMonth와 같다(월 이동 없음 — 웹에 없는 기능을 더하지 않는다).
+    // 달력이 보여주는 달. 창을 열 때는 이번 달에서 시작하고 화살표로 옮긴다.
+    // 웹 SettingsPanel도 같다 — 다음 달 연차를 미리 찍어 둘 수 있어야 한다.
     @State private var calendarYear = calendarComponents().year
     @State private var calendarMonth = calendarComponents().month
     // 달력을 펼쳤는지 — Settings에 안 담기는 순수 뷰 상태다. 웹 SettingsPanel의
@@ -479,6 +479,11 @@ struct SettingsView: View {
                     onClearMonth: {
                         // 지우기는 이 달의 override만 지운다 — 모드는 그대로 둔다.
                         draft.dayOverrides = clearMonthOverrides(draft.dayOverrides, calendarYear, calendarMonth)
+                    },
+                    onStepMonth: { delta in
+                        let next = stepMonth(calendarYear, calendarMonth, delta)
+                        calendarYear = next.year
+                        calendarMonth = next.month
                     }
                 )
             }
