@@ -118,6 +118,8 @@ sign "$FW/Autoupdate"
 sign "$FW/Updater.app"
 sign "$APP/Contents/Frameworks/Sparkle.framework"
 
-codesign --force --options runtime --sign "$IDENTITY" "$APP"
+# 앱에만 entitlements를 준다 — 프레임워크는 받을 필요가 없다.
+codesign --force --options runtime --sign "$IDENTITY" \
+  --entitlements "$ROOT/macos/SalaryClock.entitlements" "$APP"
 codesign --verify --strict --verbose=2 "$APP"
 echo "built $APP ($MARKETING_VERSION build $BUILD_NUMBER, $CONFIG)"

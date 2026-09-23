@@ -69,6 +69,23 @@ BUNDLED_FEED="$(plutil -extract SUFeedURL raw "$RELEASE_APP/Contents/Info.plist"
   exit 1
 }
 
+# 6. 실제로 뜨는지 본다.
+#
+#    codesign --verify는 통과하는데 실행은 안 되는 경우가 있다. 실제로 겪었다:
+#    하드닝 런타임의 라이브러리 검증이 번들 안의 Sparkle.framework를 거부해
+#    dyld 단계에서 죽었는데(자체 서명이라 Team ID가 없다), 서명 자체는 끝까지
+#    유효했다. 서명 검사만으로는 못 잡는 종류라 한 번 띄워 본다.
+"$RELEASE_APP/Contents/MacOS/SalaryClock" >/dev/null 2>&1 &
+SMOKE_PID=$!
+sleep 3
+if ! kill -0 "$SMOKE_PID" 2>/dev/null; then
+  echo "앱이 실행 직후 죽는다 — 서명이나 프레임워크 임베드를 확인할 것" >&2
+  exit 1
+fi
+kill "$SMOKE_PID" 2>/dev/null || true
+wait "$SMOKE_PID" 2>/dev/null || true
+echo "   실행 확인 완료"
+
 if (( PUBLISH == 0 )); then
   echo
   echo "여기까지 만들었다. 올리려면 --publish 를 줄 것."
@@ -77,7 +94,7 @@ if (( PUBLISH == 0 )); then
   exit 0
 fi
 
-# 6. 발행. 태그를 먼저 만들어 밀고, 그 태그에 산출물을 붙인다.
+# 7. 발행. 태그를 먼저 만들어 밀고, 그 태그에 산출물을 붙인다.
 git tag -a "$RELEASE_TAG" -m "SalaryClock $RELEASE_VERSION"
 git push origin "$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
