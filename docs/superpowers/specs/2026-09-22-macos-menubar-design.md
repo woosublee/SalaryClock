@@ -182,17 +182,26 @@ export interface Earnings {
 macos/
   SalaryClockCore/        Swift Package — 도메인 순수 함수 + 테스트
   SalaryClockApp/         Swift Package — 메뉴바, 팝오버, 설정 창
+release/
+  version.json            버전 원천 하나 (10.2)
+  notes.md                릴리스 노트
 scripts/
-  bundle-app.sh           swift build → SalaryClock.app
+  bundle-app.sh           swift build → SalaryClock.app (Sparkle 임베드·서명)
   install-app.sh          /Applications 설치
+  create-signing-certificate.sh  자체 서명 인증서 만들기 (10.1)
+  release-common.sh       릴리스 스크립트들이 공유하는 버전·URL
+  package-dmg.sh          .app → DMG
+  generate-appcast.sh     DMG 서명 → appcast.xml
+  release.sh              검사 → 빌드 → DMG → appcast → GitHub 릴리스
   generate-palette-swift.ts   palette.json → Palette.swift
 ```
 
 Xcode 프로젝트를 두지 않는다. `.pbxproj`는 손으로 쓰기 어렵고 diff가
 읽히지 않아 리뷰가 불가능한 반면, `Package.swift`와 20줄짜리 번들
 스크립트는 둘 다 읽힌다. `swift build`가 AppKit·SwiftUI를 그대로
-컴파일하고, `.app` 번들은 디렉터리 구조 + `Info.plist` + ad-hoc
-서명이면 끝이다.
+컴파일하고, `.app` 번들은 디렉터리 구조 + `Info.plist` + 서명이면 끝이다
+(Sparkle이 들어온 뒤로는 프레임워크 복사와 안쪽부터의 서명이 더 붙는다 —
+10.2).
 
 `SalaryClockApp` 패키지 안은 다시 세 타깃으로 나뉜다:
 
@@ -674,9 +683,59 @@ vitest와 Swift Testing이 같은 파일을 읽는다. 규칙이 갈라지는 �
 ## 10. 빌드와 배포
 
 `scripts/install-app.sh`로 로컬 빌드해 `/Applications`에 넣는다.
-**본인 기계에서 빌드한 ad-hoc 서명 앱이라 Gatekeeper가 막지 않는다.**
-이슈 #1이 걱정하던 "우클릭으로 열기"나 `xattr -dr com.apple.quarantine`가
-필요 없다.
+
+### 10.1 코드 서명 — ad-hoc이 아니라 자체 서명 인증서
+
+`scripts/create-signing-certificate.sh`가 만드는 자체 서명 인증서(CN
+`SalaryClock`, RSA-2048, codeSigning, 10년)로 서명한다. 처음 한 번만
+실행하면 되고, 이미 있으면 아무것도 하지 않는다 — **인증서를 새로 만들면
+신원이 바뀌어 이전 버전에서 올라오는 업데이트가 거부된다.**
+
+ad-hoc 서명(`codesign --sign -`)에서 옮겨 온 이유는 자동 업데이트(10.2)다.
+ad-hoc 서명에는 고정된 신원이 없어 빌드마다 다른 서명이 나오고, Sparkle이
+"내려받은 새 버전이 지금 돌고 있는 앱과 같은 곳에서 서명됐나"를 확인할 수
+없다. Apple Developer 계정(연 $99)이 필요한 Developer ID 대신 자체 서명을
+쓰는 건 본인 기계에서 빌드해 본인이 쓰는 앱이기 때문이고, 같은 사람의 다른
+앱들(Quill·Drift·cliproxymanager)도 같은 방식이다.
+
+이 기계에서는 키체인이 그 인증서를 신뢰하므로 Gatekeeper가 막지 않는다.
+**남의 기계에서는 처음 한 번 "그래도 열기"가 필요하다** — 릴리스 노트에
+그 절차를 적어 둔다.
+
+### 10.2 자동 업데이트 — Sparkle
+
+`Sparkle` 2.9.2를 SwiftPM으로 받아 `Contents/Frameworks/`에 넣는다. 버전을
+`exact:`로 못 박는 이유는 프레임워크를 직접 복사해 서명하기 때문이다 —
+올라간 버전이 조용히 바뀌면 임베드와 서명이 어긋난다.
+
+| | |
+|---|---|
+| 피드 | `https://github.com/woosublee/SalaryClock/releases/latest/download/appcast.xml` |
+| EdDSA 키 | 키체인, 서비스 `https://sparkle-project.org`, 계정 `dev.woosublee.salaryclock.sparkle.ed25519` |
+| 배포 형식 | DMG (응용 프로그램 폴더 심볼릭 링크 포함) |
+| 버전 원천 | `release/version.json` 하나 |
+
+**appcast를 릴리스 에셋으로 올린다.** `/releases/latest/download/`는 언제나
+가장 최근 릴리스를 가리키므로 별도 호스팅이 필요 없다.
+
+**개발 빌드에는 `SUFeedURL`·`SUPublicEDKey`를 넣지 않는다.** 넣으면 작업 중인
+빌드가 릴리스 피드를 보고 "새 버전이 있다"며 스스로를 덮어써, 방금 만든
+빌드가 사라진다. `UpdaterController`는 피드가 없으면 Sparkle을 아예 시작하지
+않고, 설정 창은 "개발 빌드에는 업데이트 기능이 없습니다"라고 적는다.
+
+비밀키는 키체인에서 꺼내지 않는다 — `sign_update --account`에 계정 이름을
+주면 도구가 직접 키체인을 읽는다. 셸 변수나 임시 파일로 꺼내면 프로세스
+목록과 디스크에 남는다.
+
+`release/notes.md`와 `version.json`을 고치고 `scripts/release.sh`를 돌린다.
+인자 없이 돌리면 만들기만 하고, `--publish`를 주면 태그를 밀고 GitHub
+릴리스에 DMG와 appcast를 올린다. 올리기 전에 다섯 가지를 기계로 막는다:
+태그 중복, **빌드 번호 단조 증가**(이미 나간 appcast를 직접 읽어 비교한다 —
+로컬 기록이 아니라 사용자가 실제로 보는 값이 기준이다), 릴리스 노트가
+이번 버전을 가리키는지, 작업 트리가 깨끗한지, 번들에 박힌 버전·피드가
+appcast와 같은 이야기를 하는지.
+
+### 10.3 iCloud와 번들 조립
 
 ```bash
 ./scripts/install-app.sh
@@ -703,15 +762,18 @@ swift test --package-path macos/SalaryClockApp  --scratch-path "$HOME/Library/Ca
 `npm run swift:test:core` / `npm run swift:test:app`가 같은 경로로 이미
 감싸져 있다.
 
-같은 이유로 **조립된 `.app` 자체도 문제가 될 수 있다.** `bundle-app.sh`가
-결과물을 두는 `macos/build/`는 스크래치 경로가 아니라 저장소 안이라
-iCloud 동기화 대상이다. 빌드 직후 `.app`에 iCloud가 `com.apple.FinderInfo`·
-`com.apple.fileprovider.fpfs#P` 같은 확장 속성을 붙이면 마지막 `codesign`
-단계가 같은 이유로 실패한다. `bundle-app.sh`는 서명 직전에 `xattr -cr "$APP"`로
-이 속성을 지워서 대응한다.
+같은 이유로 **조립된 `.app`도 저장소 안에 두지 않는다.** 번들은
+`~/Library/Caches/salaryclock/build/`에서 조립하고 서명한다.
 
-Apple Developer 계정도 GitHub Actions도 필요 없다. 남에게 배포하고
-싶어지면 그때 붙인다.
+한때는 `macos/build/`에 조립하고 서명 직전에 `xattr -cr`로 확장 속성을
+지웠다. Sparkle이 들어오면서 그 방법이 무너졌다 — codesign이 거부하는 건
+`com.apple.FinderInfo`인데, iCloud fileprovider 데몬은 **번들 디렉터리마다**
+(`.app`·`.framework`·`.xpc`·`.nib`) 그 속성을 붙여 "이건 패키지다"를
+표시한다. 지우면 곧바로 다시 붙는다. 실측으로 세 번 연속 졌다. 재시도로
+이길 수 있는 경합이 아니므로 조립 자체를 동기화 밖으로 옮긴다.
+
+Apple Developer 계정도 GitHub Actions도 필요 없다. 릴리스는 로컬에서
+만들어 `gh`로 올린다.
 
 ## 11. 저장소 배치
 
@@ -757,8 +819,9 @@ Next.js 빌드는 `app/` 기준이라 `macos/`가 생겨도 Vercel 배포에 영
 
 - Windows — 트레이에 글자를 못 넣으므로 항상-위 작은 창으로 다시 설계해야 한다.
   이슈 #1의 `/widget` 라우트 구상이 그쪽 출발점이다
-- 배포 — 코드 서명 + 공증 + GitHub Releases. 이슈 #1의 `tauri-action` 자리에
-  `xcodebuild` + `notarytool`이 들어간다
+- 공증(notarization) — 자체 서명이라 남의 기계에서는 첫 실행에 "그래도 열기"가
+  필요하다(10.1). 없애려면 Apple Developer 계정과 `notarytool`이 필요하다.
+  배포와 자동 업데이트 자체는 이미 들어갔다 (10.2)
 
 ### 열린 질문 — 일요일 밤에 시작한 야간근무는 근무 시프트인가
 

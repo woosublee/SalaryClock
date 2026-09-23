@@ -38,6 +38,11 @@ struct SettingsView: View {
     /// 빨갛게 보여줘야 하므로(다른 시각 입력칸과 같은 규칙) Double이 아니라
     /// String으로 갖는다.
     @State private var intervalText = SettingsView.formatInterval(AppPreferences.shared.menuBarInterval)
+    /// 업데이트 자동 확인. 값은 Sparkle이 자기 UserDefaults 키에 담으므로
+    /// 저장 버튼을 기다리지 않고 토글하는 즉시 반영한다 — draft에 담지 않는
+    /// 이유이기도 하다.
+    @State private var automaticUpdates = UpdaterController.shared.automaticallyChecks
+    @ObservedObject private var updater = UpdaterController.shared
     /// 창이 열린 시각. 웹 SettingsPanel의 `panelNow`와 같다 —
     /// `const [panelNow] = useState(now)`로 한 번 얼려 두고 창이 닫힐 때까지
     /// 그 값을 쓴다. 미리보기 얼굴 열 개가 body가 다시 계산될 때마다 새 시각으로
@@ -177,6 +182,8 @@ struct SettingsView: View {
                     .foregroundStyle(theme.dim)
             }
 
+            updateSection
+
             if !isValid {
                 Text("설정값이 올바르지 않습니다")
                     .font(.system(size: 11))
@@ -211,6 +218,47 @@ struct SettingsView: View {
         // 않으면 밝은 맥에서 어두운 테마를 골랐을 때 달력 칸만 하얗게 남는다.
         .environment(\.colorScheme, effectiveScheme)
         .preferredColorScheme(effectiveScheme)
+    }
+
+    /// 맥 전용 항목. 웹에 대응물이 없다.
+    ///
+    /// 자동 확인은 초기화(resetAll)가 건드리지 않는다. 다른 항목과 달리
+    /// 기본값으로 되돌리는 것이 곧 "업데이트를 안 받는다"가 되어, 설정을
+    /// 정리하려던 사람이 보안 수정까지 못 받게 되기 때문이다.
+    @ViewBuilder
+    private var updateSection: some View {
+        field("업데이트") {
+            if updater.isAvailable {
+                Toggle("자동으로 확인", isOn: $automaticUpdates)
+                    .onChange(of: automaticUpdates) { _, on in
+                        UpdaterController.shared.automaticallyChecks = on
+                    }
+                HStack(spacing: 8) {
+                    Button("지금 확인") { UpdaterController.shared.checkForUpdates() }
+                        .disabled(!updater.canCheck)
+                    Text(versionLine)
+                        .font(.system(size: 11))
+                        .foregroundStyle(theme.dim)
+                }
+            } else {
+                // 개발 빌드다. 버튼을 눌러도 할 일이 없으므로 아예 두지 않고
+                // 왜 없는지를 적는다.
+                Text("개발 빌드에는 업데이트 기능이 없습니다")
+                    .font(.system(size: 11))
+                    .foregroundStyle(theme.dim)
+                Text(versionLine)
+                    .font(.system(size: 11))
+                    .foregroundStyle(theme.dim)
+            }
+        }
+    }
+
+    /// "1.0.0 (빌드 3)" — 업데이트가 실제로 올라왔는지 확인할 때 이 줄을 본다.
+    private var versionLine: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(short) (빌드 \(build))"
     }
 
     /// 설정을 기본값으로 되돌린다 — 웹 `resetSettings`에 대응한다.
