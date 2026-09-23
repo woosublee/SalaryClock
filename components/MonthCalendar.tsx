@@ -10,6 +10,8 @@ interface Props {
   onToggle: (date: string) => void
   onClearMonth: () => void
   onStepMonth: (delta: number) => void
+  /** 이번 달이 아닐 때만 준다. 주면 "이번 달" 단추가 보인다 */
+  onToday?: () => void
 }
 
 const DOW_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const
@@ -34,6 +36,7 @@ export function MonthCalendar({
   onToggle,
   onClearMonth,
   onStepMonth,
+  onToday,
 }: Props) {
   const cells = monthCells(year, month, overrides)
   const workdays = cells.filter((c) => c.isWorkday).length
@@ -62,6 +65,15 @@ export function MonthCalendar({
           >
             ›
           </button>
+          {onToday && (
+            <button
+              type="button"
+              onClick={onToday}
+              className="rounded px-1.5 py-0.5 text-[11px] font-normal text-slate-500 ring-1 ring-slate-300 hover:bg-slate-200 hover:text-slate-700 dark:text-slate-400 dark:ring-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+            >
+              이번 달
+            </button>
+          )}
         </span>
         <button
           type="button"
