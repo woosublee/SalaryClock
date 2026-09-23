@@ -14,6 +14,8 @@ struct MonthCalendarView: View {
     var onToggle: (String) -> Void
     var onClearMonth: () -> Void
     var onStepMonth: (Int) -> Void
+    /// 이번 달이 아닐 때만 준다. 주면 "이번 달" 단추가 보인다.
+    var onToday: (() -> Void)?
 
     @Environment(\.colorScheme) private var scheme
     private var theme: Theme { Theme(scheme: scheme) }
@@ -47,8 +49,24 @@ struct MonthCalendarView: View {
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(theme.calendarHeaderText)
             monthArrow("chevron.right", delta: 1, label: "다음 달")
+            if let onToday {
+                Button("이번 달", action: onToday)
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .foregroundStyle(theme.calendarHeaderText)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .strokeBorder(theme.badgeBorder, lineWidth: 1)
+                    )
+                    .contentShape(RoundedRectangle(cornerRadius: 4))
+            }
             Spacer()
-            Button("이 달 선택 지우기", action: onClearMonth)
+            // 웹은 "이 달 선택 지우기"지만 여기서는 줄인다. 340pt 창에서 월 이동
+            // 화살표와 "이번 달" 단추까지 한 줄에 들어가야 해서 글자가 잘린다.
+            // 어느 달을 지우는지는 바로 왼쪽 헤더가 말하고 있다.
+            Button("지우기", action: onClearMonth)
                 .buttonStyle(.plain)
                 .font(.system(size: 11))
                 .underline()

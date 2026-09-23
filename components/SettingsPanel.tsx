@@ -438,6 +438,11 @@ export function SettingsPanel({
                   onStepMonth={(delta) =>
                     setCalendar((c) => stepMonth(c.year, c.month, delta))
                   }
+                  onToday={
+                    calendar.year === panelYear && calendar.month === panelMonth
+                      ? undefined
+                      : () => setCalendar({ year: panelYear, month: panelMonth })
+                  }
                   overrides={draft.dayOverrides}
                   onToggle={(date) =>
                     setDraft((d) => ({

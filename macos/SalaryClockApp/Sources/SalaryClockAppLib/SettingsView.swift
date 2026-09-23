@@ -62,6 +62,16 @@ struct SettingsView: View {
 
     private var theme: Theme { Theme(scheme: effectiveScheme) }
 
+    /// 달력이 이번 달을 보고 있는지. 아니면 "이번 달" 단추를 띄운다.
+    ///
+    /// 창이 열린 시각(panelNow)이 아니라 지금 시각으로 판단한다 — 창을 자정
+    /// 직전에 열어 두면 달이 넘어가는데, 그때 이번 달이 아닌 화면을 이번 달이라고
+    /// 우기지 않는다.
+    private var isThisMonth: Bool {
+        let now = calendarComponents()
+        return calendarYear == now.year && calendarMonth == now.month
+    }
+
     /// 미리보기에 쓸 시프트. 웹 `previewShift`와 같은 규칙으로, 편집 중인 값이
     /// 아직 유효하지 않으면 저장된 설정으로 그린다 — 출근 시각을 지우는 도중에
     /// 미리보기가 깨지지 않게.
@@ -484,6 +494,11 @@ struct SettingsView: View {
                         let next = stepMonth(calendarYear, calendarMonth, delta)
                         calendarYear = next.year
                         calendarMonth = next.month
+                    },
+                    onToday: isThisMonth ? nil : {
+                        let now = calendarComponents()
+                        calendarYear = now.year
+                        calendarMonth = now.month
                     }
                 )
             }
