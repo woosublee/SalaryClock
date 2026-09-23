@@ -808,5 +808,111 @@
         "sweepDeg": 270
       }
     }
+  ],
+  "inArc": [
+    {
+      "deg": 0,
+      "arc": {
+        "startDeg": 0,
+        "sweepDeg": 0
+      },
+      "expected": false
+    },
+    {
+      "deg": 0,
+      "arc": {
+        "startDeg": 0,
+        "sweepDeg": 90
+      },
+      "expected": true
+    },
+    {
+      "deg": 45,
+      "arc": {
+        "startDeg": 0,
+        "sweepDeg": 90
+      },
+      "expected": true
+    },
+    {
+      "deg": 90,
+      "arc": {
+        "startDeg": 0,
+        "sweepDeg": 90
+      },
+      "expected": true
+    },
+    {
+      "deg": 90.001,
+      "arc": {
+        "startDeg": 0,
+        "sweepDeg": 90
+      },
+      "expected": false
+    },
+    {
+      "deg": 180,
+      "arc": {
+        "startDeg": 0,
+        "sweepDeg": 90
+      },
+      "expected": false
+    },
+    {
+      "deg": 350,
+      "arc": {
+        "startDeg": 340,
+        "sweepDeg": 40
+      },
+      "expected": true
+    },
+    {
+      "deg": 0,
+      "arc": {
+        "startDeg": 340,
+        "sweepDeg": 40
+      },
+      "expected": true
+    },
+    {
+      "deg": 10,
+      "arc": {
+        "startDeg": 340,
+        "sweepDeg": 40
+      },
+      "expected": true
+    },
+    {
+      "deg": 30,
+      "arc": {
+        "startDeg": 340,
+        "sweepDeg": 40
+      },
+      "expected": false
+    },
+    {
+      "deg": -10,
+      "arc": {
+        "startDeg": 340,
+        "sweepDeg": 40
+      },
+      "expected": true
+    },
+    {
+      "deg": 200,
+      "arc": {
+        "startDeg": 0,
+        "sweepDeg": 360
+      },
+      "expected": true
+    },
+    {
+      "deg": 200,
+      "arc": {
+        "startDeg": 0,
+        "sweepDeg": 400
+      },
+      "expected": true
+    }
   ]
 }

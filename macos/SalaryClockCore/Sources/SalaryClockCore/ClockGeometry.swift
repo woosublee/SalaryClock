@@ -11,6 +11,11 @@ public struct HandAngles: Sendable {
 public struct Arc: Equatable, Sendable {
     public let startDeg: Double
     public let sweepDeg: Double
+
+    public init(startDeg: Double, sweepDeg: Double) {
+        self.startDeg = startDeg
+        self.sweepDeg = sweepDeg
+    }
 }
 
 public struct ShiftArcs: Sendable {
@@ -84,4 +89,13 @@ public func shiftArcs(_ shift: Shift?, _ now: Int) -> ShiftArcs {
             shift.lunchEndMs.map { arcBetween(ls, $0) }
         }
     )
+}
+
+/// 문자판 위의 각도가 호 안에 드는지.
+/// 눈금 하나하나를 진행 여부로 칠할 때 쓴다.
+public func angleInArc(_ deg: Double, _ arc: Arc) -> Bool {
+    guard arc.sweepDeg > 0 else { return false }
+    let raw = (deg - arc.startDeg).truncatingRemainder(dividingBy: 360)
+    let rel = (raw + 360).truncatingRemainder(dividingBy: 360)
+    return rel <= min(arc.sweepDeg, 360)
 }

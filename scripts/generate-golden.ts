@@ -24,7 +24,7 @@ import {
   formatDateKo,
   formatKoreanUnits,
 } from '@/lib/format'
-import { handAngles, dialAngle, arcBetween } from '@/lib/clock'
+import { handAngles, dialAngle, arcBetween, angleInArc } from '@/lib/clock'
 
 /** [year, month(0-based), day, hour, minute, second] */
 type Clock = [number, number, number, number, number, number]
@@ -338,6 +338,23 @@ const CLOCK_MOMENTS: [number, number, number, number, number, number, number][] 
   [2026, 8, 22, 23, 59, 59, 999],
 ]
 
+/** [deg, arc.startDeg, arc.sweepDeg] */
+const ANGLE_CASES: [number, number, number][] = [
+  [0, 0, 0], // 빈 호는 아무 각도도 품지 않는다
+  [0, 0, 90], // 시작점은 안에 든다
+  [45, 0, 90],
+  [90, 0, 90], // 끝점도 안에 든다 — rel <= sweep
+  [90.001, 0, 90], // 한 눈금 밖
+  [180, 0, 90],
+  [350, 340, 40], // 0도를 넘어가는 호 — 넘기 전
+  [0, 340, 40], // 정확히 0도
+  [10, 340, 40], // 넘어간 뒤
+  [30, 340, 40], // 넘어간 뒤 밖
+  [-10, 340, 40], // 음수 각도도 정규화해서 판정한다
+  [200, 0, 360], // 한 바퀴는 전부 품는다
+  [200, 0, 400], // 360을 넘겨 들어와도 마찬가지
+]
+
 const clocks = {
   hands: CLOCK_MOMENTS.map((c) => {
     const t = new Date(c[0], c[1], c[2], c[3], c[4], c[5], c[6]).getTime()
@@ -358,6 +375,14 @@ const clocks = {
       expected: { startDeg: a.startDeg, sweepDeg: a.sweepDeg },
     }
   }),
+  // angleInArc는 시각이 아니라 순수한 각도 계산이라 시각 배열을 쓰지 않는다.
+  // 눈금을 하나씩 "지나갔나"로 칠하는 얼굴들(숫자판·점·결)이 전부 이 함수에
+  // 걸려 있어서, 0도를 넘어가는 호와 경계값을 고정해 둔다.
+  inArc: ANGLE_CASES.map(([deg, startDeg, sweepDeg]) => ({
+    deg,
+    arc: { startDeg, sweepDeg },
+    expected: angleInArc(deg, { startDeg, sweepDeg }),
+  })),
 }
 
 write('format.json', formats)

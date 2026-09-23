@@ -6,6 +6,16 @@ import SalaryClockCore
 struct Theme {
     let scheme: ColorScheme
 
+    /// 웹의 `text-foo dark:text-bar` 한 쌍을 그대로 옮긴다.
+    ///
+    /// 시계 얼굴 10종이 쓰는 색은 마흔 가지가 넘고 대부분 그 얼굴에서 한 번씩만
+    /// 쓰인다. 전부 이름 붙인 역할로 승격하면 Theme이 얼굴 목록이 되고, 웹의
+    /// 어느 클래스에서 왔는지도 오히려 흐려진다. 아래 역할 이름들은 여러 화면이
+    /// 공유하는 것만 남기고, 얼굴 한 곳에서만 쓰는 색은 이 짝으로 적는다 —
+    /// `theme.pair(Palette.slate200, Palette.slate700)`이 웹의
+    /// `text-slate-200 dark:text-slate-700`과 한 줄씩 대응한다.
+    func pair(_ light: Color, _ dark: Color) -> Color { scheme == .dark ? dark : light }
+
     var background: Color { Palette.surfaceBackground.resolve(scheme) }
     var foreground: Color { Palette.surfaceForeground.resolve(scheme) }
     /// 시계 바늘 (시·분)

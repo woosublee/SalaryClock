@@ -16,9 +16,16 @@ struct ClockGolden: Decodable {
         let at: [Int]
         let expected: Expected
     }
+    struct InArcCase: Decodable {
+        struct ArcValue: Decodable { let startDeg: Double; let sweepDeg: Double }
+        let deg: Double
+        let arc: ArcValue
+        let expected: Bool
+    }
     let hands: [Hands]
     let dial: [Dial]
     let arcs: [ArcCase]
+    let inArc: [InArcCase]
 }
 
 @Test("골든 — clock")
@@ -42,6 +49,13 @@ func goldenClock() throws {
         let got = arcBetween(sh.startMs, sh.endMs)
         expectClose(got.startDeg, a.expected.startDeg, "\(a.label) startDeg")
         expectClose(got.sweepDeg, a.expected.sweepDeg, "\(a.label) sweepDeg")
+    }
+    for c in g.inArc {
+        let arc = Arc(startDeg: c.arc.startDeg, sweepDeg: c.arc.sweepDeg)
+        #expect(
+            angleInArc(c.deg, arc) == c.expected,
+            "angleInArc(\(c.deg), start \(c.arc.startDeg) sweep \(c.arc.sweepDeg))"
+        )
     }
 }
 

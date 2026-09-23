@@ -44,6 +44,7 @@ const TOKENS = [
   'slate-800',
   'slate-900',
   'slate-950',
+  'emerald-50',
   'emerald-100',
   'emerald-300',
   'emerald-400',
@@ -51,12 +52,31 @@ const TOKENS = [
   'emerald-600',
   'emerald-700',
   'emerald-900',
+  'emerald-950',
   // MonthCalendar가 공휴일·요일 머리글에 쓰는 색. 지금까지는 아무 화면도
   // rose/sky를 안 써서 토큰이 없었다.
   'rose-50',
   'rose-400',
   'rose-950',
   'sky-400',
+  // 시계 얼굴 10종이 쓰는 색. 말끔 하나만 옮겼을 때는 slate/emerald로
+  // 충분했지만, 해시계는 stone과 amber로 종이 문자판을 만들고 수위는 sky,
+  // 남은은 rose, 파문은 orange를 쓴다.
+  'stone-100',
+  'stone-200',
+  'stone-300',
+  'stone-400',
+  'stone-600',
+  'stone-700',
+  'stone-800',
+  'stone-900',
+  'amber-400',
+  'amber-500',
+  'amber-600',
+  'orange-500',
+  'sky-500',
+  'rose-500',
+  'rose-600',
 ] as const
 
 /**

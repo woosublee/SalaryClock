@@ -55,9 +55,12 @@ public struct Settings: Codable, Equatable, Sendable {
 
 /// 웹 `lib/settings.ts`의 `ClockStyle` 유니언과 1:1로 맞아야 한다.
 ///
-/// `clockStyle`이 Swift에서는 enum이 아니라 그냥 String이라(뷰가 아직
-/// 하나뿐이라 굳이 enum으로 안 묶었다) 유효성 검사가 이 목록에 기대야 한다.
-/// core가 "유효한 설정이 뭔지"를 정의하는 쪽이라 여기 둔다.
+/// `clockStyle`은 Swift에서도 enum이 아니라 String이다. 골든이 이 필드를
+/// 문자열로 고정하고 있고, 모르는 값이 저장돼 있어도 설정 전체의 디코딩이
+/// 깨지지 않아야 한다 — 웹이 `FACES[style] ?? MinimalFace`로 받아넘기는 것과
+/// 같은 태도다. 그래서 유효성 검사가 이 목록에 기댄다. core가 "유효한 설정이
+/// 뭔지"를 정의하는 쪽이라 여기 둔다. 그리는 쪽의 enum은 앱 층의
+/// `ClockStyle`이고, 이 목록과 1:1로 맞아야 한다.
 public let validClockStyles: Set<String> = [
     "minimal", "numerals", "grain", "rings", "sector",
     "dots", "countdown", "level", "sundial", "pulse",

@@ -49,6 +49,17 @@ public final class SettingsStore: @unchecked Sendable {
         NotificationCenter.default.post(name: .settingsChanged, object: nil)
     }
 
+    /// 저장된 설정을 지우고 기본값으로 되돌린다 — 웹 `resetSettings`와 같다.
+    ///
+    /// 값을 기본값으로 덮어쓰는 게 아니라 저장소에서 지운다. 그래야
+    /// `hasStored`가 다시 false가 되고, 테마가 고정에서 풀려 기기 설정을
+    /// 따라간다 — 웹이 초기화 뒤에 하는 일과 같다. 덮어쓰기만 하면
+    /// "한 번이라도 저장했다"는 흔적이 남아 기기 외형을 영영 못 따라간다.
+    public func reset() {
+        UserDefaults.standard.removeObject(forKey: Self.key)
+        reload()
+    }
+
     private static func load() -> (Settings, Bool) {
         load(deviceTheme: deviceTheme())
     }

@@ -22,7 +22,7 @@ import {
   formatDateKo,
   formatKoreanUnits,
 } from '@/lib/format'
-import { handAngles, dialAngle, arcBetween } from '@/lib/clock'
+import { handAngles, dialAngle, arcBetween, angleInArc } from '@/lib/clock'
 
 const dir = path.resolve(import.meta.dirname, '..', '..', 'shared', 'golden')
 const read = (name: string) => JSON.parse(readFileSync(path.join(dir, name), 'utf8'))
@@ -168,6 +168,10 @@ describe('golden — clock', () => {
   for (const d of c.dial) {
     it(`dialAngle(${d.at.join(',')})`, () =>
       expect(dialAngle(msMilli(d.at))).toBeCloseTo(d.expected, 9))
+  }
+  for (const t of c.inArc) {
+    it(`angleInArc(${t.deg}, ${t.arc.startDeg}+${t.arc.sweepDeg})`, () =>
+      expect(angleInArc(t.deg, t.arc)).toBe(t.expected))
   }
   for (const a of c.arcs) {
     it(`arcBetween — ${a.label} (${a.settings})`, () => {
