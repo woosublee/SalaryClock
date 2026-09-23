@@ -38,8 +38,9 @@ func goldenWorkdays() throws {
 func noHolidayTable() {
     #expect(hasHolidayData(2026))
     #expect(hasHolidayData(2027))
-    #expect(!hasHolidayData(2028))
-    let info = workdayInfo(Golden.ms([2028, 8, 22, 12, 0, 0]))
+    #expect(hasHolidayData(2030))
+    #expect(!hasHolidayData(2031))
+    let info = workdayInfo(Golden.ms([2031, 8, 22, 12, 0, 0]))
     #expect(info.holidays == 0)
     #expect(info.workdays == info.weekdays)
 }
@@ -143,9 +144,9 @@ func workdayInfoCacheKeysOnMonth() {
     #expect(feb.workdays == 17)
 
     // 해가 달라도 갈라져야 한다 — 키를 month만으로 잡으면 여기서 걸린다.
-    let sep2028 = workdayInfo(Golden.ms([2028, 8, 15, 12, 0, 0]))
-    #expect(sep2028.hasHolidayData == false)
-    #expect(sep2028.workdays == sep2028.weekdays)
+    let sep2031 = workdayInfo(Golden.ms([2031, 8, 15, 12, 0, 0]))
+    #expect(sep2031.hasHolidayData == false)
+    #expect(sep2031.workdays == sep2031.weekdays)
 
     // weekdaysInMonth도 같은 캐시를 읽는다.
     #expect(weekdaysInMonth(Golden.ms([2026, 8, 15, 12, 0, 0])) == 22)
