@@ -189,6 +189,8 @@ scripts/
   bundle-app.sh           swift build → SalaryClock.app (Sparkle 임베드·서명)
   install-app.sh          /Applications 설치
   create-signing-certificate.sh  자체 서명 인증서 만들기 (10.1)
+  render-app-icon.swift   팔레트 → 아이콘 PNG 두 벌 (10.3)
+  generate-app-icon.sh    PNG → Assets.car + AppIcon.icns
   release-common.sh       릴리스 스크립트들이 공유하는 버전·URL
   package-dmg.sh          .app → DMG
   generate-appcast.sh     DMG 서명 → appcast.xml
@@ -735,7 +737,22 @@ ad-hoc 서명에는 고정된 신원이 없어 빌드마다 다른 서명이 나
 이번 버전을 가리키는지, 작업 트리가 깨끗한지, 번들에 박힌 버전·피드가
 appcast와 같은 이야기를 하는지.
 
-### 10.3 iCloud와 번들 조립
+### 10.3 앱 아이콘
+
+말끔 얼굴을 그대로 키운 그림이다 — 바깥에 진행 링, 안에 눈금과 바늘. 메뉴바
+아이콘·팝오버 시계와 같은 언어를 쓴다.
+
+PNG를 저장소에 넣지 않는다. `scripts/render-app-icon.swift`가 빌드할 때마다
+그리고, 색은 `palette.json`에서 읽는다 — 팔레트를 손으로 옮겨 적지 않는
+규칙(5.1)이 여기에도 적용된다. 웹 색이 바뀌면 아이콘도 따라 바뀐다.
+
+**밝게·어둡게 두 벌을 넣는다.** macOS 26부터 아이콘이 시스템 외형을 따라가는데,
+그러려면 `.icns` 하나가 아니라 두 외형이 다 담긴 `Assets.car`가 있어야 하고
+`Info.plist`가 `CFBundleIconName`으로 그걸 가리켜야 한다. `actool`이 그
+컴파일을 한다. `.icns`도 함께 만들어 `CFBundleIconFile`로 걸어 둔다 — 아직
+그 옛 경로로 읽는 곳이 남아 있다.
+
+### 10.4 iCloud와 번들 조립
 
 ```bash
 ./scripts/install-app.sh

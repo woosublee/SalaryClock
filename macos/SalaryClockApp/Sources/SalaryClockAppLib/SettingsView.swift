@@ -78,7 +78,7 @@ struct SettingsView: View {
     private static func formatInterval(_ v: Double) -> String { String(format: "%.1f", v) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("설정").font(.system(size: 18, weight: .bold))
 
             // 웹 SettingsPanel도 시계 얼굴이 급여보다 앞에 온다.
@@ -153,8 +153,9 @@ struct SettingsView: View {
 
             workDaysSection
 
-            // 웹에 대응물이 없는 맥 전용 옵션 묶음 — 로그인 자동 실행과
-            // 메뉴바 갱신 주기를 나란히 둔다.
+            // 웹에 대응물이 없는 맥 전용 옵션 묶음. 라벨을 위에 얹지 않고
+            // 한 줄에 붙여 세로 길이를 줄인다 — 위쪽 항목들과 달리 웹을 따라야
+            // 할 배치가 없다.
             Toggle("로그인할 때 자동 실행", isOn: $launchAtLogin)
                 .onChange(of: launchAtLogin) { _, on in
                     // 등록이 실패해도 앱은 계속 돌아야 한다. 토글만 되돌린다.
@@ -166,12 +167,15 @@ struct SettingsView: View {
                     }
                 }
 
-            field("메뉴바 갱신") {
+            HStack(spacing: 8) {
+                Text("메뉴바 갱신").font(.system(size: 12))
+                Spacer()
                 TextField("", text: $intervalText)
                     .textFieldStyle(.roundedBorder)
                     .multilineTextAlignment(.trailing)
                     .font(.system(size: 13, design: .monospaced))
                     .foregroundStyle(intervalValid ? theme.foreground : .red)
+                    .frame(width: 86)
                     .padding(.trailing, 18)
                     .overlay(alignment: .trailing) {
                         Text("초")
@@ -179,10 +183,10 @@ struct SettingsView: View {
                             .foregroundStyle(theme.dim)
                             .padding(.trailing, 10)
                     }
-                Text("0.1~10초. 짧게 둘수록 부드럽게 흐르지만 배터리를 조금 더 씁니다")
-                    .font(.system(size: 10))
-                    .foregroundStyle(theme.dim)
             }
+            Text("0.1~10초. 짧을수록 부드럽지만 배터리를 조금 더 씁니다")
+                .font(.system(size: 10))
+                .foregroundStyle(theme.dim)
 
             updateSection
 
@@ -229,24 +233,26 @@ struct SettingsView: View {
     /// 정리하려던 사람이 보안 수정까지 못 받게 되기 때문이다.
     @ViewBuilder
     private var updateSection: some View {
-        field("업데이트") {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("업데이트")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(theme.secondary)
+
             if updater.isAvailable {
                 Toggle("자동으로 확인", isOn: $automaticUpdates)
                     .onChange(of: automaticUpdates) { _, on in
                         UpdaterController.shared.automaticallyChecks = on
                     }
                 // 확인을 안 하면 받을 것도 없다. 자동 확인이 꺼져 있을 때
-                // 남은 둘을 흐리게 두지 않고 아예 감춘다 — 웹 설정 패널이
-                // 점심시간을 껐을 때 시각 칸을 감추는 것과 같은 규칙이다.
+                // 남은 둘은 흐리게 두지 않고 감춘다 — 웹 설정 패널이 점심시간을
+                // 껐을 때 시각 칸을 감추는 것과 같은 규칙이다.
                 if automaticUpdates {
                     Toggle("새 버전을 자동으로 받아 설치", isOn: $automaticDownloads)
                         .onChange(of: automaticDownloads) { _, on in
                             UpdaterController.shared.automaticallyDownloads = on
                         }
                     HStack(spacing: 8) {
-                        Text("확인 주기")
-                            .font(.system(size: 11))
-                            .foregroundStyle(theme.dim)
+                        Text("확인 주기").font(.system(size: 12))
                         Picker("", selection: $updateInterval) {
                             ForEach(UpdateInterval.allCases, id: \.self) { interval in
                                 Text(interval.label).tag(interval)
@@ -262,34 +268,37 @@ struct SettingsView: View {
                 HStack(spacing: 8) {
                     Button("지금 확인") { UpdaterController.shared.checkForUpdates() }
                         .disabled(!updater.canCheck)
-                    Text(versionLine)
-                        .font(.system(size: 11))
+                    Spacer()
+                    Text("\(versionLine) · \(lastCheckLine)")
+                        .font(.system(size: 10))
                         .foregroundStyle(theme.dim)
                 }
-                Text(lastCheckLine)
-                    .font(.system(size: 10))
-                    .foregroundStyle(theme.dim)
             } else {
                 // 개발 빌드다. 버튼을 눌러도 할 일이 없으므로 아예 두지 않고
                 // 왜 없는지를 적는다.
-                Text("개발 빌드에는 업데이트 기능이 없습니다")
-                    .font(.system(size: 11))
-                    .foregroundStyle(theme.dim)
-                Text(versionLine)
+                Text("개발 빌드에는 업데이트 기능이 없습니다 · \(versionLine)")
                     .font(.system(size: 11))
                     .foregroundStyle(theme.dim)
             }
         }
+        // 위쪽 항목들과 달리 이 묶음은 앱 자체에 관한 것이라 배경을 깔아
+        // 떼어 놓는다.
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(theme.pair(Palette.slate50, Palette.slate900))
+        )
     }
 
     /// 마지막으로 확인한 시각. 자동 확인이 정말 돌고 있는지는 이 줄로만
     /// 드러난다 — 켜 두기만 하고 실제로는 안 돌던 경우를 눈으로 잡을 수 있다.
     private var lastCheckLine: String {
-        guard let date = updater.lastCheck else { return "아직 확인한 적 없음" }
+        guard let date = updater.lastCheck else { return "확인한 적 없음" }
         let f = DateFormatter()
         f.locale = Locale(identifier: "ko_KR")
         f.dateFormat = "M월 d일 HH:mm"
-        return "마지막 확인: \(f.string(from: date))"
+        return f.string(from: date)
     }
 
     /// "1.0.0 (빌드 3)" — 업데이트가 실제로 올라왔는지 확인할 때 이 줄을 본다.

@@ -1,4 +1,4 @@
-# SalaryClock 1.0.0
+# SalaryClock 0.0.1
 
 첫 릴리스. 메뉴바에 오늘 쌓인 급여를 띄운다.
 

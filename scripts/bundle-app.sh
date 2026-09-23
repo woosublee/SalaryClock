@@ -66,6 +66,10 @@ mkdir -p "$BUILD_DIR"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
 cp "$BIN" "$APP/Contents/MacOS/SalaryClock"
 
+# 아이콘. 밝게·어둡게 두 벌이 Assets.car에 들어가고 Info.plist가
+# CFBundleIconName으로 그걸 가리킨다.
+"$ROOT/scripts/generate-app-icon.sh" "$APP/Contents/Resources"
+
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -75,6 +79,11 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleDisplayName</key><string>SalaryClock</string>
   <key>CFBundleIdentifier</key><string>$BUNDLE_ID</string>
   <key>CFBundleExecutable</key><string>SalaryClock</string>
+  <!-- CFBundleIconName은 Assets.car를 가리킨다 — 시스템 외형(밝게/어둡게)에
+       따라 다른 그림이 나오는 건 이쪽 경로에서만 된다. CFBundleIconFile은
+       아직 .icns를 직접 읽는 곳을 위한 옛 경로다. -->
+  <key>CFBundleIconName</key><string>AppIcon</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$MARKETING_VERSION</string>
   <key>CFBundleVersion</key><string>$BUILD_NUMBER</string>
