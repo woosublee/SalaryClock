@@ -66,6 +66,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
         startTimer(interval: AppPreferences.shared.menuBarInterval)
         tick()
+
+        // 업데이터를 깨운다. 만드는 순간 스케줄러가 돌기 시작하므로 여기서
+        // 한 번 건드리는 것이 곧 시작이다. 개발 빌드에서는 피드가 없어
+        // 아무 일도 하지 않는다 (UpdaterController 주석).
+        _ = UpdaterController.shared
     }
 
     private func startTimer(interval: TimeInterval) {

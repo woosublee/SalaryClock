@@ -96,3 +96,21 @@ func parseDeductionRateInputDoesNotClamp() {
     #expect(parseDeductionRateInput("150") == .rate(1.5))
     #expect(parseDeductionRateInput("-5") == .rate(-0.05))
 }
+
+@Test("갱신 주기 버튼은 소수 한 자리로 끊고 범위 안에 둔다")
+func intervalStepRoundsAndClamps() {
+    // 0.1씩 더하다 생기는 찌꺼기를 털어낸다.
+    #expect(steppedInterval(1.2000000000000002) == 1.2)
+    #expect(steppedInterval(0.30000000000000004) == 0.3)
+    // 범위 밖은 끝값으로. 버튼을 끝까지 눌러도 저장이 거부되는 값이 나오면 안 된다.
+    #expect(steppedInterval(0) == AppPreferences.range.lowerBound)
+    #expect(steppedInterval(-5) == AppPreferences.range.lowerBound)
+    #expect(steppedInterval(99) == AppPreferences.range.upperBound)
+    // 끝값 자체는 그대로 통과한다.
+    #expect(steppedInterval(0.1) == 0.1)
+    #expect(steppedInterval(10) == 10)
+    // 결과는 언제나 저장 가능한 값이어야 한다.
+    for raw in stride(from: -1.0, through: 11.0, by: 0.05) {
+        #expect(AppPreferences.isValid(steppedInterval(raw)))
+    }
+}

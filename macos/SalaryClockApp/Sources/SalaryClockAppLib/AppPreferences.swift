@@ -21,7 +21,10 @@ public final class AppPreferences: @unchecked Sendable {
     static let key = "menuBarInterval.v1"
 
     /// 0.1초보다 짧으면 배터리를, 10초보다 길면 "갱신"이라는 말이 무색해진다.
-    private static let range: ClosedRange<Double> = 0.1...10
+    /// 설정 창의 위아래 버튼도 이 범위를 그대로 쓴다 — 검사와 조절이 같은
+    /// 값을 보게 한다. 한쪽만 고치면 버튼으로는 넣을 수 있는데 저장은 거부되는
+    /// 값이 생긴다.
+    static let range: ClosedRange<Double> = 0.1...10
     public static let defaultInterval: Double = 1.0
 
     private let lock = NSLock()
