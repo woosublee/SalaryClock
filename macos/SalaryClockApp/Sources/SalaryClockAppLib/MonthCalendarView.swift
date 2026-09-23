@@ -5,7 +5,7 @@ import SalaryClockCore
 ///
 /// 7열 그리드, 1일의 요일만큼 앞을 비우고, 칸 색은 kind로 가른다. 월 이동은
 /// 이 뷰의 밖(SettingsView)에서 year/month를 바꿔 다시 그리는 방식으로 한다 —
-/// 이 뷰 자체는 순수하게 "이 달을 그린다"만 안다.
+/// 이 뷰는 화살표를 눌렸다고 알릴 뿐, 지금 어느 달인지는 바깥이 갖는다.
 struct MonthCalendarView: View {
     let year: Int
     /// 0-based
@@ -13,6 +13,7 @@ struct MonthCalendarView: View {
     let overrides: [String]
     var onToggle: (String) -> Void
     var onClearMonth: () -> Void
+    var onStepMonth: (Int) -> Void
 
     @Environment(\.colorScheme) private var scheme
     private var theme: Theme { Theme(scheme: scheme) }
@@ -41,9 +42,11 @@ struct MonthCalendarView: View {
             // Text("\(year)년 ...")는 LocalizedStringKey 보간을 타면서 연도 같은
             // 4자리 Int에 천 단위 구분 쉼표를 몰래 붙인다("2,026년") — verbatim으로
             // 이미 만든 String을 그대로 보여줘야 웹과 같은 글자가 나온다.
+            monthArrow("chevron.left", delta: -1, label: "이전 달")
             Text(verbatim: "\(year)년 \(month + 1)월 · 근무 \(workdays)일")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(theme.calendarHeaderText)
+            monthArrow("chevron.right", delta: 1, label: "다음 달")
             Spacer()
             Button("이 달 선택 지우기", action: onClearMonth)
                 .buttonStyle(.plain)
@@ -51,6 +54,20 @@ struct MonthCalendarView: View {
                 .underline()
                 .foregroundStyle(theme.calendarClearButton)
         }
+    }
+
+    /// 달 이동 화살표. 기호가 작으므로 누르는 면을 따로 넓힌다.
+    private func monthArrow(_ symbol: String, delta: Int, label: String) -> some View {
+        Button { onStepMonth(delta) } label: {
+            Image(systemName: symbol)
+                .font(.system(size: 9, weight: .semibold))
+                .frame(width: 16, height: 16)
+                .contentShape(Rectangle())
+                .accessibilityHidden(true)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(theme.calendarClearButton)
+        .accessibilityLabel(label)
     }
 
     private var grid: some View {

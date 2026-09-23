@@ -68,6 +68,18 @@ export function workdaysFromCalendar(
 }
 
 /** 한 날짜의 기본값 뒤집기를 켜고 끈다 */
+/**
+ * 달력에서 달을 옮긴다. month는 0-based라 12로 감아 연도를 넘긴다.
+ *
+ * `new Date(year, month + delta)`로 계산해도 되지만, 그러면 날짜가 끼어들어
+ * "31일인 달에서 30일인 달로 넘어갈 때"의 넘침을 따로 신경 써야 한다. 여기서는
+ * 날짜가 없는 연-월 쌍만 다루므로 나눗셈으로 끝난다.
+ */
+export function stepMonth(year: number, month: number, delta: number) {
+  const total = year * 12 + month + delta
+  return { year: Math.floor(total / 12), month: ((total % 12) + 12) % 12 }
+}
+
 export function toggleOverride(overrides: readonly string[], date: string): string[] {
   return overrides.includes(date)
     ? overrides.filter((d) => d !== date)

@@ -55,3 +55,15 @@ func clearsOneMonth() {
     let all = ["2026-08-15", "2026-09-22", "2026-09-26", "2026-10-03"]
     #expect(clearMonthOverrides(all, 2026, 8) == ["2026-08-15", "2026-10-03"])
 }
+
+/// 달 이동은 0-based month를 12로 감아 연도를 넘긴다.
+@Test("stepMonth — 연도를 넘나든다")
+func stepMonthWraps() {
+    #expect(stepMonth(2026, 8, 1) == (2026, 9))     // 9월 → 10월
+    #expect(stepMonth(2026, 11, 1) == (2027, 0))    // 12월 → 다음 해 1월
+    #expect(stepMonth(2026, 0, -1) == (2025, 11))   // 1월 → 지난 해 12월
+    #expect(stepMonth(2026, 8, 0) == (2026, 8))
+    // 여러 해를 한 번에 건너도 맞아야 한다.
+    #expect(stepMonth(2026, 8, 12) == (2027, 8))
+    #expect(stepMonth(2026, 8, -20) == (2025, 0))
+}

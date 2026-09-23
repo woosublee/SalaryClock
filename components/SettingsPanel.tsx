@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { SettingsSchema, type PayMode, type Settings } from '@/lib/settings'
 import { formatKoreanUnits } from '@/lib/format'
 import { workdayInfo, effectiveWorkDays } from '@/lib/workdays'
-import { toggleOverride, clearMonthOverrides } from '@/lib/calendar'
+import { toggleOverride, clearMonthOverrides, stepMonth } from '@/lib/calendar'
 import { MonthCalendar } from '@/components/MonthCalendar'
 import { ClockStylePicker } from '@/components/ClockStylePicker'
 import { estimateDeductions } from '@/lib/deductions'
@@ -77,6 +77,10 @@ export function SettingsPanel({
   const autoWorkDays = monthInfo.workdays
   const panelYear = new Date(panelNow).getFullYear()
   const panelMonth = new Date(panelNow).getMonth()
+  // 달력이 보여주는 달. 패널을 열 때는 이번 달에서 시작하고, 화살표로 옮긴다.
+  // 근무일수 표시는 이번 달 기준 그대로다 — 달력은 날짜를 찍는 도구고,
+  // 찍은 날짜는 그 달이 왔을 때 계산에 반영된다.
+  const [calendar, setCalendar] = useState({ year: panelYear, month: panelMonth })
   const workDays = effectiveWorkDays(draft, panelNow)
 
   /**
@@ -429,8 +433,11 @@ export function SettingsPanel({
 
               {showCalendar && (
                 <MonthCalendar
-                  year={panelYear}
-                  month={panelMonth}
+                  year={calendar.year}
+                  month={calendar.month}
+                  onStepMonth={(delta) =>
+                    setCalendar((c) => stepMonth(c.year, c.month, delta))
+                  }
                   overrides={draft.dayOverrides}
                   onToggle={(date) =>
                     setDraft((d) => ({
@@ -442,7 +449,11 @@ export function SettingsPanel({
                   onClearMonth={() =>
                     setDraft((d) => ({
                       ...d,
-                      dayOverrides: clearMonthOverrides(d.dayOverrides, panelYear, panelMonth),
+                      dayOverrides: clearMonthOverrides(
+                        d.dayOverrides,
+                        calendar.year,
+                        calendar.month,
+                      ),
                     }))
                   }
                 />

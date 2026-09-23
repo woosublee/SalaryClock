@@ -9,9 +9,15 @@ interface Props {
   overrides: readonly string[]
   onToggle: (date: string) => void
   onClearMonth: () => void
+  onStepMonth: (delta: number) => void
 }
 
 const DOW_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const
+
+/* 달 이동 화살표. 글자 하나라 누르는 면을 따로 넓혀 준다. */
+const MONTH_ARROW =
+  'rounded px-1 leading-none text-slate-400 hover:bg-slate-200 hover:text-slate-700 ' +
+  'dark:hover:bg-slate-700 dark:hover:text-slate-200'
 
 const KIND_CLASS: Record<DayKind, string> = {
   work: 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700',
@@ -21,7 +27,14 @@ const KIND_CLASS: Record<DayKind, string> = {
   'custom-work': 'bg-emerald-100 font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
 }
 
-export function MonthCalendar({ year, month, overrides, onToggle, onClearMonth }: Props) {
+export function MonthCalendar({
+  year,
+  month,
+  overrides,
+  onToggle,
+  onClearMonth,
+  onStepMonth,
+}: Props) {
   const cells = monthCells(year, month, overrides)
   const workdays = cells.filter((c) => c.isWorkday).length
 
@@ -31,8 +44,24 @@ export function MonthCalendar({ year, month, overrides, onToggle, onClearMonth }
   return (
     <div className="mt-2 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60">
       <div className="flex items-baseline justify-between">
-        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+        <span className="flex items-baseline gap-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+          <button
+            type="button"
+            onClick={() => onStepMonth(-1)}
+            aria-label="이전 달"
+            className={MONTH_ARROW}
+          >
+            ‹
+          </button>
           {year}년 {month + 1}월 · 근무 {workdays}일
+          <button
+            type="button"
+            onClick={() => onStepMonth(1)}
+            aria-label="다음 달"
+            className={MONTH_ARROW}
+          >
+            ›
+          </button>
         </span>
         <button
           type="button"

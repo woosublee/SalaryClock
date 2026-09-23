@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   dateKey,
+  stepMonth,
   isDefaultOff,
   isDayOff,
   monthCells,
@@ -185,5 +186,25 @@ describe('isDayOff', () => {
   it('하루 중 어느 시각이든 결과가 같다', () => {
     expect(isDayOff([], new Date(2026, 8, 26, 0, 0, 0).getTime())).toBe(true)
     expect(isDayOff([], new Date(2026, 8, 26, 23, 59, 59).getTime())).toBe(true)
+  })
+})
+
+describe('stepMonth', () => {
+  it('달을 옮기고 연도를 넘나든다', () => {
+    expect(stepMonth(2026, 8, 1)).toEqual({ year: 2026, month: 9 })
+    expect(stepMonth(2026, 11, 1)).toEqual({ year: 2027, month: 0 })
+    expect(stepMonth(2026, 0, -1)).toEqual({ year: 2025, month: 11 })
+    expect(stepMonth(2026, 8, 0)).toEqual({ year: 2026, month: 8 })
+  })
+
+  it('여러 해를 한 번에 건너도 맞는다', () => {
+    expect(stepMonth(2026, 8, 12)).toEqual({ year: 2027, month: 8 })
+    expect(stepMonth(2026, 8, -20)).toEqual({ year: 2025, month: 0 })
+  })
+
+  it('맥과 같은 값을 낸다 — 양쪽이 같은 나눗셈을 쓴다', () => {
+    // 음수 나눗셈에서 갈리기 쉬운 구간만 따로 본다.
+    expect(stepMonth(2026, 0, -13)).toEqual({ year: 2024, month: 11 })
+    expect(stepMonth(2026, 5, -6)).toEqual({ year: 2025, month: 11 })
   })
 })
