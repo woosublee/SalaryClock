@@ -24,25 +24,19 @@ final class UpdaterController: ObservableObject {
     /// 이 빌드에 업데이트 기능이 있는지 — 곧 릴리스 빌드인지다.
     var isAvailable: Bool { controller != nil }
 
-    /// 자동 확인 여부. Sparkle이 자기 UserDefaults 키에 담으므로 우리가
-    /// AppPreferences에 따로 저장하지 않는다 — 두 군데 두면 어긋난다.
-    var automaticallyChecks: Bool {
-        get { controller?.updater.automaticallyChecksForUpdates ?? false }
-        set { controller?.updater.automaticallyChecksForUpdates = newValue }
-    }
-
-    /// 새 버전을 자동으로 받아 설치할지. 자동 확인이 꺼져 있으면 의미가 없다 —
-    /// 확인을 안 하는데 받을 것도 없다.
+    /// 새 버전을 찾으면 묻지 않고 받아서 설치할지. 설정 창이 주는 유일한
+    /// 선택지다.
+    ///
+    /// 확인 자체는 설정에 두지 않는다. 껐을 때 얻는 것이라고는 "새 버전이
+    /// 있는지 모르는 상태"뿐이고, 주기를 고르게 해도 하루냐 일주일이냐를
+    /// 사용자가 판단할 근거가 없다. 아래 checkInterval로 못 박는다.
     var automaticallyDownloads: Bool {
         get { controller?.updater.automaticallyDownloadsUpdates ?? false }
         set { controller?.updater.automaticallyDownloadsUpdates = newValue }
     }
 
-    /// 자동 확인 주기(초). Sparkle이 정한 하한은 1시간이다.
-    var checkInterval: TimeInterval {
-        get { controller?.updater.updateCheckInterval ?? UpdateInterval.daily.seconds }
-        set { controller?.updater.updateCheckInterval = newValue }
-    }
+    /// 확인 주기. 하루에 한 번.
+    private static let checkInterval: TimeInterval = 86_400
 
     private init() {
         let feed = Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") as? String
@@ -57,6 +51,19 @@ final class UpdaterController: ObservableObject {
             startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil
         )
         self.controller = controller
+
+        // 확인은 늘 켜 두고 주기를 하루로 못 박는다. 이 둘을 설정에서 빼기로
+        // 했으므로 저장된 값에 기대지 않고 뜰 때마다 덮어쓴다 — 예전 빌드가
+        // 남긴 값이나 Sparkle 기본값이 그대로 남아 있으면 안 된다.
+        controller.updater.automaticallyChecksForUpdates = true
+        controller.updater.updateCheckInterval = Self.checkInterval
+
+        // 앱을 열 때도 한 번 본다. Sparkle의 스케줄러는 마지막 확인에서
+        // 주기가 지났을 때만 도는데, 며칠 꺼 뒀다 켠 경우 그 판단을 기다리지
+        // 않고 바로 확인하는 편이 사용자가 기대하는 동작이다. 조용히 돌고,
+        // 새 버전이 있을 때만 화면에 나온다.
+        controller.updater.checkForUpdatesInBackground()
+
         cancellables.insert(
             controller.updater.publisher(for: \.canCheckForUpdates)
                 .receive(on: RunLoop.main)
@@ -84,42 +91,3 @@ final class UpdaterController: ObservableObject {
 }
 
 
-/// 자동 확인 주기 선택지.
-///
-/// 임의의 초를 입력받지 않는다. 메뉴바 갱신 주기(AppPreferences)는 0.1초
-/// 차이가 눈에 보여서 숫자 칸이 의미가 있었지만, 업데이트 확인은 하루냐
-/// 일주일이냐 정도만 구분되면 된다 — 숫자 칸을 두면 고민거리만 는다.
-enum UpdateInterval: String, CaseIterable, Sendable {
-    case hourly, daily, weekly
-
-    /// Sparkle이 정한 하한이 1시간이라 그보다 짧은 선택지는 두지 않는다.
-    var seconds: TimeInterval {
-        switch self {
-        case .hourly: return 3600
-        case .daily: return 86_400
-        case .weekly: return 604_800
-        }
-    }
-
-    var label: String {
-        switch self {
-        case .hourly: return "1시간"
-        case .daily: return "하루"
-        case .weekly: return "일주일"
-        }
-    }
-
-    /// 저장된 초를 가장 가까운 선택지로 읽는다. Sparkle은 임의의 초를 담을 수
-    /// 있고 기본값도 이 목록에 없을 수 있다.
-    ///
-    /// 차이가 아니라 **비율**로 잰다. 선택지가 1시간~일주일로 자릿수만큼
-    /// 벌어져 있어서, 단순히 빼서 비교하면 12시간(43,200초)이 하루보다 1시간에
-    /// 가깝다고 나온다 — 2배 차이를 12배 차이보다 멀다고 보는 셈이다.
-    /// 로그 거리로 재면 사람이 "어느 쪽에 가깝나"라고 느끼는 것과 맞는다.
-    static func nearest(to seconds: TimeInterval) -> UpdateInterval {
-        guard seconds > 0 else { return .hourly }
-        return allCases.min(by: {
-            abs(log(seconds / $0.seconds)) < abs(log(seconds / $1.seconds))
-        }) ?? .daily
-    }
-}

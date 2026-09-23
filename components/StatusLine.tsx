@@ -21,11 +21,20 @@ interface Props {
  * 퇴근 후 격려 문구. 종류(kind)는 lib/afterWork가 정하고, 실제 한국어
  * 문장은 여기(UI)가 갖는다 — 맥 PopoverView.swift도 같은 표를 따른다.
  */
+/**
+ * 퇴근 뒤 상태줄 문구.
+ *
+ * 앞에 이모지를 하나 둔다. 이 줄만 숫자가 없어서(다른 상태는 남은 시간이나
+ * 금액이 흐른다) 글자만 있으면 화면이 멈춘 것처럼 보인다.
+ *
+ * 종류(kind)는 lib/afterWork.ts가 정하고 문구는 화면이 갖는다 — 맥 앱의
+ * PopoverView도 같은 표를 따른다.
+ */
 const AFTER_WORK_TEXT: Record<AfterWorkKind, string> = {
-  tomorrow: '오늘도 고생하셨어요',
-  restThisWeek: '오늘도 고생하셨어요, 푹 쉬세요',
-  nextWeek: '이번 주도 고생하셨어요',
-  longBreak: '연휴 잘 보내세요',
+  tomorrow: '🌙 오늘 하루도 수고하셨어요',
+  restThisWeek: '😌 오늘은 여기까지, 편히 쉬세요',
+  nextWeek: '🎉 한 주 동안 수고하셨어요',
+  longBreak: '🏖️ 즐거운 연휴 보내세요',
 }
 
 export function StatusLine({ earnings, settings, now, hidden }: Props) {

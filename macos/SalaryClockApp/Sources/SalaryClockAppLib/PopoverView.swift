@@ -270,10 +270,10 @@ struct PopoverView: View {
 /// AFTER_WORK_TEXT와 같은 표를 따른다.
 private func afterWorkText(_ kind: AfterWorkKind) -> String {
     switch kind {
-    case .tomorrow: return "오늘도 고생하셨어요"
-    case .restThisWeek: return "오늘도 고생하셨어요, 푹 쉬세요"
-    case .nextWeek: return "이번 주도 고생하셨어요"
-    case .longBreak: return "연휴 잘 보내세요"
+    case .tomorrow: return "🌙 오늘 하루도 수고하셨어요"
+    case .restThisWeek: return "😌 오늘은 여기까지, 편히 쉬세요"
+    case .nextWeek: return "🎉 한 주 동안 수고하셨어요"
+    case .longBreak: return "🏖️ 즐거운 연휴 보내세요"
     }
 }
 

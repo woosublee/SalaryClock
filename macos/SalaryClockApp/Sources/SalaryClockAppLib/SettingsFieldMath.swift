@@ -55,3 +55,14 @@ func parseDeductionRateInput(_ text: String) -> DeductionRateInput {
     guard let pct = Double(trimmed) else { return .ignore }
     return .rate(pct / 100)
 }
+
+/// 메뉴바 갱신 주기의 위아래 버튼이 내놓을 값.
+///
+/// 0.1씩 더하고 빼는 것을 그대로 두면 부동소수점 찌꺼기가 쌓여
+/// 1.2000000000000002 같은 값이 입력칸에 찍힌다. 소수 한 자리로 끊고 범위
+/// 안으로 넣는다 — 범위는 AppPreferences가 저장을 허용하는 것과 같은 값이라,
+/// 버튼으로는 넣을 수 있는데 저장은 거부되는 값이 생기지 않는다.
+func steppedInterval(_ value: Double) -> Double {
+    let rounded = (value * 10).rounded() / 10
+    return min(max(rounded, AppPreferences.range.lowerBound), AppPreferences.range.upperBound)
+}

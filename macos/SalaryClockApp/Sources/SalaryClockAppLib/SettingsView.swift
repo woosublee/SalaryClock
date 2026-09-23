@@ -41,9 +41,7 @@ struct SettingsView: View {
     /// 업데이트 자동 확인. 값은 Sparkle이 자기 UserDefaults 키에 담으므로
     /// 저장 버튼을 기다리지 않고 토글하는 즉시 반영한다 — draft에 담지 않는
     /// 이유이기도 하다.
-    @State private var automaticUpdates = UpdaterController.shared.automaticallyChecks
     @State private var automaticDownloads = UpdaterController.shared.automaticallyDownloads
-    @State private var updateInterval = UpdateInterval.nearest(to: UpdaterController.shared.checkInterval)
     @ObservedObject private var updater = UpdaterController.shared
     /// 창이 열린 시각. 웹 SettingsPanel의 `panelNow`와 같다 —
     /// `const [panelNow] = useState(now)`로 한 번 얼려 두고 창이 닫힐 때까지
@@ -72,6 +70,18 @@ struct SettingsView: View {
         return resolveShift(base, panelNow)
     }
     private var intervalValue: Double? { Double(intervalText) }
+
+    /// 위아래 버튼이 쓸 값. 입력칸은 문자열이라(숫자로 못 읽는 값도 그대로
+    /// 담아 빨갛게 보여줘야 한다) 버튼 쪽에서만 숫자로 바꿔 쓴다.
+    ///
+    /// 읽을 수 없는 값이 들어 있을 때는 기본값에서 출발한다 — 버튼을 눌렀는데
+    /// 아무 일도 안 일어나면 고장으로 보인다.
+    private var intervalStepBinding: Binding<Double> {
+        Binding(
+            get: { intervalValue ?? AppPreferences.defaultInterval },
+            set: { intervalText = Self.formatInterval(steppedInterval($0)) }
+        )
+    }
     private var intervalValid: Bool { intervalValue.map(AppPreferences.isValid) ?? false }
     private var isValid: Bool { SettingsStore.isValid(draft) && intervalValid }
 
@@ -175,7 +185,7 @@ struct SettingsView: View {
                     .multilineTextAlignment(.trailing)
                     .font(.system(size: 13, design: .monospaced))
                     .foregroundStyle(intervalValid ? theme.foreground : .red)
-                    .frame(width: 86)
+                    .frame(width: 72)
                     .padding(.trailing, 18)
                     .overlay(alignment: .trailing) {
                         Text("초")
@@ -183,6 +193,8 @@ struct SettingsView: View {
                             .foregroundStyle(theme.dim)
                             .padding(.trailing, 10)
                     }
+                Stepper("", value: intervalStepBinding, in: AppPreferences.range, step: 0.1)
+                    .labelsHidden()
             }
             Text("0.1~10초. 짧을수록 부드럽지만 배터리를 조금 더 씁니다")
                 .font(.system(size: 10))
@@ -239,32 +251,13 @@ struct SettingsView: View {
                 .foregroundStyle(theme.secondary)
 
             if updater.isAvailable {
-                Toggle("자동으로 확인", isOn: $automaticUpdates)
-                    .onChange(of: automaticUpdates) { _, on in
-                        UpdaterController.shared.automaticallyChecks = on
+                Toggle("새 버전을 자동으로 설치", isOn: $automaticDownloads)
+                    .onChange(of: automaticDownloads) { _, on in
+                        UpdaterController.shared.automaticallyDownloads = on
                     }
-                // 확인을 안 하면 받을 것도 없다. 자동 확인이 꺼져 있을 때
-                // 남은 둘은 흐리게 두지 않고 감춘다 — 웹 설정 패널이 점심시간을
-                // 껐을 때 시각 칸을 감추는 것과 같은 규칙이다.
-                if automaticUpdates {
-                    Toggle("새 버전을 자동으로 받아 설치", isOn: $automaticDownloads)
-                        .onChange(of: automaticDownloads) { _, on in
-                            UpdaterController.shared.automaticallyDownloads = on
-                        }
-                    HStack(spacing: 8) {
-                        Text("확인 주기").font(.system(size: 12))
-                        Picker("", selection: $updateInterval) {
-                            ForEach(UpdateInterval.allCases, id: \.self) { interval in
-                                Text(interval.label).tag(interval)
-                            }
-                        }
-                        .labelsHidden()
-                        .pickerStyle(.segmented)
-                        .onChange(of: updateInterval) { _, interval in
-                            UpdaterController.shared.checkInterval = interval.seconds
-                        }
-                    }
-                }
+                Text("앱을 열 때와 하루에 한 번 확인합니다")
+                    .font(.system(size: 10))
+                    .foregroundStyle(theme.dim)
                 HStack(spacing: 8) {
                     Button("지금 확인") { UpdaterController.shared.checkForUpdates() }
                         .disabled(!updater.canCheck)
