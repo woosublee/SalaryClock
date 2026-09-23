@@ -56,13 +56,25 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         popover = NSPopover()
         popover.behavior = .transient
         popover.delegate = self
-        popover.contentViewController = NSHostingController(
+        let hosting = NSHostingController(
             rootView: PopoverView(
                 model: model,
                 onSettings: { [weak self] in self?.openSettings() },
                 onQuit: { NSApp.terminate(nil) }
             )
         )
+        // SwiftUI가 잰 크기를 팝오버에 미리 알린다.
+        //
+        // 이게 없으면 팝오버가 기본 크기(320×320)로 먼저 열리고, 그다음 SwiftUI
+        // 레이아웃이 끝나면서 실제 크기로 바뀐다. 그 두 번째 순간에 AppKit이
+        // 창을 다시 놓는데, 어느 쪽 모서리를 고정할지가 화면에 따라 갈린다 —
+        // 아래로 늘리면 멀쩡하지만 위로 늘리면 팝오버가 메뉴바를 넘어 화면 밖으로
+        // 올라간다. 실측한 어긋남(65pt)이 정확히 기본 높이와 실제 높이의 차이였다.
+        //
+        // 크기를 미리 알려 두면 처음부터 제 크기로 자리를 잡고, 다시 놓는 일
+        // 자체가 없어진다.
+        hosting.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = hosting
 
         startTimer(interval: AppPreferences.shared.menuBarInterval)
         tick()
@@ -105,6 +117,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             popover.performClose(nil)
         } else {
             tick()
+            sizePopoverToContent()
             if let anchor = makeAnchorWindow(for: button), let content = anchor.contentView {
                 anchorWindow = anchor
                 popover.show(relativeTo: content.bounds, of: content, preferredEdge: .minY)
@@ -116,6 +129,24 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             // 팝오버가 열려 있는 동안만 0.1초로 올려 소수 1자리가 흐르게 한다.
             startTimer(interval: 0.1)
         }
+    }
+
+    /// 팝오버를 열기 전에 내용 크기를 재서 알려 둔다.
+    ///
+    /// 이게 없으면 팝오버가 기본 크기(320×320)로 먼저 열리고, SwiftUI 레이아웃이
+    /// 끝난 뒤 실제 크기로 바뀐다. 그 두 번째 순간에 AppKit이 창을 다시 놓는데
+    /// 어느 모서리를 고정할지가 화면에 따라 갈린다 — 아래로 늘리면 멀쩡하지만
+    /// 위로 늘리면 팝오버가 메뉴바를 넘어 화면 밖으로 올라간다. 실측한
+    /// 어긋남(65pt)이 정확히 기본 높이와 실제 높이의 차이였다.
+    ///
+    /// 열 때마다 다시 재는 이유는 내용에 따라 높이가 달라질 수 있어서다
+    /// (가린 상태와 평소 화면이 다른 줄을 쓴다).
+    private func sizePopoverToContent() {
+        guard let content = popover.contentViewController?.view else { return }
+        content.layoutSubtreeIfNeeded()
+        let size = content.fittingSize
+        guard size.width > 0, size.height > 0 else { return }
+        popover.contentSize = size
     }
 
     /// 상태 항목 오른쪽 모서리에 보이지 않는 1pt 창을 세운다 — 이유는
