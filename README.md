@@ -52,6 +52,8 @@
 
 ### 설치
 
+Apple Silicon(M1 이후) Mac 전용입니다. macOS 14 이상에서 동작합니다.
+
 1. [릴리스 페이지](https://github.com/woosublee/SalaryClock/releases/latest)에서
    DMG를 내려받습니다.
 2. 앱을 응용 프로그램 폴더로 옮깁니다.
