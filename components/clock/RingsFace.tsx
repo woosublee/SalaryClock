@@ -2,7 +2,7 @@
 
 import { handAngles, arcPath } from '@/lib/clock'
 import { paidMsBetween } from '@/lib/shift'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const R_PROGRESS = 92
 const R_HOUR = 74
@@ -17,7 +17,7 @@ const R_SECOND = 46
  * 안으로 들어올수록 시·분·초로 빨라진다. 초 고리가 1분마다 감겼다 풀리는
  * 게 이 페이스의 움직임 전부다.
  */
-export function RingsFace({ now, shift, className }: ClockFaceProps) {
+export function RingsFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
 
   const progress =
@@ -48,7 +48,7 @@ export function RingsFace({ now, shift, className }: ClockFaceProps) {
   )
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       {ring('progress', R_PROGRESS, progress * 360, 'text-emerald-500', 6)}
       {ring('hour', R_HOUR, hands.hour, 'text-slate-500 dark:text-slate-300', 4)}
       {ring('minute', R_MINUTE, hands.minute, 'text-slate-400', 3)}

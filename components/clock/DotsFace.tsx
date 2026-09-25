@@ -1,7 +1,7 @@
 'use client'
 
 import { handAngles, shiftArcs, polarPoint, angleInArc } from '@/lib/clock'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const DOT_R = 84
 
@@ -12,13 +12,13 @@ const DOT_R = 84
  * 셀 수 있는 덩어리로 보인다. 초침은 선이 아니라 궤도를 도는 작은 점이라
  * 문자판의 어휘를 그대로 쓴다.
  */
-export function DotsFace({ now, shift, className }: ClockFaceProps) {
+export function DotsFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
   const secondDot = polarPoint(CX, CY, DOT_R, hands.second)
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       {Array.from({ length: 12 }, (_, i) => {
         const deg = i * 30
         const inLunch = arcs.lunch ? angleInArc(deg, arcs.lunch) : false

@@ -1,7 +1,7 @@
 'use client'
 
 import { handAngles, arcPath, shiftArcs, polarPoint } from '@/lib/clock'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const NUM_R = 74
 const ARC_R = 54
@@ -13,12 +13,12 @@ const ARC_R = 54
  * 색이 아니라 굵기와 농도로 구분한다. 호를 숫자 안쪽에 둬서 시간을 읽는
  * 동선과 진행을 읽는 동선을 겹치지 않게 했다.
  */
-export function NumeralsFace({ now, shift, className }: ClockFaceProps) {
+export function NumeralsFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       <circle
         cx={CX}
         cy={CY}

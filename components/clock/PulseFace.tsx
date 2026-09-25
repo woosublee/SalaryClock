@@ -1,7 +1,7 @@
 'use client'
 
 import { handAngles, arcPath, shiftArcs } from '@/lib/clock'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const RING_R = 92
 const MAX_RIPPLE = 80
@@ -16,14 +16,14 @@ const RIPPLE_COUNT = 3
  *
  * 파문 셋을 1/3씩 어긋나게 띄워서 끊기지 않고 계속 번지게 했다.
  */
-export function PulseFace({ now, shift, className }: ClockFaceProps) {
+export function PulseFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
 
   const fraction = (now % 1000) / 1000
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       <path
         d={arcPath(CX, CY, RING_R, arcs.work)}
         fill="none"
