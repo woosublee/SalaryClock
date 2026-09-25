@@ -87,3 +87,64 @@ func ringFollowsDrawingAppearance() {
     #expect(light != nil && dark != nil)
     #expect(light != dark)
 }
+
+/// 개발 빌드 아이콘 — 박스는 칠해지고, 테두리 자리는 파여 비어 있어야 한다.
+@Test("개발 빌드 아이콘은 박스를 칠하고 링 테두리를 음각으로 파낸다")
+@MainActor
+func devBadgeEngravesRing() {
+    func alpha(_ image: NSImage, x: Int, y: Int) -> CGFloat {
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: 16, pixelsHigh: 16,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        NSAppearance(named: .darkAqua)!.performAsCurrentDrawingAppearance {
+            image.draw(in: NSRect(x: 0, y: 0, width: 16, height: 16))
+        }
+        NSGraphicsContext.restoreGraphicsState()
+        return rep.colorAt(x: x, y: y)?.alphaComponent ?? 0
+    }
+    let badge = ringImage(progress: 0, devBadge: true)
+    let plain = ringImage(progress: 0, devBadge: false)
+    // 박스 색은 메뉴바 글자색(labelColor)이라 어두운 쪽에서 불투명도가 0.85다.
+    // (8, 8): 링 안쪽 가운데. 개발 빌드만 칠해져 있다.
+    #expect(alpha(badge, x: 8, y: 8) > 0.7)
+    #expect(alpha(plain, x: 8, y: 8) < 0.1)
+    // (1, 8): 링 바깥의 박스 가장자리도 칠해져 있다.
+    #expect(alpha(badge, x: 1, y: 8) > 0.7)
+    // (3, 8): 개발 빌드 링 테두리 자리. 끝까지 파여 있어야 한다.
+    #expect(alpha(badge, x: 3, y: 8) < 0.1)
+}
+
+@Test("개발 빌드는 금액까지 한 박스에 담고 글자를 파낸다")
+@MainActor
+func devBadgeHoldsAmount() {
+    let withAmount = devBadgeImage(progress: 0.4, clockAt: nil, title: "123,456원")
+    let without = devBadgeImage(progress: 0.4, clockAt: nil, title: nil)
+    #expect(withAmount.size.width > without.size.width + 30)
+
+    // 금액 영역(링 오른쪽)을 훑어 칠해진 박스와 파낸 글자가 둘 다 있는지 본다.
+    let w = Int(withAmount.size.width), h = Int(withAmount.size.height)
+    let rep = NSBitmapImageRep(
+        bitmapDataPlanes: nil, pixelsWide: w, pixelsHigh: h,
+        bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+        colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+    )!
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+    NSAppearance(named: .darkAqua)!.performAsCurrentDrawingAppearance {
+        withAmount.draw(in: NSRect(x: 0, y: 0, width: w, height: h))
+    }
+    NSGraphicsContext.restoreGraphicsState()
+    var filled = 0, carved = 0
+    for x in 22..<(w - 6) {
+        for y in 4..<(h - 4) {
+            let a = rep.colorAt(x: x, y: y)?.alphaComponent ?? 0
+            if a > 0.7 { filled += 1 } else if a < 0.2 { carved += 1 }
+        }
+    }
+    #expect(filled > 20)
+    #expect(carved > 20)
+}

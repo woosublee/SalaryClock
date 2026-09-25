@@ -18,19 +18,93 @@ import SalaryClockCore
 /// 어두우면 메뉴바 글자는 희다. 핸들러는 버튼이 그릴 때마다 불리고 그때의
 /// 외형(버튼의 실효 외형)으로 색이 풀리므로 메뉴바를 그대로 따라간다.
 /// 다크모드를 바꿔도 1분 캐시를 기다리지 않고 바로 맞춰진다.
-public func ringImage(progress: Double, clockAt now: Int? = nil, size: CGFloat = 16) -> NSImage {
+///
+/// `devBadge`면 개발 빌드 표시를 한다 — 메뉴바 글자색으로 칠한 둥근 박스에서
+/// 테두리와 바늘을 파낸다(음각). 설치된 앱과 개발 빌드를 나란히 띄워도
+/// 어느 쪽인지 한눈에 갈린다. 기본값은 debug 구성으로 빌드됐는지다.
+public func ringImage(
+    progress: Double, clockAt now: Int? = nil, size: CGFloat = 16,
+    devBadge: Bool = isDevBuild
+) -> NSImage {
     NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
-        drawRing(progress: progress, clockAt: now, size: size)
+        drawRing(progress: progress, clockAt: now, size: size, devBadge: devBadge)
         return true
     }
 }
 
-private func drawRing(progress: Double, clockAt now: Int?, size: CGFloat) {
-    let inset: CGFloat = 1.5
+/// `swift build`의 debug 구성(bundle-app.sh debug)이면 참. 릴리스 빌드는 거짓.
+public let isDevBuild: Bool = {
+    #if DEBUG
+    return true
+    #else
+    return false
+    #endif
+}()
+
+/// 개발 빌드에서 금액까지 한 박스에 담은 메뉴바 이미지.
+///
+/// 박스 하나에 링과 금액을 나란히 두고 둘 다 음각으로 파낸다. 금액을 버튼
+/// 제목으로 따로 두면 박스 밖에 떨어져 개발 빌드 표시가 아이콘에만 걸린다.
+/// 금액이 없으면(가리기·휴무일) 링 박스만 남는다.
+public func devBadgeImage(progress: Double, clockAt now: Int?, title: String?) -> NSImage {
+    let height: CGFloat = 18
+    let gap: CGFloat = 2
+    let trailing: CGFloat = 6
+    // 메뉴바 제목과 같은 글꼴. 글자색은 파내는 데만 쓰므로 불투명하면 된다.
+    let text = title.map {
+        NSAttributedString(string: $0, attributes: [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular),
+            .foregroundColor: NSColor.black,
+        ])
+    }
+    let textSize = text?.size() ?? .zero
+    let width = text == nil ? height : height + gap + ceil(textSize.width) + trailing
+
+    return NSImage(size: NSSize(width: width, height: height), flipped: false) { _ in
+        NSColor.labelColor.setFill()
+        NSBezierPath(
+            roundedRect: NSRect(x: 0, y: 0, width: width, height: height), xRadius: 4, yRadius: 4
+        ).fill()
+        drawRing(progress: progress, clockAt: now, size: height, devBadge: true, fillBox: false)
+        if let text {
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current?.compositingOperation = .destinationOut
+            text.draw(at: NSPoint(x: height + gap, y: (height - textSize.height) / 2))
+            NSGraphicsContext.restoreGraphicsState()
+        }
+        return true
+    }
+}
+
+private func drawRing(
+    progress: Double, clockAt now: Int?, size: CGFloat, devBadge: Bool, fillBox: Bool = true
+) {
+    // 박스 안에서는 링을 줄여 박스 가장자리가 보이게 한다.
+    let inset: CGFloat = devBadge ? 3 : 1.5
     let rect = NSRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
     let center = NSPoint(x: size / 2, y: size / 2)
     let radius = rect.width / 2
     let lineWidth: CGFloat = 2
+
+    // 음각: 박스를 칠한 뒤 테두리와 바늘은 destinationOut으로 박스를 파낸다.
+    // 파낸 자리로 메뉴바가 비쳐 보인다. 초록 진행 링은 그 위에 보통대로 얹는다.
+    let context = NSGraphicsContext.current
+    func engrave(_ draw: () -> Void) {
+        guard devBadge else { draw(); return }
+        // 파내는 획은 불투명해야 끝까지 파인다. labelColor는 어두운 쪽에서
+        // 불투명도가 0.85라 그대로 쓰면 박스가 15% 남는다.
+        NSGraphicsContext.saveGraphicsState()
+        context?.compositingOperation = .destinationOut
+        NSColor.black.setStroke()
+        draw()
+        NSGraphicsContext.restoreGraphicsState()
+    }
+    if devBadge && fillBox {
+        NSColor.labelColor.setFill()
+        NSBezierPath(
+            roundedRect: NSRect(x: 0, y: 0, width: size, height: size), xRadius: 3.5, yRadius: 3.5
+        ).fill()
+    }
 
     let track = NSBezierPath()
     track.appendArc(withCenter: center, radius: radius, startAngle: 0, endAngle: 360)
@@ -39,7 +113,7 @@ private func drawRing(progress: Double, clockAt now: Int?, size: CGFloat) {
     // tertiaryLabelColor는 25% 남짓만 비쳐 어두운 메뉴바에서 링이 흐려 보였다.
     // 흰색으로 박으면 밝은 메뉴바에서 사라진다.
     NSColor.labelColor.setStroke()
-    track.stroke()
+    engrave { track.stroke() }
 
     let clamped = min(max(progress, 0), 1)
     if clamped > 0 {
@@ -75,7 +149,9 @@ private func drawRing(progress: Double, clockAt now: Int?, size: CGFloat) {
         // 메뉴바 색을 따라가도록 labelColor를 쓴다. 진행 링과 달리 바늘은
         // 색으로 구분할 정보가 없다.
         NSColor.labelColor.setStroke()
-        draw(angle: hands.hour, length: radius * 0.45, width: 1.6)
-        draw(angle: hands.minute, length: radius * 0.72, width: 1.1)
+        engrave {
+            draw(angle: hands.hour, length: radius * 0.45, width: 1.6)
+            draw(angle: hands.minute, length: radius * 0.72, width: 1.1)
+        }
     }
 }
