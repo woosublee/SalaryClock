@@ -2,7 +2,7 @@
 
 import { useId } from 'react'
 import { handAngles, arcPath, shiftArcs, polarPoint } from '@/lib/clock'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const PLATE_R = 90
 const SHADOW_LEN = 78
@@ -17,7 +17,7 @@ const SHADOW_LEN = 78
  * 않고, 대신 테두리를 도는 작은 점 하나로만 살아 있다는 걸 알린다.
  * 분은 그림자 끝에 붙은 짧은 눈금이 맡는다.
  */
-export function SundialFace({ now, shift, className }: ClockFaceProps) {
+export function SundialFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
   // 미리보기와 본 시계가 동시에 뜨므로 그라디언트 id가 겹치면 안 된다
@@ -30,7 +30,7 @@ export function SundialFace({ now, shift, className }: ClockFaceProps) {
   const minuteTickInner = polarPoint(CX, CY, PLATE_R - 20, hands.minute)
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       {/* 석판 */}
       <circle cx={CX} cy={CY} r={PLATE_R} className="fill-stone-100 dark:fill-stone-900" />
       <circle

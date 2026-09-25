@@ -1,7 +1,7 @@
 'use client'
 
 import { handAngles, shiftArcs, polarPoint, angleInArc } from '@/lib/clock'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const TICK_OUTER = 92
 
@@ -12,12 +12,12 @@ const TICK_OUTER = 92
  * 지나간 시간이 낱낱의 눈금으로 쌓여 보이는 게 이 페이스의 전부다.
  * 점심 구간 눈금은 비워서 "여기는 안 쌓인다"를 같은 언어로 말한다.
  */
-export function GrainFace({ now, shift, className }: ClockFaceProps) {
+export function GrainFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       {Array.from({ length: 60 }, (_, i) => {
         const deg = i * 6
         const isHour = i % 5 === 0

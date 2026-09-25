@@ -1,7 +1,7 @@
 'use client'
 
 import { handAngles, arcPath, shiftArcs, polarPoint } from '@/lib/clock'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const RING_R = 92
 const DIAL_R = 76
@@ -10,12 +10,12 @@ const DIAL_R = 76
  * 말끔 — 사무실 벽시계.
  * 문자판은 조용하게 두고, 하루 진행은 바깥 링 하나로만 말한다.
  */
-export function MinimalFace({ now, shift, className }: ClockFaceProps) {
+export function MinimalFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       <path
         d={arcPath(CX, CY, RING_R, arcs.work)}
         fill="none"

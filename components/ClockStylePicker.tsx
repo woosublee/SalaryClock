@@ -112,7 +112,7 @@ export function ClockStylePicker({ value, now, shift, onChange }: Props) {
                   : 'border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600'
               }`}
             >
-              <AnalogClock now={now} shift={shift} style={style} className="h-12 w-12" />
+              <AnalogClock now={now} shift={shift} style={style} className="h-12 w-12" decorative />
               <span
                 className={`whitespace-nowrap text-xs ${
                   selected

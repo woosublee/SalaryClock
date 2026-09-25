@@ -1,7 +1,7 @@
 'use client'
 
 import { handAngles, arcBetween, arcPath, shiftArcs, polarPoint } from '@/lib/clock'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const RING_R = 92
 const DIAL_R = 74
@@ -13,7 +13,7 @@ const DIAL_R = 74
  * 것뿐인데 하루의 체감이 완전히 달라져서 페이스 하나를 따로 뒀다.
  * 색도 쌓임(에메랄드)과 구분해 호박색을 쓴다.
  */
-export function CountdownFace({ now, shift, className }: ClockFaceProps) {
+export function CountdownFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
 
@@ -23,7 +23,7 @@ export function CountdownFace({ now, shift, className }: ClockFaceProps) {
       : arcBetween(Math.min(Math.max(now, shift.startMs), shift.endMs), shift.endMs)
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="퇴근까지 남은 시간">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       {/* 지나간 구간은 흔적만 */}
       <path
         d={arcPath(CX, CY, RING_R, arcs.work)}

@@ -1,7 +1,7 @@
 'use client'
 
 import { handAngles, sectorPath, shiftArcs, polarPoint } from '@/lib/clock'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const R = 88
 
@@ -12,12 +12,12 @@ const R = 88
  * 차지하는 넓이로 읽힌다. 하루가 차오르는 걸 몸으로 느끼게 하는 쪽이다.
  * 점심 구간은 바탕색으로 파내서 파이에 홈이 생긴다.
  */
-export function SectorFace({ now, shift, className }: ClockFaceProps) {
+export function SectorFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const arcs = shiftArcs(shift, now)
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       <circle cx={CX} cy={CY} r={R} className="fill-slate-50 dark:fill-slate-900" />
 
       {/* 근무 구간 전체 */}

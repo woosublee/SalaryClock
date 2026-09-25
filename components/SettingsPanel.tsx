@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useId, useRef, useState } from 'react'
 import { SettingsSchema, type PayMode, type Settings } from '@/lib/settings'
 import { formatKoreanUnits } from '@/lib/format'
 import { workdayInfo, effectiveWorkDays } from '@/lib/workdays'
@@ -86,6 +86,33 @@ export const SettingsPanel = memo(function SettingsPanel({
   // 바뀌지는 않는다. 부모의 rAF 시각을 prop으로 받으면 memo가 매 프레임 깨진다.
   const [panelNow] = useState(() => Date.now())
 
+  const titleId = useId()
+  const workStartId = useId()
+  const workEndId = useId()
+  const workDaysId = useId()
+  const payLabelId = useId()
+  const faceLabelId = useId()
+
+  /*
+   * 네이티브 모달 대화상자로 연다. showModal()이 포커스를 창 안으로 옮기고,
+   * 창 밖(설정·가리기·테마 버튼)을 inert로 만들어 Tab이 새지 않게 하고,
+   * Esc를 cancel 이벤트로 넘겨 준다. 손으로 포커스 트랩을 짜지 않아도 된다.
+   *
+   * 닫을 때는 연 버튼으로 포커스를 돌려준다. 대화상자는 close()를 거치지 않고
+   * 통째로 언마운트되므로 브라우저가 알아서 돌려주지 않는다.
+   */
+  const dialogRef = useRef<HTMLDialogElement | null>(null)
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    if (!dialog.open) dialog.showModal()
+    return () => {
+      if (dialog.open) dialog.close()
+      opener?.focus()
+    }
+  }, [])
+
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) =>
     setDraft((d) => ({ ...d, [key]: value }))
 
@@ -144,10 +171,32 @@ export const SettingsPanel = memo(function SettingsPanel({
   return (
     // 설정 버튼이 우측 상단에 있으니 패널도 우측에서 열린다. 화면이 넓을 때
     // 반대편에서 뜨면 눈이 한 번 건너뛰어야 한다.
-    <div className="fixed inset-0 z-10 overflow-y-auto bg-black/40 p-4">
+    //
+    // 대화상자 자체는 화면 전체를 덮는 투명한 스크롤 영역이고, 흰 카드는 그 안에
+    // 놓인다. 브라우저 기본 스타일(가운데 정렬, 테두리, 최대 크기)은 걷어낸다.
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      // Esc. 첫 방문에는 닫을 곳이 없으므로 막는다(아래 X 버튼과 같은 이유).
+      onCancel={(e) => {
+        e.preventDefault()
+        if (dismissable) onClose()
+      }}
+      // 그래도 닫히는 경우가 있다. Chrome은 대화상자가 열린 뒤 사용자가 아무것도
+      // 누르지 않았으면 cancel을 막지 못하게 하고 곧바로 닫는다(남용 방지).
+      // 첫 방문에 그대로 두면 저장 버튼도 없는 빈 화면에 갇히므로 다시 연다.
+      // 언마운트하며 부르는 close()의 이벤트는 문서에서 떨어진 뒤라 여기 오지 않는다.
+      onClose={() => {
+        if (dismissable) onClose()
+        else dialogRef.current?.showModal()
+      }}
+      className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-y-auto bg-transparent p-4 text-slate-900 backdrop:bg-black/40 dark:text-slate-100"
+    >
       <div className="flex min-h-full items-center justify-end">
         <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
-          <h2 className="text-lg font-semibold">설정</h2>
+          <h2 id={titleId} className="text-lg font-semibold">
+            설정
+          </h2>
 
           {/*
             첫 방문에는 닫을 곳이 없다. 저장을 해야 시계가 의미를 갖기 때문에
@@ -177,8 +226,10 @@ export const SettingsPanel = memo(function SettingsPanel({
 
           <div className="mt-5 space-y-5">
             {/* 시계 페이스 */}
-            <div>
-              <label className={LABEL}>시계 페이스</label>
+            <div role="group" aria-labelledby={faceLabelId}>
+              <span id={faceLabelId} className={LABEL}>
+                시계 페이스
+              </span>
               <ClockStylePicker
                 value={draft.clockStyle}
                 now={panelNow}
@@ -188,8 +239,10 @@ export const SettingsPanel = memo(function SettingsPanel({
             </div>
 
             {/* 급여 ─ 실수령 옵션을 여기에 붙인다. 금액을 보면서 바로 켜고 끌 수 있게 */}
-            <div>
-              <label className={LABEL}>급여</label>
+            <div role="group" aria-labelledby={payLabelId}>
+              <span id={payLabelId} className={LABEL}>
+                급여
+              </span>
 
               <div className="mt-1 flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
                 {(Object.keys(PAY_LABELS) as PayMode[]).map((m) => (
@@ -197,6 +250,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                     key={m}
                     type="button"
                     onClick={() => set('payMode', m)}
+                    aria-pressed={draft.payMode === m}
                     className={`flex-1 rounded-md py-1.5 text-sm transition-colors ${
                       draft.payMode === m
                         ? 'bg-white font-medium text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
@@ -325,8 +379,11 @@ export const SettingsPanel = memo(function SettingsPanel({
             */}
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div className="min-w-0">
-                <label className={LABEL}>출근</label>
+                <label htmlFor={workStartId} className={LABEL}>
+                  출근
+                </label>
                 <input
+                  id={workStartId}
                   type="time"
                   className={`${TIME_FIELD} mt-1`}
                   value={draft.workStart}
@@ -334,8 +391,11 @@ export const SettingsPanel = memo(function SettingsPanel({
                 />
               </div>
               <div className="min-w-0">
-                <label className={LABEL}>퇴근</label>
+                <label htmlFor={workEndId} className={LABEL}>
+                  퇴근
+                </label>
                 <input
+                  id={workEndId}
                   type="time"
                   className={`${TIME_FIELD} mt-1`}
                   value={draft.workEnd}
@@ -382,7 +442,9 @@ export const SettingsPanel = memo(function SettingsPanel({
             {/* 근무일수 ─ 숫자를 고치면 manual, 달력에서 찍으면 calendar로 넘어간다 */}
             <div>
               <div className="flex items-center justify-between gap-2">
-                <label className={LABEL}>월 근무일수</label>
+                <label htmlFor={workDaysId} className={LABEL}>
+                  월 근무일수
+                </label>
                 <button
                   type="button"
                   onClick={() => setShowCalendar((v) => !v)}
@@ -395,9 +457,9 @@ export const SettingsPanel = memo(function SettingsPanel({
               <div className="relative mt-1">
                 <input
                   type="number"
+                  id={workDaysId}
                   step="1"
                   min={0}
-                  aria-label="월 근무일수"
                   className={`${FIELD} pr-8 text-right tabular-nums`}
                   value={workDays}
                   onChange={(e) => {
@@ -530,6 +592,6 @@ export const SettingsPanel = memo(function SettingsPanel({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 })

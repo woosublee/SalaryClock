@@ -3,7 +3,7 @@
 import { useId } from 'react'
 import { handAngles } from '@/lib/clock'
 import { paidMsBetween } from '@/lib/shift'
-import { CX, CY, type ClockFaceProps } from './types'
+import { CX, CY, faceA11y, type ClockFaceProps } from './types'
 
 const R = 88
 
@@ -17,7 +17,7 @@ const R = 88
  * 물결은 장식이 아니라 살아 있다는 신호다. 4초에 한 번 위상이 도는데,
  * 초침과 주기를 어긋나게 둬서 둘이 맞물려 보이지 않게 했다.
  */
-export function LevelFace({ now, shift, className }: ClockFaceProps) {
+export function LevelFace({ now, shift, className, label }: ClockFaceProps) {
   const hands = handAngles(now)
   const id = useId()
   const clipId = `level-clip-${id}`
@@ -41,7 +41,7 @@ export function LevelFace({ now, shift, className }: ClockFaceProps) {
   const waterPath = `M ${points[0]} L ${points.slice(1).join(' L ')} L ${CX + R} ${CY + R} L ${CX - R} ${CY + R} Z`
 
   return (
-    <svg viewBox="0 0 200 200" className={className} role="img" aria-label="현재 시각과 근무 진행률">
+    <svg viewBox="0 0 200 200" className={className} {...faceA11y(label)}>
       <defs>
         <clipPath id={clipId}>
           <circle cx={CX} cy={CY} r={R} />
