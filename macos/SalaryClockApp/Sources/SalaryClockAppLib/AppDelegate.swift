@@ -53,6 +53,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         // 절전에서 깨어나면 즉시 맞춘다. 타이머만 믿어도 1초 뒤엔 맞지만
         // 화면이 켜지는 순간 옛 숫자가 보이는 게 눈에 띈다.
+        // 시스템 시간대가 바뀌면(해외 도착, 시스템 설정 변경) 바로 따라간다.
+        // core의 CalendarCache는 TimeZone.current를 매번 읽지만, 프로세스는
+        // 시스템 시간대를 캐시해 두므로 resetSystemTimeZone 없이는 옛 값을
+        // 계속 돌려줄 수 있다. 다음 분 경계까지 기다리지 않고 즉시 다시 그린다.
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(systemTimeZoneChanged),
+            name: .NSSystemTimeZoneDidChange, object: nil
+        )
+
         let workspace = NSWorkspace.shared.notificationCenter
         workspace.addObserver(
             self, selector: #selector(wakeUp),
@@ -136,6 +145,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func settingsChanged() { lastRingMinute = -1; tick() }
     @objc private func wakeUp() { tick() }
+    @objc private func systemTimeZoneChanged() {
+        NSTimeZone.resetSystemTimeZone()
+        lastRingMinute = -1
+        tick()
+    }
     @objc private func appPreferencesChanged() { tick() }
 
     @objc private func screensDidSleep() { screensAsleep = true; suspend() }

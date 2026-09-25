@@ -24,6 +24,10 @@ public let MS_PER_DAY = 86_400_000
 /// 알림(`NSSystemTimeZoneDidChange`)을 구독하지 않으므로 런루프가 돌지 않는
 /// 테스트·스크립트에서도 같게 동작한다. 측정하면 접근당 약 166ns → 35ns다.
 ///
+/// 다만 `TimeZone.current` 자체도 프로세스가 캐시한다. 앱은 그 알림을 받아
+/// `NSTimeZone.resetSystemTimeZone()`을 부른다(AppDelegate) — 그래야 여기서
+/// 읽는 값이 바뀐다.
+///
 /// 캐시는 공유 가변 상태다. 이 모듈의 함수는 어느 스레드에서 불려도 안전해야
 /// 하므로 잠금으로 감싼다. 밖에서 보이는 답은 달라지지 않는다.
 final class CalendarCache: @unchecked Sendable {
