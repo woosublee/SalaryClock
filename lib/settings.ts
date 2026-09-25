@@ -171,12 +171,21 @@ export const SettingsSchema = z
   })
 
 /** 기기의 다크모드 설정. 못 읽으면 밝은 쪽으로 본다 */
-function deviceTheme(): ThemeMode {
+export function deviceTheme(): ThemeMode {
   try {
     return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light'
   } catch {
     return 'light'
   }
+}
+
+/**
+ * 저장값이 없을 때의 설정. 기본값에 기기 테마를 심는다 — 저장값이 깨졌거나
+ * 초기화한 직후도 첫 방문과 같다. 기본값의 'light'를 그대로 쓰면 다크모드
+ * 기기에서 초기화하는 순간 화면이 하얘진다.
+ */
+export function firstVisit(): Settings {
+  return { ...DEFAULT_SETTINGS, theme: deviceTheme() }
 }
 
 export function loadSettings(): { settings: Settings; hasStored: boolean } {
@@ -187,10 +196,10 @@ export function loadSettings(): { settings: Settings; hasStored: boolean } {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     // 첫 방문에는 기기 설정을 그대로 가져온다. 사용자가 토글을 누르는 순간부터
     // 저장된 값이 기준이 된다.
-    if (!raw) return { settings: { ...DEFAULT_SETTINGS, theme: deviceTheme() }, hasStored: false }
+    if (!raw) return { settings: firstVisit(), hasStored: false }
     const stored: unknown = JSON.parse(raw)
     if (typeof stored !== 'object' || stored === null || Array.isArray(stored)) {
-      return { settings: DEFAULT_SETTINGS, hasStored: false }
+      return { settings: firstVisit(), hasStored: false }
     }
     // 스키마에 필드가 늘어도 예전에 저장한 값은 살린다. 없는 필드만 기본값으로
     // 채우고, 있는 필드는 여전히 검증한다. 테마는 첫 방문과 같이 기기 설정에서
@@ -201,10 +210,10 @@ export function loadSettings(): { settings: Settings; hasStored: boolean } {
       theme: deviceTheme(),
       ...stored,
     })
-    if (!parsed.success) return { settings: DEFAULT_SETTINGS, hasStored: false }
+    if (!parsed.success) return { settings: firstVisit(), hasStored: false }
     return { settings: parsed.data, hasStored: true }
   } catch {
-    return { settings: DEFAULT_SETTINGS, hasStored: false }
+    return { settings: firstVisit(), hasStored: false }
   }
 }
 

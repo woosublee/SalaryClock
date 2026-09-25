@@ -3,6 +3,7 @@ import {
   loadSettings,
   saveSettings,
   clearSettings,
+  firstVisit,
   DEFAULT_SETTINGS,
   STORAGE_KEY,
   type Settings,
@@ -178,5 +179,21 @@ describe('서버 렌더 환경', () => {
     expect(loadSettings().settings).toEqual(DEFAULT_SETTINGS)
     expect(() => saveSettings(DEFAULT_SETTINGS)).not.toThrow()
     expect(() => clearSettings()).not.toThrow()
+  })
+})
+
+describe('기기 테마를 심는 경로', () => {
+  afterEach(() => {
+    delete (globalThis as { window?: unknown }).window
+  })
+
+  it('저장값이 깨졌을 때도 첫 방문처럼 기기 테마를 쓴다', () => {
+    installFakeStorage(true).set(STORAGE_KEY, '{ 이건 JSON이 아님')
+    expect(loadSettings().settings.theme).toBe('dark')
+  })
+
+  it('firstVisit은 기본값에 기기 테마만 바꿔 넣는다', () => {
+    installFakeStorage(true)
+    expect(firstVisit()).toEqual({ ...DEFAULT_SETTINGS, theme: 'dark' })
   })
 })
