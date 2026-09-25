@@ -18,13 +18,13 @@ const DOW_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const
 
 /* 달 이동 화살표. 글자 하나라 누르는 면을 따로 넓혀 준다. */
 const MONTH_ARROW =
-  'rounded px-1 leading-none text-slate-400 hover:bg-slate-200 hover:text-slate-700 ' +
+  'rounded px-1 leading-none text-slate-500 hover:bg-slate-200 hover:text-slate-700 ' +
   'dark:hover:bg-slate-700 dark:hover:text-slate-200'
 
 const KIND_CLASS: Record<DayKind, string> = {
   work: 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700',
-  weekend: 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500',
-  holiday: 'bg-rose-50 text-rose-400 dark:bg-rose-950/40 dark:text-rose-400',
+  weekend: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+  holiday: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
   'custom-off': 'bg-slate-300 font-medium text-slate-600 dark:bg-slate-600 dark:text-slate-200',
   'custom-work': 'bg-emerald-100 font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
 }
@@ -78,7 +78,7 @@ export function MonthCalendar({
         <button
           type="button"
           onClick={onClearMonth}
-          className="text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
+          className="text-xs text-slate-500 underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
         >
           이 달 선택 지우기
         </button>
@@ -88,8 +88,12 @@ export function MonthCalendar({
         {DOW_LABELS.map((label, i) => (
           <div
             key={label}
-            className={`py-1 text-center text-[0.625rem] ${
-              i === 0 ? 'text-rose-400' : i === 6 ? 'text-sky-400' : 'text-slate-400'
+            className={`py-1 text-center text-xs ${
+              i === 0
+                ? 'text-rose-600 dark:text-rose-400'
+                : i === 6
+                  ? 'text-sky-600 dark:text-sky-400'
+                  : 'text-slate-500 dark:text-slate-400'
             }`}
           >
             {label}
@@ -114,7 +118,7 @@ export function MonthCalendar({
         ))}
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.625rem] text-slate-400 dark:text-slate-500">
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
         <span className="flex items-center gap-1">
           <span className="size-2 rounded-sm bg-slate-100 dark:bg-slate-800" />
           주말

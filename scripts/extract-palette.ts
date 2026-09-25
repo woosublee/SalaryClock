@@ -75,6 +75,7 @@ const TOKENS = [
   'amber-600',
   'orange-500',
   'sky-500',
+  'sky-600',
   'rose-500',
   'rose-600',
 ] as const

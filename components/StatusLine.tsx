@@ -65,7 +65,7 @@ export function StatusLine({ earnings, settings, now, hidden }: Props) {
     <p className="text-center font-mono text-sm tabular-nums text-slate-600 dark:text-slate-300">
       {primary}
       {showRemaining && (
-        <span className="text-slate-400 dark:text-slate-500">
+        <span className="text-slate-500 dark:text-slate-400">
           {' · 남은 '}
           <Won text={formatWon(earnings.remainingAmount)} />
         </span>

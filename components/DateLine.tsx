@@ -57,7 +57,7 @@ export function DateLine({
   return (
     <div className={BOX}>
       <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{formatDateKo(now)}</p>
-      <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
         {workStart}–{workEnd} · 유급 {paidLabel}시간 · 이번 달 {workDays}일{holidayNote}
       </p>
     </div>
