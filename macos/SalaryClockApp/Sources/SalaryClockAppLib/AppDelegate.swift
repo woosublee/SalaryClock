@@ -149,8 +149,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         // 늦게 울려도 되는 폭을 알려 주면 시스템이 다른 깨어남과 묶어 처리한다.
-        // 분 경계에 거는 긴 대기도 0.5초 넘게 밀리지는 않게 둔다.
-        t.tolerance = min(delay * 0.1, 0.5)
+        // 분 경계에 거는 긴 대기도 0.5초 넘게 밀리지는 않게 둔다. 팝오버가 열려
+        // 있을 때는 주지 않는다 — 소수 자리가 흐르는 간격이 흔들려 눈에 보인다.
+        t.tolerance = popover?.isShown == true ? 0 : min(delay * 0.1, 0.5)
         // .common 모드에 넣지 않으면 메뉴나 팝오버를 여는 순간 숫자가 멈춘다.
         RunLoop.main.add(t, forMode: .common)
         timer = t

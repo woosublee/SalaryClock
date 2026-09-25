@@ -18,10 +18,19 @@ func workingUsesInterval() {
     #expect(delay(at(10, 0, 30)) == 1)
 }
 
-@Test("팝오버가 열려 있으면 근무 여부와 상관없이 0.1초")
+@Test("팝오버가 열려 있으면 근무 여부와 상관없이 다음 0.1초 눈금까지")
 func popoverIsFast() {
-    #expect(delay(at(10, 0, 30), popover: true) == 0.1)
-    #expect(delay(at(20, 0, 30), popover: true) == 0.1)
+    #expect(abs(delay(at(10, 0, 30), popover: true) - 0.101) < 1e-9)
+    #expect(abs(delay(at(20, 0, 30), popover: true) - 0.101) < 1e-9)
+}
+
+@Test("팝오버 tick은 처리가 늦어져도 0.1초 눈금으로 돌아온다 — 간격이 밀리지 않는다")
+func popoverSnapsToGrid() {
+    // 눈금에서 37ms 늦게 깨어났어도 다음 깨어남은 다음 눈금(+1ms)이다.
+    let late = at(10, 0, 30, ms: 137)
+    let wake = late + Int((delay(late, popover: true) * 1000).rounded())
+    #expect(wake % 100 == 1)
+    #expect(wake - late == 64)
 }
 
 @Test("퇴근 후에는 다음 분의 경계까지 한 번만 기다린다")

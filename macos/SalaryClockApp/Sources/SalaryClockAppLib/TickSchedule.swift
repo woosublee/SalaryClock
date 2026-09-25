@@ -13,6 +13,9 @@ import SalaryClockCore
 /// - Parameters:
 ///   - interval: 사용자가 고른 메뉴바 갱신 주기(AppPreferences).
 ///   - popoverShown: 팝오버가 열려 있으면 소수 1자리가 흐르도록 0.1초.
+/// 팝오버가 열려 있을 때 한 칸의 길이(ms).
+let popoverStepMs = 100
+
 public func nextTickDelay(
     _ e: Earnings,
     hideAmount: Bool,
@@ -20,7 +23,13 @@ public func nextTickDelay(
     interval: TimeInterval,
     now: Int
 ) -> TimeInterval {
-    if popoverShown { return 0.1 }
+    // 팝오버의 금액 소수 자리는 0.1초마다 바뀐다. "지금부터 0.1초 뒤"로 걸면 tick을
+    // 처리한 시간만큼 매번 밀려 간격이 들쭉날쭉해진다(실측 101~110ms). 벽시계의
+    // 0.1초 눈금에 맞춰 걸면 처리가 늦어도 다음 눈금에서 다시 맞는다.
+    if popoverShown {
+        let msIntoStep = ((now % popoverStepMs) + popoverStepMs) % popoverStepMs
+        return TimeInterval(popoverStepMs - msIntoStep + 1) / 1000
+    }
     if e.phase == .working && !hideAmount { return interval }
     let msIntoMinute = ((now % 60_000) + 60_000) % 60_000
     // 경계를 막 넘긴 뒤에 깨어나야 분이 바뀐 값을 읽는다. 1ms를 더한다.

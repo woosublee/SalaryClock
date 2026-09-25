@@ -47,10 +47,19 @@ struct PopoverView: View {
                 // 페이스는 팝오버 폭(220)에서 좌우 여백 16씩을 뺀 만큼 꽉 채운다.
                 // 스펙 5.3의 비례 축소(132pt)보다 큰데, 숫자판·남은·해시계처럼
                 // 글자와 잔눈금이 들어가는 페이스는 그 크기에서 읽히지 않는다.
-                ClockFaceView(
-                    style: ClockStyle(name: model.settings.clockStyle),
-                    now: model.now, shift: model.earnings.shift, theme: theme
-                )
+                //
+                // 시계만 화면 주사율로 다시 그린다. 모델은 0.1초마다 바뀌어 초침이
+                // 1초에 열 칸씩 끊겨 움직였다 — 웹은 rAF로 매 프레임 그려 초침이
+                // 흐른다. TimelineView(.animation)는 팝오버가 화면에 있을 때만
+                // 돌고 닫히면 멈추므로 메뉴바만 떠 있을 때의 비용은 그대로다.
+                // 금액·날짜 글자는 모델(0.1초)을 그대로 쓴다.
+                TimelineView(.animation) { context in
+                    ClockFaceView(
+                        style: ClockStyle(name: model.settings.clockStyle),
+                        now: Int((context.date.timeIntervalSince1970 * 1000).rounded()),
+                        shift: model.earnings.shift, theme: theme
+                    )
+                }
                 .frame(width: 188, height: 188)
 
                 if hidden {
