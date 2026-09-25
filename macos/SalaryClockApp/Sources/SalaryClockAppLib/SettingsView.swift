@@ -24,7 +24,10 @@ struct SettingsView: View {
     // SwiftUI도 Settings라는 타입(Settings 씬)을 갖고 있어 이름이 겹친다 —
     // PopoverView의 TickModel과 같은 이유로 항상 core 쪽을 가리키도록 모듈명을 붙인다.
     @State private var draft: SalaryClockCore.Settings = SettingsStore.shared.settings
-    @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
+    /// 승인 대기(.requiresApproval)도 켠 것으로 본다 — 사용자는 켜겠다고 했고,
+    /// 남은 일은 시스템 설정에서 허용하는 것뿐이다. 그 사실은 아래 안내가 알린다.
+    @State private var launchAtLogin: Bool = Self.loginItemOn(SMAppService.mainApp.status)
+    @State private var loginItemStatus: SMAppService.Status = SMAppService.mainApp.status
     // 공제율 직접 입력 섹션을 펼쳤는지 — 웹 SettingsPanel의 showAdvanced와 같다.
     @State private var showAdvanced = false
     /// 초기화가 두 번째 누름을 기다리는 중인지 — 웹 `resetArmed`와 같다.
@@ -182,13 +185,25 @@ struct SettingsView: View {
             Toggle("로그인할 때 자동 실행", isOn: $launchAtLogin)
                 .onChange(of: launchAtLogin) { _, on in
                     // 등록이 실패해도 앱은 계속 돌아야 한다. 토글만 되돌린다.
-                    do {
-                        if on { try SMAppService.mainApp.register() }
-                        else { try SMAppService.mainApp.unregister() }
-                    } catch {
-                        launchAtLogin = SMAppService.mainApp.status == .enabled
-                    }
+                    // register()는 오류 없이 끝나도 승인 대기일 수 있으므로
+                    // 성공·실패와 상관없이 실제 상태를 다시 읽는다.
+                    if on { try? SMAppService.mainApp.register() }
+                    else { try? SMAppService.mainApp.unregister() }
+                    refreshLoginItemStatus()
                 }
+
+            if loginItemStatus == .requiresApproval {
+                HStack(spacing: 6) {
+                    Text("시스템 설정에서 허용해야 자동 실행됩니다")
+                        .font(.system(size: 11))
+                        .foregroundStyle(theme.dim)
+                    Spacer()
+                    Button("로그인 항목 열기") {
+                        SMAppService.openSystemSettingsLoginItems()
+                    }
+                    .font(.system(size: 11))
+                }
+            }
 
             HStack(spacing: 8) {
                 Text("메뉴바 갱신").font(.system(size: 12))
@@ -331,6 +346,15 @@ struct SettingsView: View {
         resetAll()
     }
 
+    private static func loginItemOn(_ status: SMAppService.Status) -> Bool {
+        status == .enabled || status == .requiresApproval
+    }
+
+    private func refreshLoginItemStatus() {
+        loginItemStatus = SMAppService.mainApp.status
+        launchAtLogin = Self.loginItemOn(loginItemStatus)
+    }
+
     /// 설정을 기본값으로 되돌린다 — 웹 `resetSettings`에 대응한다.
     /// 패널은 연 채로 둔다. 웹도 같다.
     ///
@@ -344,7 +368,7 @@ struct SettingsView: View {
 
         draft = SettingsStore.shared.settings
         intervalText = Self.formatInterval(AppPreferences.shared.menuBarInterval)
-        launchAtLogin = SMAppService.mainApp.status == .enabled
+        refreshLoginItemStatus()
         showAdvanced = false
         showCalendar = false
     }
