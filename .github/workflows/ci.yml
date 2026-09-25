@@ -1,0 +1,62 @@
+# PR과 main에 밀린 커밋마다 돈다.
+#
+# 이 저장소는 같은 계산을 TS(lib/)와 Swift(macos/) 두 벌로 갖고, 둘이 같은 답을
+# 내는지는 shared/golden이 붙잡는다. 골든은 TS에서 뽑아 커밋해 두는 파일이라,
+# TS만 고치고 다시 뽑는 걸 잊거나 다시 뽑고 Swift를 안 고치면 릴리스 태그에서야
+# 알게 됐다. 여기서 두 가지를 본다 — 생성물이 커밋된 것과 같은지, 그리고 양쪽
+# 테스트가 그 골든으로 통과하는지.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+      # tsc가 LayoutProps 같은 라우트 타입을 찾으려면 빌드가 먼저 만들어 둬야 한다.
+      - run: npm run build
+      - run: npx tsc --noEmit
+
+      - name: 생성물이 커밋된 것과 같은지 본다
+        run: |
+          set -euo pipefail
+          npm run golden
+          # palette는 빌드된 CSS에서 색을 뽑으므로 빌드 뒤에 돌아야 한다.
+          npm run palette
+          npm run palette:swift
+          if ! git diff --exit-code -- shared/golden macos/SalaryClockCore/Sources/SalaryClockCore/Palette.swift; then
+            echo "::error::생성물이 코드와 어긋난다. npm run golden / palette / palette:swift를 돌려 커밋하라."
+            exit 1
+          fi
+
+  swift:
+    # 릴리스와 같은 러너. 아이콘 컴파일 때문에 릴리스는 macOS 26이어야 하고,
+    # 테스트도 같은 툴체인에서 통과해야 태그를 밀 때 놀라지 않는다.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            macos/SalaryClockCore/.build
+            macos/SalaryClockApp/.build
+          key: swiftpm-${{ runner.os }}-${{ hashFiles('macos/*/Package.resolved', 'macos/*/Package.swift') }}
+          restore-keys: swiftpm-${{ runner.os }}-
+      - run: swift test --package-path macos/SalaryClockCore
+      - run: swift test --package-path macos/SalaryClockApp
