@@ -5,6 +5,7 @@ import { useNow } from '@/hooks/useNow'
 import { useSettings } from '@/hooks/useSettings'
 import { computeEarnings } from '@/lib/salary'
 import { workdayInfo } from '@/lib/workdays'
+import { resolveShift } from '@/lib/shift'
 import type { ThemeMode } from '@/lib/settings'
 import { AnalogClock } from '@/components/AnalogClock'
 import { DateLine } from '@/components/DateLine'
@@ -35,6 +36,10 @@ export default function Home() {
   }, [settings.theme])
 
   const earnings = computeEarnings(settings, now)
+  // 근무일수(earnings.workDays)는 시프트가 시작한 달로 센다. 공휴일 안내도 같은
+  // 달로 맞춘다 — now로 보면 월말 야간근무가 자정을 넘는 순간 "이번 달 N일"은
+  // 지난달, "(공휴일 M일 제외)"는 새 달 값이 한 줄에 섞인다.
+  const monthInfo = workdayInfo(resolveShift(settings, now).startMs)
 
   // 저장된 설정이 없는 첫 방문(또는 초기화 직후)이면 설정부터 연다.
   const firstRun = isLoaded && !hasStored
@@ -88,7 +93,7 @@ export default function Home() {
       <DateLine
         now={now}
         workDays={earnings.workDays}
-        monthInfo={workdayInfo(now)}
+        monthInfo={monthInfo}
         isAutoWorkDays={settings.workDaysMode === 'auto'}
         workStart={settings.workStart}
         workEnd={settings.workEnd}
