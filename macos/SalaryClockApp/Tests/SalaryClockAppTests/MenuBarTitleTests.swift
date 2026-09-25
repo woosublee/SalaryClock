@@ -117,3 +117,34 @@ func devBadgeEngravesRing() {
     // (3, 8): 개발 빌드 링 테두리 자리. 끝까지 파여 있어야 한다.
     #expect(alpha(badge, x: 3, y: 8) < 0.1)
 }
+
+@Test("개발 빌드는 금액까지 한 박스에 담고 글자를 파낸다")
+@MainActor
+func devBadgeHoldsAmount() {
+    let withAmount = devBadgeImage(progress: 0.4, clockAt: nil, title: "123,456원")
+    let without = devBadgeImage(progress: 0.4, clockAt: nil, title: nil)
+    #expect(withAmount.size.width > without.size.width + 30)
+
+    // 금액 영역(링 오른쪽)을 훑어 칠해진 박스와 파낸 글자가 둘 다 있는지 본다.
+    let w = Int(withAmount.size.width), h = Int(withAmount.size.height)
+    let rep = NSBitmapImageRep(
+        bitmapDataPlanes: nil, pixelsWide: w, pixelsHigh: h,
+        bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+        colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+    )!
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+    NSAppearance(named: .darkAqua)!.performAsCurrentDrawingAppearance {
+        withAmount.draw(in: NSRect(x: 0, y: 0, width: w, height: h))
+    }
+    NSGraphicsContext.restoreGraphicsState()
+    var filled = 0, carved = 0
+    for x in 22..<(w - 6) {
+        for y in 4..<(h - 4) {
+            let a = rep.colorAt(x: x, y: y)?.alphaComponent ?? 0
+            if a > 0.7 { filled += 1 } else if a < 0.2 { carved += 1 }
+        }
+    }
+    #expect(filled > 20)
+    #expect(carved > 20)
+}

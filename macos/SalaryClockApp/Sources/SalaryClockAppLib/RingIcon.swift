@@ -41,7 +41,44 @@ public let isDevBuild: Bool = {
     #endif
 }()
 
-private func drawRing(progress: Double, clockAt now: Int?, size: CGFloat, devBadge: Bool) {
+/// 개발 빌드에서 금액까지 한 박스에 담은 메뉴바 이미지.
+///
+/// 박스 하나에 링과 금액을 나란히 두고 둘 다 음각으로 파낸다. 금액을 버튼
+/// 제목으로 따로 두면 박스 밖에 떨어져 개발 빌드 표시가 아이콘에만 걸린다.
+/// 금액이 없으면(가리기·휴무일) 링 박스만 남는다.
+public func devBadgeImage(progress: Double, clockAt now: Int?, title: String?) -> NSImage {
+    let height: CGFloat = 18
+    let gap: CGFloat = 2
+    let trailing: CGFloat = 6
+    // 메뉴바 제목과 같은 글꼴. 글자색은 파내는 데만 쓰므로 불투명하면 된다.
+    let text = title.map {
+        NSAttributedString(string: $0, attributes: [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular),
+            .foregroundColor: NSColor.black,
+        ])
+    }
+    let textSize = text?.size() ?? .zero
+    let width = text == nil ? height : height + gap + ceil(textSize.width) + trailing
+
+    return NSImage(size: NSSize(width: width, height: height), flipped: false) { _ in
+        NSColor.labelColor.setFill()
+        NSBezierPath(
+            roundedRect: NSRect(x: 0, y: 0, width: width, height: height), xRadius: 4, yRadius: 4
+        ).fill()
+        drawRing(progress: progress, clockAt: now, size: height, devBadge: true, fillBox: false)
+        if let text {
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current?.compositingOperation = .destinationOut
+            text.draw(at: NSPoint(x: height + gap, y: (height - textSize.height) / 2))
+            NSGraphicsContext.restoreGraphicsState()
+        }
+        return true
+    }
+}
+
+private func drawRing(
+    progress: Double, clockAt now: Int?, size: CGFloat, devBadge: Bool, fillBox: Bool = true
+) {
     // 박스 안에서는 링을 줄여 박스 가장자리가 보이게 한다.
     let inset: CGFloat = devBadge ? 3 : 1.5
     let rect = NSRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
@@ -62,7 +99,7 @@ private func drawRing(progress: Double, clockAt now: Int?, size: CGFloat, devBad
         draw()
         NSGraphicsContext.restoreGraphicsState()
     }
-    if devBadge {
+    if devBadge && fillBox {
         NSColor.labelColor.setFill()
         NSBezierPath(
             roundedRect: NSRect(x: 0, y: 0, width: size, height: size), xRadius: 3.5, yRadius: 3.5

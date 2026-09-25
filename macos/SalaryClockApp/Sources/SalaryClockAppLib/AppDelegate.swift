@@ -310,27 +310,38 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // 어두운 메뉴바에서는 거의 흰색으로 풀린다. Palette의 고정 색은
         // 웹에서 뽑은 상수라 외형을 따라가지 못하므로 여기에는 쓰지 않는다.
 
-        let titleText = menuBarTitle(e, hideAmount: s.hideAmount).map { " " + $0 } ?? ""
-        if titleText != lastTitle {
-            lastTitle = titleText
-            button.attributedTitle = NSAttributedString(
-                string: titleText,
-                attributes: [
-                    .font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular),
-                    .foregroundColor: NSColor.labelColor,
-                ]
-            )
-        }
-
+        let title = menuBarTitle(e, hideAmount: s.hideAmount)
         let minute = now / 60_000
-        if minute != lastRingMinute {
-            lastRingMinute = minute
-            // 휴무일에는 진행이 0이라 링이 비어 보인다. 그때는 바늘을 그려
-            // 작은 시계로 만든다 (ringImage 주석).
-            button.image = ringImage(
-                progress: e.progress,
-                clockAt: e.phase == .dayoff ? now : nil
-            )
+        // 휴무일에는 진행이 0이라 링이 비어 보인다. 그때는 바늘을 그려
+        // 작은 시계로 만든다 (ringImage 주석).
+        let clockAt = e.phase == .dayoff ? now : nil
+
+        if isDevBuild {
+            // 개발 빌드는 금액까지 한 박스 이미지로 그린다(devBadgeImage).
+            // 금액이 바뀌거나 분이 바뀔 때만 다시 만든다.
+            let key = "\(title ?? "")|\(minute)"
+            if key != lastTitle || minute != lastRingMinute {
+                lastTitle = key
+                lastRingMinute = minute
+                button.attributedTitle = NSAttributedString(string: "")
+                button.image = devBadgeImage(progress: e.progress, clockAt: clockAt, title: title)
+            }
+        } else {
+            let titleText = title.map { " " + $0 } ?? ""
+            if titleText != lastTitle {
+                lastTitle = titleText
+                button.attributedTitle = NSAttributedString(
+                    string: titleText,
+                    attributes: [
+                        .font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular),
+                        .foregroundColor: NSColor.labelColor,
+                    ]
+                )
+            }
+            if minute != lastRingMinute {
+                lastRingMinute = minute
+                button.image = ringImage(progress: e.progress, clockAt: clockAt)
+            }
         }
 
         let popoverShown = popover?.isShown ?? false
