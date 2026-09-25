@@ -188,7 +188,19 @@ export function loadSettings(): { settings: Settings; hasStored: boolean } {
     // 첫 방문에는 기기 설정을 그대로 가져온다. 사용자가 토글을 누르는 순간부터
     // 저장된 값이 기준이 된다.
     if (!raw) return { settings: { ...DEFAULT_SETTINGS, theme: deviceTheme() }, hasStored: false }
-    const parsed = SettingsSchema.safeParse(JSON.parse(raw))
+    const stored: unknown = JSON.parse(raw)
+    if (typeof stored !== 'object' || stored === null || Array.isArray(stored)) {
+      return { settings: DEFAULT_SETTINGS, hasStored: false }
+    }
+    // 스키마에 필드가 늘어도 예전에 저장한 값은 살린다. 없는 필드만 기본값으로
+    // 채우고, 있는 필드는 여전히 검증한다. 테마는 첫 방문과 같이 기기 설정에서
+    // 가져온다. 키를 올리거나(v2→v3) 통째로 버리면 사용자가 찍어 둔 연봉과
+    // 달력이 한꺼번에 날아간다.
+    const parsed = SettingsSchema.safeParse({
+      ...DEFAULT_SETTINGS,
+      theme: deviceTheme(),
+      ...stored,
+    })
     if (!parsed.success) return { settings: DEFAULT_SETTINGS, hasStored: false }
     return { settings: parsed.data, hasStored: true }
   } catch {

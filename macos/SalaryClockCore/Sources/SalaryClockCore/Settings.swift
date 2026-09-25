@@ -51,6 +51,39 @@ public struct Settings: Codable, Equatable, Sendable {
     }
 
     public static let `default` = Settings()
+
+    private enum CodingKeys: String, CodingKey {
+        case payMode, payAmount, workDaysMode, workDaysPerMonth, dayOverrides
+        case workStart, workEnd, lunchEnabled, lunchStart, lunchMinutes
+        case netPay, deductionRate, clockStyle, hideAmount, theme
+    }
+
+    /// 빠진 필드는 기본값으로 채운다. 웹 `loadSettings`가 저장값을
+    /// `DEFAULT_SETTINGS` 위에 덮어 읽는 것과 같다 — 필드가 하나 늘었다고
+    /// 예전에 저장한 연봉과 달력을 통째로 버리지 않는다.
+    ///
+    /// 있는데 타입이 틀린 필드는 그대로 던진다. 웹도 그 경우는 검증에 실패해
+    /// 기본값으로 돌아가므로 두 쪽이 같은 값을 살리고 같은 값을 버린다.
+    /// `theme`이 빠졌을 때 기기 외형을 심는 일은 `SettingsStore`가 한다.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = Settings.default
+        payMode = try c.decodeIfPresent(PayMode.self, forKey: .payMode) ?? d.payMode
+        payAmount = try c.decodeIfPresent(Double.self, forKey: .payAmount) ?? d.payAmount
+        workDaysMode = try c.decodeIfPresent(WorkDaysMode.self, forKey: .workDaysMode) ?? d.workDaysMode
+        workDaysPerMonth = try c.decodeIfPresent(Double.self, forKey: .workDaysPerMonth) ?? d.workDaysPerMonth
+        dayOverrides = try c.decodeIfPresent([String].self, forKey: .dayOverrides) ?? d.dayOverrides
+        workStart = try c.decodeIfPresent(String.self, forKey: .workStart) ?? d.workStart
+        workEnd = try c.decodeIfPresent(String.self, forKey: .workEnd) ?? d.workEnd
+        lunchEnabled = try c.decodeIfPresent(Bool.self, forKey: .lunchEnabled) ?? d.lunchEnabled
+        lunchStart = try c.decodeIfPresent(String.self, forKey: .lunchStart) ?? d.lunchStart
+        lunchMinutes = try c.decodeIfPresent(Int.self, forKey: .lunchMinutes) ?? d.lunchMinutes
+        netPay = try c.decodeIfPresent(Bool.self, forKey: .netPay) ?? d.netPay
+        deductionRate = try c.decodeIfPresent(Double.self, forKey: .deductionRate) ?? d.deductionRate
+        clockStyle = try c.decodeIfPresent(String.self, forKey: .clockStyle) ?? d.clockStyle
+        hideAmount = try c.decodeIfPresent(Bool.self, forKey: .hideAmount) ?? d.hideAmount
+        theme = try c.decodeIfPresent(ThemeMode.self, forKey: .theme) ?? d.theme
+    }
 }
 
 /// 웹 `lib/settings.ts`의 `ClockStyle` 유니언과 1:1로 맞아야 한다.

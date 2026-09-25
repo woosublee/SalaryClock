@@ -67,6 +67,34 @@ struct SettingsStoreThemeTests {
         }
     }
 
+    /// 필드가 늘기 전에 저장한 값 — 웹 `storage.test.ts`의 같은 이름 테스트와 짝이다.
+    @Test("필드가 추가되기 전에 저장한 값도 살리고, 빠진 테마는 기기 외형을 심는다")
+    func olderStoredValueSurvives() {
+        withCleanDefaults {
+            let older = #"{"payMode":"monthly","payAmount":3500000,"dayOverrides":["2026-09-22"],"workStart":"10:00","workEnd":"19:00"}"#
+            UserDefaults.standard.set(Data(older.utf8), forKey: SettingsStore.key)
+
+            let (loaded, hasStored) = SettingsStore.load(deviceTheme: .dark)
+            #expect(hasStored == true)
+            #expect(loaded.payMode == .monthly)
+            #expect(loaded.payAmount == 3_500_000)
+            #expect(loaded.dayOverrides == ["2026-09-22"])
+            #expect(loaded.workStart == "10:00")
+            #expect(loaded.clockStyle == Settings.default.clockStyle)
+            #expect(loaded.theme == .dark)
+        }
+    }
+
+    @Test("있는 필드의 타입이 틀리면 버린다 — 웹 스키마 검증 실패와 같다")
+    func wrongTypeFieldRejected() {
+        withCleanDefaults {
+            UserDefaults.standard.set(Data(#"{"payAmount":"많이"}"#.utf8), forKey: SettingsStore.key)
+            let (loaded, hasStored) = SettingsStore.load(deviceTheme: .light)
+            #expect(hasStored == false)
+            #expect(loaded == Settings.default)
+        }
+    }
+
     /// 싱글턴이 실제로 `deviceTheme()`을 물려 읽는지 — 배선까지 본다.
     /// 기대값은 구현과 다른 경로로 읽는다. 전역 도메인의 AppleInterfaceStyle은
     /// 시스템 다크모드 스위치 그 자체라, NSAppearance를 다시 부르는 것보다

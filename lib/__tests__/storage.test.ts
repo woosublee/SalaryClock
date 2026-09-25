@@ -21,6 +21,13 @@ function installFakeStorage(prefersDark = false) {
   return store
 }
 
+/** 필드가 추가되기 전에 저장된 값을 흉내낸다 */
+function without(s: Settings, ...keys: (keyof Settings)[]): Partial<Settings> {
+  const copy: Partial<Settings> = { ...s }
+  for (const k of keys) delete copy[k]
+  return copy
+}
+
 describe('localStorage 저장', () => {
   let store: Map<string, string>
 
@@ -120,8 +127,39 @@ describe('localStorage 저장', () => {
     expect(loadSettings().settings).toEqual(DEFAULT_SETTINGS)
   })
 
-  it('예전 버전 형식(lunchEnd)이 남아 있으면 기본값으로 되돌린다', () => {
-    store.set(STORAGE_KEY, JSON.stringify({ payMode: 'annual', lunchEnd: '13:00' }))
+  it('필드가 추가되기 전에 저장한 값도 살리고 없는 필드만 기본값으로 채운다', () => {
+    const older = without(
+      { ...DEFAULT_SETTINGS, payMode: 'monthly', payAmount: 3_500_000, dayOverrides: ['2026-09-22'] },
+      'theme',
+      'clockStyle',
+    )
+    store.set(STORAGE_KEY, JSON.stringify(older))
+
+    const loaded = loadSettings()
+    expect(loaded.hasStored).toBe(true)
+    expect(loaded.settings.payMode).toBe('monthly')
+    expect(loaded.settings.payAmount).toBe(3_500_000)
+    expect(loaded.settings.dayOverrides).toEqual(['2026-09-22'])
+    expect(loaded.settings.clockStyle).toBe(DEFAULT_SETTINGS.clockStyle)
+  })
+
+  it('빠진 테마는 첫 방문처럼 기기 설정에서 가져온다', () => {
+    installFakeStorage(true).set(STORAGE_KEY, JSON.stringify(without(DEFAULT_SETTINGS, 'theme')))
+    expect(loadSettings().settings.theme).toBe('dark')
+  })
+
+  it('예전 버전에만 있던 필드(lunchEnd)는 버리고 나머지를 살린다', () => {
+    store.set(STORAGE_KEY, JSON.stringify({ payMode: 'hourly', payAmount: 12_000, lunchEnd: '13:00' }))
+    const loaded = loadSettings()
+    expect(loaded.hasStored).toBe(true)
+    expect(loaded.settings.payMode).toBe('hourly')
+    expect(loaded.settings).not.toHaveProperty('lunchEnd')
+  })
+
+  it('저장값이 객체가 아니면 기본값으로 되돌린다', () => {
+    store.set(STORAGE_KEY, JSON.stringify([1, 2, 3]))
+    expect(loadSettings().hasStored).toBe(false)
+    store.set(STORAGE_KEY, 'null')
     expect(loadSettings().hasStored).toBe(false)
   })
 
