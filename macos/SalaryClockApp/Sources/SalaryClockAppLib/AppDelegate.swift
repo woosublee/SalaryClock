@@ -7,6 +7,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var timer: Timer?
     private var lastRingMinute = -1
+    /// 직전에 넣은 메뉴바 제목. 같은 값을 다시 넣으면 가변 폭 상태 항목이
+    /// 매번 레이아웃과 다시 그리기를 한다.
+    private var lastTitle: String?
+    /// 화면이 꺼졌거나(잠자기) 다른 사용자로 전환돼 이 세션이 뒤에 있는 동안은
+    /// 아무도 메뉴바를 보지 않는다. 그동안은 타이머를 걸지 않는다.
+    private var screensAsleep = false
+    private var sessionInactive = false
+    private var isSuspended: Bool { screensAsleep || sessionInactive }
     private let model = TickModel()
     private var popover: NSPopover!
     private var settingsWindow: NSWindow?
@@ -45,9 +53,26 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         // 절전에서 깨어나면 즉시 맞춘다. 타이머만 믿어도 1초 뒤엔 맞지만
         // 화면이 켜지는 순간 옛 숫자가 보이는 게 눈에 띈다.
-        NSWorkspace.shared.notificationCenter.addObserver(
+        let workspace = NSWorkspace.shared.notificationCenter
+        workspace.addObserver(
             self, selector: #selector(wakeUp),
             name: NSWorkspace.didWakeNotification, object: nil
+        )
+        workspace.addObserver(
+            self, selector: #selector(screensDidSleep),
+            name: NSWorkspace.screensDidSleepNotification, object: nil
+        )
+        workspace.addObserver(
+            self, selector: #selector(screensDidWake),
+            name: NSWorkspace.screensDidWakeNotification, object: nil
+        )
+        workspace.addObserver(
+            self, selector: #selector(sessionDidResignActive),
+            name: NSWorkspace.sessionDidResignActiveNotification, object: nil
+        )
+        workspace.addObserver(
+            self, selector: #selector(sessionDidBecomeActive),
+            name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil
         )
 
         statusItem.button?.target = self
@@ -76,7 +101,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         hosting.sizingOptions = [.preferredContentSize]
         popover.contentViewController = hosting
 
-        startTimer(interval: AppPreferences.shared.menuBarInterval)
         tick()
 
         // 업데이터를 깨운다. 만드는 순간 스케줄러가 돌기 시작하므로 여기서
@@ -85,9 +109,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = UpdaterController.shared
     }
 
-    private func startTimer(interval: TimeInterval) {
+    /// 다음 tick 하나를 건다. 타이머는 늘 한 번만 울리고, tick이 끝날 때마다
+    /// 그때의 상태로 다음 시점을 다시 정한다(nextTickDelay). 주기가 상태에 따라
+    /// 0.1초에서 1분까지 바뀌므로 반복 타이머를 갈아 끼우는 것보다 단순하다.
+    private func scheduleTick(after delay: TimeInterval) {
         timer?.invalidate()
-        let t = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
+        timer = nil
+        guard !isSuspended else { return }
+        let t = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
             // Timer 콜백 클로저 자체는 격리가 없어 컴파일러 입장에서는 어느
             // 스레드에서 불릴지 증명할 수 없다. 하지만 이 타이머는 바로 아래에서
             // RunLoop.main에 .common 모드로만 등록하므로 실행 스레드는 항상
@@ -97,6 +126,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.tick()
             }
         }
+        // 늦게 울려도 되는 폭을 알려 주면 시스템이 다른 깨어남과 묶어 처리한다.
+        // 분 경계에 거는 긴 대기도 0.5초 넘게 밀리지는 않게 둔다.
+        t.tolerance = min(delay * 0.1, 0.5)
         // .common 모드에 넣지 않으면 메뉴나 팝오버를 여는 순간 숫자가 멈춘다.
         RunLoop.main.add(t, forMode: .common)
         timer = t
@@ -104,8 +136,23 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func settingsChanged() { lastRingMinute = -1; tick() }
     @objc private func wakeUp() { tick() }
-    @objc private func appPreferencesChanged() {
-        startTimer(interval: AppPreferences.shared.menuBarInterval)
+    @objc private func appPreferencesChanged() { tick() }
+
+    @objc private func screensDidSleep() { screensAsleep = true; suspend() }
+    @objc private func screensDidWake() { screensAsleep = false; resume() }
+    @objc private func sessionDidResignActive() { sessionInactive = true; suspend() }
+    @objc private func sessionDidBecomeActive() { sessionInactive = false; resume() }
+
+    private func suspend() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    /// 멈춰 있던 동안 분이 여러 번 바뀌었을 수 있으니 링도 새로 그린다.
+    private func resume() {
+        guard !isSuspended else { return }
+        lastRingMinute = -1
+        tick()
     }
 
     @objc private func togglePopover() {
@@ -116,7 +163,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             // 델리게이트만 타므로 그쪽 하나로 모은다.
             popover.performClose(nil)
         } else {
-            tick()
+            // 닫혀 있는 동안에는 모델을 갱신하지 않았으므로 열기 전에 채운다.
+            tick(refreshPopover: true)
             sizePopoverToContent()
             if let anchor = makeAnchorWindow(for: button), let content = anchor.contentView {
                 anchorWindow = anchor
@@ -126,8 +174,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 // 그때는 예전처럼 버튼에 건다 — 움직일지언정 열리기는 한다.
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             }
-            // 팝오버가 열려 있는 동안만 0.1초로 올려 소수 1자리가 흐르게 한다.
-            startTimer(interval: 0.1)
+            // 이제 isShown이 참이라 다음 tick부터 0.1초로 돈다(nextTickDelay).
+            tick()
         }
     }
 
@@ -180,7 +228,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     /// LSUIElement 앱은 기본적으로 창을 앞으로 못 가져오므로 activate가 필요하다.
     private func openSettings() {
         popover.performClose(nil)
-        startTimer(interval: AppPreferences.shared.menuBarInterval)
 
         let hosting = NSHostingController(
             rootView: SettingsView(onDone: { [weak self] in
@@ -211,7 +258,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 매 tick마다 Date()로 전부 다시 계산한다. 누적하지 않으므로 타이머가
     /// 드리프트하든 절전에서 깨어나든 다음 tick에 저절로 맞는다.
-    private func tick() {
+    ///
+    /// 팝오버가 닫혀 있으면 SwiftUI 모델은 건드리지 않는다. 화면에 없는 뷰를
+    /// 매 tick 무효화할 이유가 없다. 열 때 `refreshPopover`로 한 번 채운다.
+    private func tick(refreshPopover: Bool = false) {
         let now = Int((Date().timeIntervalSince1970 * 1000).rounded())
         let s = SettingsStore.shared.settings
         let e = computeEarnings(s, now)
@@ -232,13 +282,16 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // 웹에서 뽑은 상수라 외형을 따라가지 못하므로 여기에는 쓰지 않는다.
 
         let titleText = menuBarTitle(e, hideAmount: s.hideAmount).map { " " + $0 } ?? ""
-        button.attributedTitle = NSAttributedString(
-            string: titleText,
-            attributes: [
-                .font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular),
-                .foregroundColor: NSColor.labelColor,
-            ]
-        )
+        if titleText != lastTitle {
+            lastTitle = titleText
+            button.attributedTitle = NSAttributedString(
+                string: titleText,
+                attributes: [
+                    .font: NSFont.monospacedDigitSystemFont(ofSize: 0, weight: .regular),
+                    .foregroundColor: NSColor.labelColor,
+                ]
+            )
+        }
 
         let minute = now / 60_000
         if minute != lastRingMinute {
@@ -251,17 +304,29 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             )
         }
 
-        model.now = now
-        model.earnings = e
-        model.settings = s
+        let popoverShown = popover?.isShown ?? false
+        if popoverShown || refreshPopover {
+            model.now = now
+            model.earnings = e
+            model.settings = s
+        }
+
+        scheduleTick(after: nextTickDelay(
+            e,
+            hideAmount: s.hideAmount,
+            popoverShown: popoverShown,
+            interval: AppPreferences.shared.menuBarInterval,
+            now: now
+        ))
     }
 }
 
 extension AppDelegate: NSPopoverDelegate {
     /// transient 팝오버는 바깥을 클릭하면 togglePopover를 거치지 않고 스스로
-    /// 닫힌다. 그 경우에도 0.1초 타이머를 1초로 되돌려야 배터리를 안 먹는다.
+    /// 닫힌다. 그 경우에도 0.1초 주기를 되돌려야 배터리를 안 먹는다 — tick이
+    /// 닫힌 상태로 다음 시점을 다시 정한다.
     public func popoverDidClose(_ notification: Notification) {
-        startTimer(interval: AppPreferences.shared.menuBarInterval)
+        tick()
         anchorWindow?.orderOut(nil)
         anchorWindow = nil
     }
