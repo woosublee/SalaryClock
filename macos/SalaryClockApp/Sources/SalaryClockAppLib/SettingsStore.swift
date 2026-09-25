@@ -83,14 +83,26 @@ public final class SettingsStore: @unchecked Sendable {
     /// 여기서는 두 갈래를 나누지 않고 첫 저장까지 일관되게 기기 외형을 남긴다.
     static func load(deviceTheme: ThemeMode) -> (Settings, Bool) {
         guard let data = UserDefaults.standard.data(forKey: key),
-              let decoded = try? JSONDecoder().decode(Settings.self, from: data),
-              isValid(decoded)
+              var decoded = try? JSONDecoder().decode(Settings.self, from: data)
         else {
             var seeded = Settings.default
             seeded.theme = deviceTheme
             return (seeded, false)
         }
+        // 테마가 생기기 전에 저장된 값이면 첫 방문처럼 기기 외형을 심는다.
+        // 디코더는 빠진 필드를 `Settings.default`로 채우므로 여기서 덮는다.
+        if !storedKeys(data).contains("theme") { decoded.theme = deviceTheme }
+        guard isValid(decoded) else {
+            var seeded = Settings.default
+            seeded.theme = deviceTheme
+            return (seeded, false)
+        }
         return (decoded, true)
+    }
+
+    private static func storedKeys(_ data: Data) -> Set<String> {
+        let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        return Set(object?.keys ?? [:].keys)
     }
 
     /// 기기의 다크모드 설정. 웹 `deviceTheme()`의 `matchMedia('(prefers-color-scheme: dark)')`에
