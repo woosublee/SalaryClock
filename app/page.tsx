@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNow } from '@/hooks/useNow'
 import { useSettings } from '@/hooks/useSettings'
 import { computeEarnings } from '@/lib/salary'
@@ -23,6 +23,8 @@ export default function Home() {
   const now = useNow()
   const { settings, isLoaded, hasStored, revision, update, reset } = useSettings()
   const [panelOpen, setPanelOpen] = useState(false)
+  // SettingsPanel은 memo다. 매 렌더 새 함수를 넘기면 프레임마다 다시 그려진다.
+  const closePanel = useCallback(() => setPanelOpen(false), [])
 
   /*
    * 테마를 <html>의 data-theme으로 내보낸다. CSS가 이 속성을 읽어 색을 정한다.
@@ -122,10 +124,9 @@ export default function Home() {
         <SettingsPanel
           key={revision}
           settings={settings}
-          now={now}
           onSave={update}
           onReset={reset}
-          onClose={() => setPanelOpen(false)}
+          onClose={closePanel}
           dismissable={!firstRun}
         />
       )}

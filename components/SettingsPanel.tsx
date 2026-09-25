@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { SettingsSchema, type PayMode, type Settings } from '@/lib/settings'
 import { formatKoreanUnits } from '@/lib/format'
 import { workdayInfo, effectiveWorkDays } from '@/lib/workdays'
@@ -14,7 +14,6 @@ import { parseHHmm, isValidHHmm, durationMinutes, formatHHmm } from '@/lib/time'
 
 interface Props {
   settings: Settings
-  now: number
   onSave: (s: Settings) => void
   onClose: () => void
   onReset: () => void
@@ -50,10 +49,14 @@ const HINT = 'text-xs text-slate-400 dark:text-slate-500'
 /**
  * 이 컴포넌트는 열릴 때마다 새로 마운트된다 (부모가 revision을 key로 준다).
  * 덕분에 props를 state로 동기화하는 useEffect가 필요 없다.
+ *
+ * memo로 감싼다. 부모(Home)는 rAF 틱마다 다시 그려지는데, 그때마다 이 본문이
+ * 돌면 zod 파싱·시프트·공제 추정과 페이스 미리보기 10개가 프레임마다 다시
+ * 계산된다. 시각을 prop으로 받지 않고(panelNow) 부모가 콜백을 고정해 주므로
+ * 입력이 없는 동안에는 다시 그려지지 않는다.
  */
-export function SettingsPanel({
+export const SettingsPanel = memo(function SettingsPanel({
   settings,
-  now,
   onSave,
   onClose,
   onReset,
@@ -79,10 +82,9 @@ export function SettingsPanel({
     return () => clearTimeout(id)
   }, [resetArmed])
   const [showCalendar, setShowCalendar] = useState(false)
-  // 부모는 rAF 틱을 그대로 내려준다. 그걸 매 프레임 쓰면 zod 파싱과 시프트 계산이
-  // 초당 60번 돈다. 패널이 열린 순간의 시각으로 고정한다. 설정 창을 열어둔 몇 초
-  // 사이에 달이 바뀌지는 않는다.
-  const [panelNow] = useState(now)
+  // 패널이 열린 순간의 시각으로 고정한다. 설정 창을 열어둔 몇 초 사이에 달이
+  // 바뀌지는 않는다. 부모의 rAF 시각을 prop으로 받으면 memo가 매 프레임 깨진다.
+  const [panelNow] = useState(() => Date.now())
 
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) =>
     setDraft((d) => ({ ...d, [key]: value }))
@@ -530,4 +532,4 @@ export function SettingsPanel({
       </div>
     </div>
   )
-}
+})
