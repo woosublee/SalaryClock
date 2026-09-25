@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import AppKit
 @testable import SalaryClockAppLib
 import SalaryClockCore
 
@@ -55,4 +56,34 @@ func handsFollowTime() {
     let a = ringImage(progress: 0, clockAt: at(2026, 8, 26, 3, 0, 0)).tiffRepresentation
     let b = ringImage(progress: 0, clockAt: at(2026, 8, 26, 9, 0, 0)).tiffRepresentation
     #expect(a != b)
+}
+
+/// 아이콘은 한 번 만든 뒤 그리는 쪽의 외형을 따라가야 한다.
+///
+/// 이미지를 한 번만 만들고 밝은·어두운 외형에서 각각 비트맵으로 뽑는다.
+/// 색이 만드는 순간에 굳어 버리면(lockFocus) 두 비트맵이 같아진다.
+@Test("링 아이콘은 그리는 시점의 외형으로 색이 풀린다")
+@MainActor
+func ringFollowsDrawingAppearance() {
+    let image = ringImage(progress: 0.3, clockAt: at(2026, 8, 26, 10, 10, 0))
+    // 버튼이 하듯 그래픽 문맥에 직접 그린다. tiffRepresentation은 처음 뽑은
+    // 비트맵을 캐시해 두 번째 외형을 보지 않는다.
+    func render(_ name: NSAppearance.Name) -> Data? {
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: 32, pixelsHigh: 32,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        NSAppearance(named: name)!.performAsCurrentDrawingAppearance {
+            image.draw(in: NSRect(x: 0, y: 0, width: 32, height: 32))
+        }
+        NSGraphicsContext.restoreGraphicsState()
+        return rep.tiffRepresentation
+    }
+    let light = render(.aqua)
+    let dark = render(.darkAqua)
+    #expect(light != nil && dark != nil)
+    #expect(light != dark)
 }
