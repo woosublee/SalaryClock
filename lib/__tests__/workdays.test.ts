@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { workdaysInMonth, weekdaysInMonth, workdayInfo, effectiveWorkDays } from '@/lib/workdays'
 import { DEFAULT_SETTINGS, type Settings } from '@/lib/settings'
+import { computeEarnings } from '@/lib/salary'
+import { resolveShift } from '@/lib/shift'
 
 const on = (y: number, m: number, d: number) => new Date(y, m - 1, d, 12).getTime()
 
@@ -107,5 +109,18 @@ describe('effectiveWorkDays — 달력 모드', () => {
   it('다른 달로 넘어가면 그 달 기준으로 다시 센다', () => {
     const s: Settings = { ...base, dayOverrides: ['2026-09-22'] }
     expect(effectiveWorkDays(s, on(2026, 10, 15))).toBe(20)
+  })
+})
+
+describe('날짜 줄의 기준 달 — 근무일수와 같은 달이어야 한다', () => {
+  // 2026년 4월은 평일 공휴일이 없고 5월은 있다. 기준이 어긋나면 값이 갈린다.
+  it('월말 야간근무가 자정을 넘으면 시프트가 시작한 달로 센다', () => {
+    const night: Settings = { ...DEFAULT_SETTINGS, workStart: '22:00', workEnd: '06:00', lunchEnabled: false }
+    const afterMidnight = new Date(2026, 4, 1, 2, 0).getTime() // 5/1 02:00, 4/30 밤 근무 중
+    expect(workdayInfo(afterMidnight)).not.toEqual(workdayInfo(on(2026, 4, 30)))
+
+    const info = workdayInfo(resolveShift(night, afterMidnight).startMs)
+    expect(info).toEqual(workdayInfo(on(2026, 4, 30)))
+    expect(computeEarnings(night, afterMidnight).workDays).toBe(info.workdays)
   })
 })
