@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SettingsSchema, type PayMode, type Settings } from '@/lib/settings'
 import { formatKoreanUnits } from '@/lib/format'
 import { workdayInfo, effectiveWorkDays } from '@/lib/workdays'
@@ -41,6 +41,9 @@ const FIELD =
 const TIME_FIELD =
   'w-full min-w-0 rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 [&::-webkit-calendar-picker-indicator]:ml-0 [&::-webkit-calendar-picker-indicator]:shrink-0'
 
+/** 초기화 버튼이 두 번째 누름을 기다리는 시간 */
+const RESET_CONFIRM_MS = 3000
+
 const LABEL = 'text-sm text-slate-600 dark:text-slate-300'
 const HINT = 'text-xs text-slate-400 dark:text-slate-500'
 
@@ -66,6 +69,15 @@ export function SettingsPanel({
     settings.deductionRate === null ? '' : String(Math.round(settings.deductionRate * 1000) / 10),
   )
   const [showAdvanced, setShowAdvanced] = useState(false)
+  // 초기화는 연봉과 달력에 찍어 둔 날까지 되돌릴 수 없게 지운다. 한 번 누르면
+  // 무장만 하고, 몇 초 안에 한 번 더 눌러야 실행한다. confirm() 창을 띄우는
+  // 것보다 손이 덜 가고, 잘못 누른 경우에는 그냥 두면 풀린다.
+  const [resetArmed, setResetArmed] = useState(false)
+  useEffect(() => {
+    if (!resetArmed) return
+    const id = setTimeout(() => setResetArmed(false), RESET_CONFIRM_MS)
+    return () => clearTimeout(id)
+  }, [resetArmed])
   const [showCalendar, setShowCalendar] = useState(false)
   // 부모는 rAF 틱을 그대로 내려준다. 그걸 매 프레임 쓰면 zod 파싱과 시프트 계산이
   // 초당 60번 돈다. 패널이 열린 순간의 시각으로 고정한다. 설정 창을 열어둔 몇 초
@@ -477,10 +489,22 @@ export function SettingsPanel({
           <div className="mt-5 flex items-center justify-between gap-2">
             <button
               type="button"
-              onClick={onReset}
-              className="rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400"
+              onClick={() => {
+                if (resetArmed) {
+                  setResetArmed(false)
+                  onReset()
+                } else {
+                  setResetArmed(true)
+                }
+              }}
+              aria-live="polite"
+              className={
+                resetArmed
+                  ? 'rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400'
+                  : 'rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400'
+              }
             >
-              초기화
+              {resetArmed ? '한 번 더 누르면 초기화' : '초기화'}
             </button>
 
             <div className="flex gap-2">

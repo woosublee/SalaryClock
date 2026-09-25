@@ -27,6 +27,9 @@ struct SettingsView: View {
     @State private var launchAtLogin: Bool = SMAppService.mainApp.status == .enabled
     // 공제율 직접 입력 섹션을 펼쳤는지 — 웹 SettingsPanel의 showAdvanced와 같다.
     @State private var showAdvanced = false
+    /// 초기화가 두 번째 누름을 기다리는 중인지 — 웹 `resetArmed`와 같다.
+    @State private var resetArmed = false
+    @State private var disarmTask: Task<Void, Never>?
     // 달력이 보여주는 달. 창을 열 때는 이번 달에서 시작하고 화살표로 옮긴다.
     // 웹 SettingsPanel도 같다 — 다음 달 연차를 미리 찍어 둘 수 있어야 한다.
     @State private var calendarYear = calendarComponents().year
@@ -220,9 +223,9 @@ struct SettingsView: View {
 
             HStack {
                 // 웹 SettingsPanel도 초기화를 바닥 왼쪽에 따로 떼어 둔다.
-                Button("초기화", action: resetAll)
+                Button(resetArmed ? "한 번 더 누르면 초기화" : "초기화", action: armOrReset)
                     .buttonStyle(.plain)
-                    .foregroundStyle(theme.iconButton)
+                    .foregroundStyle(resetArmed ? Color.red : theme.iconButton)
                 Spacer()
                 Button("닫기", action: onDone)
                 Button("저장") {
@@ -312,9 +315,24 @@ struct SettingsView: View {
         return "\(short) (빌드 \(build))"
     }
 
+    /// 첫 누름은 무장만 하고 3초 뒤 풀린다. 그 안에 다시 누르면 초기화한다.
+    /// 되돌릴 수 없는 일이라 웹 SettingsPanel과 같이 두 번 누르게 한다.
+    private func armOrReset() {
+        disarmTask?.cancel()
+        guard resetArmed else {
+            resetArmed = true
+            disarmTask = Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                if !Task.isCancelled { resetArmed = false }
+            }
+            return
+        }
+        resetArmed = false
+        resetAll()
+    }
+
     /// 설정을 기본값으로 되돌린다 — 웹 `resetSettings`에 대응한다.
-    ///
-    /// 웹은 확인을 묻지 않고 바로 되돌리고 패널을 연 채로 둔다. 여기서도 같다.
+    /// 패널은 연 채로 둔다. 웹도 같다.
     ///
     /// 맥에만 있는 항목까지 함께 되돌린다. 사용자에게는 전부 이 창의 항목이라
     /// 공유 설정만 되돌리면 절반만 초기화된다. 로그인 자동 실행은 저장값이
