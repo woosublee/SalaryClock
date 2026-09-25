@@ -2,6 +2,7 @@ import {
   DEFAULT_SETTINGS,
   STORAGE_KEY,
   clearSettings,
+  firstVisit,
   loadSettings,
   saveSettings,
   type Settings,
@@ -101,7 +102,7 @@ export function updateSettings(next: Settings): void {
 export function resetSettings(): void {
   clearSettings()
   emit({
-    settings: DEFAULT_SETTINGS,
+    settings: firstVisit(),
     hasStored: false,
     isLoaded: true,
     revision: getSnapshot().revision + 1,
