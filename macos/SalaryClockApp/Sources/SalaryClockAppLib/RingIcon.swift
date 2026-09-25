@@ -11,11 +11,21 @@ import SalaryClockCore
 /// `clockAt`에 시각을 주면 링 안에 시침·분침을 그린다. 휴무일에는 진행이 0이라
 /// 회색 테두리만 남아 빈자리처럼 보이는데, 바늘을 넣으면 실제로 시각을 읽을 수
 /// 있는 작은 시계가 된다 — 휴무일에 이 앱을 시계로 쓴다는 원래 의도와 맞는다.
+///
+/// 그리기 핸들러로 만든다. lockFocus로 그리면 트랙과 바늘의 동적 색
+/// (tertiaryLabelColor, labelColor)이 만드는 순간의 앱 외형으로 비트맵에
+/// 굳는다. 메뉴바 외형은 앱 외형과 따로 논다 — 밝은 모드라도 배경화면이
+/// 어두우면 메뉴바 글자는 희다. 핸들러는 버튼이 그릴 때마다 불리고 그때의
+/// 외형(버튼의 실효 외형)으로 색이 풀리므로 메뉴바를 그대로 따라간다.
+/// 다크모드를 바꿔도 1분 캐시를 기다리지 않고 바로 맞춰진다.
 public func ringImage(progress: Double, clockAt now: Int? = nil, size: CGFloat = 16) -> NSImage {
-    let image = NSImage(size: NSSize(width: size, height: size))
-    image.lockFocus()
-    defer { image.unlockFocus() }
+    NSImage(size: NSSize(width: size, height: size), flipped: false) { _ in
+        drawRing(progress: progress, clockAt: now, size: size)
+        return true
+    }
+}
 
+private func drawRing(progress: Double, clockAt now: Int?, size: CGFloat) {
     let inset: CGFloat = 1.5
     let rect = NSRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
     let center = NSPoint(x: size / 2, y: size / 2)
@@ -65,6 +75,4 @@ public func ringImage(progress: Double, clockAt now: Int? = nil, size: CGFloat =
         draw(angle: hands.hour, length: radius * 0.45, width: 1.6)
         draw(angle: hands.minute, length: radius * 0.72, width: 1.1)
     }
-
-    return image
 }
