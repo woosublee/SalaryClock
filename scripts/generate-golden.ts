@@ -16,6 +16,7 @@ import { estimateDeductions } from '@/lib/deductions'
 import { effectiveWorkDays } from '@/lib/workdays'
 import { isDayOff, monthCells, workdaysFromCalendar } from '@/lib/calendar'
 import { afterWorkKind } from '@/lib/afterWork'
+import { hasHolidayData, holidayDataYears, isHoliday } from '@/lib/holidays'
 import {
   formatWon,
   formatPerSecond,
@@ -301,6 +302,32 @@ const calendars = CALENDAR_MONTHS.map((m) => ({
 
 write('calendar.json', calendars)
 write('afterWork.json', afterWork)
+
+/**
+ * 공휴일 표 전체. Holidays.swift는 lib/holidays.ts를 손으로 옮긴 것이라,
+ * 다른 골든이 건드리는 몇몇 날짜만으로는 나머지 해가 어긋나도 모른다.
+ * 표가 수록한 모든 해와 그 앞뒤 한 해를 날마다 훑어 적는다 — 앞뒤 해는
+ * "표에 없는 해"가 양쪽에서 똑같이 비어 있는지 보려는 것이다.
+ */
+const HOLIDAY_YEARS = holidayDataYears()
+const holidayRange = [HOLIDAY_YEARS[0] - 1, HOLIDAY_YEARS[HOLIDAY_YEARS.length - 1] + 1]
+const holidays = {
+  range: holidayRange,
+  years: Array.from({ length: holidayRange[1] - holidayRange[0] + 1 }, (_, i) => {
+    const year = holidayRange[0] + i
+    const dates: string[] = []
+    for (let month = 0; month < 12; month++) {
+      const days = new Date(year, month + 1, 0).getDate()
+      for (let day = 1; day <= days; day++) {
+        if (isHoliday(year, month, day)) {
+          dates.push(`${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`)
+        }
+      }
+    }
+    return { year, hasHolidayData: hasHolidayData(year), dates }
+  }),
+}
+write('holidays.json', holidays)
 
 /** 내림 규칙과 소수 자리 처리를 고정한다. 반올림하면 안 벌은 돈이 먼저 뜬다. */
 const FORMAT_AMOUNTS = [0, 0.4, 0.9, 1, 999.99, 1234.56, 83412.49, 166666.66666666666, 1_0000_0000]

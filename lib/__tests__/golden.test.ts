@@ -13,6 +13,7 @@ import { estimateDeductions } from '@/lib/deductions'
 import { effectiveWorkDays } from '@/lib/workdays'
 import { isDayOff, monthCells, workdaysFromCalendar } from '@/lib/calendar'
 import { afterWorkKind } from '@/lib/afterWork'
+import { hasHolidayData, isHoliday } from '@/lib/holidays'
 import { DEFAULT_SETTINGS, type Settings } from '@/lib/settings'
 import {
   formatWon,
@@ -219,4 +220,32 @@ describe('golden — calendar', () => {
       })
     })
   }
+})
+
+describe('golden — holidays', () => {
+  const { range, years } = read('holidays.json') as {
+    range: [number, number]
+    years: { year: number; hasHolidayData: boolean; dates: string[] }[]
+  }
+
+  it('표가 수록한 해와 그 앞뒤 한 해를 모두 담는다', () => {
+    expect(years.map((y) => y.year)).toEqual(
+      Array.from({ length: range[1] - range[0] + 1 }, (_, i) => range[0] + i),
+    )
+    expect(years[0].hasHolidayData).toBe(false)
+    expect(years[years.length - 1].hasHolidayData).toBe(false)
+  })
+
+  it.each(years)('$year년의 공휴일이 날마다 표와 같다', ({ year, hasHolidayData: has, dates }) => {
+    expect(hasHolidayData(year)).toBe(has)
+    const actual: string[] = []
+    for (let month = 0; month < 12; month++) {
+      for (let day = 1; day <= new Date(year, month + 1, 0).getDate(); day++) {
+        if (isHoliday(year, month, day)) {
+          actual.push(`${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`)
+        }
+      }
+    }
+    expect(actual).toEqual(dates)
+  })
 })
