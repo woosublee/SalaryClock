@@ -52,6 +52,10 @@ BUILD_NUMBER="$(plutil -extract buildNumber raw -o - "$VERSION_JSON")"
 FEED_URL="${SPARKLE_FEED_URL:-https://github.com/woosublee/SalaryClock/releases/latest/download/appcast.xml}"
 PUBLIC_ED_KEY="${SPARKLE_PUBLIC_ED_KEY:-bJHKi2fte2ii7wO/cga6sMGm13GmxwaYr95lMGaMUwQ=}"
 
+# Apple Silicon 전용이다 — 이 기계(arm64)의 아키텍처로만 빌드한다. Intel 맥이
+# 올라갈 수 있는 마지막 macOS가 26이라 universal로 얻는 사용자가 적고,
+# 바이너리가 두 배가 된다. Intel 맥에서 열면 macOS가 "이 Mac에서 지원되지
+# 않음"으로 알린다. README 설치 절에도 적어 두었다.
 swift build --package-path "$ROOT/macos/SalaryClockApp" --scratch-path "$SCRATCH" -c "$CONFIG"
 BIN_DIR="$(swift build --package-path "$ROOT/macos/SalaryClockApp" --scratch-path "$SCRATCH" -c "$CONFIG" --show-bin-path)"
 BIN="$BIN_DIR/SalaryClockApp"
