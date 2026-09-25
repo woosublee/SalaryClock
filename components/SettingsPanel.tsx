@@ -60,6 +60,11 @@ export function SettingsPanel({
   const [error, setError] = useState<string | null>(null)
   // 금액은 콤마가 섞인 표시 문자열을 따로 들고 있어야 입력 중 커서가 튀지 않는다.
   const [amountText, setAmountText] = useState(() => settings.payAmount.toLocaleString('ko-KR'))
+  // 공제율도 같은 이유다. 숫자를 다시 서식해 되먹이면 "1"을 치는 순간 "1.0"이
+  // 되어 다음 자리를 이어 칠 수 없다. 칸에는 친 그대로를 두고 숫자만 draft로 보낸다.
+  const [rateText, setRateText] = useState(() =>
+    settings.deductionRate === null ? '' : String(Math.round(settings.deductionRate * 1000) / 10),
+  )
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   // 부모는 rAF 틱을 그대로 내려준다. 그걸 매 프레임 쓰면 zod 파싱과 시프트 계산이
@@ -274,17 +279,14 @@ export function SettingsPanel({
                               aria-label="공제율"
                               placeholder={(estimated.rate * 100).toFixed(1)}
                               className={`${FIELD} pr-7 text-right tabular-nums`}
-                              value={
-                                draft.deductionRate === null
-                                  ? ''
-                                  : (draft.deductionRate * 100).toFixed(1)
-                              }
-                              onChange={(e) =>
+                              value={rateText}
+                              onChange={(e) => {
+                                setRateText(e.target.value)
                                 set(
                                   'deductionRate',
                                   e.target.value === '' ? null : Number(e.target.value) / 100,
                                 )
-                              }
+                              }}
                             />
                             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                               %
