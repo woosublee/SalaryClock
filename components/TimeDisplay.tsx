@@ -39,7 +39,7 @@ export function TimeDisplay({ now, earnings }: { now: number; earnings: Earnings
         {formatClockTime(now)}
       </p>
 
-      <p className="mt-2 font-mono text-sm tabular-nums text-slate-400 dark:text-slate-500">
+      <p className="mt-2 font-mono text-sm tabular-nums text-slate-500 dark:text-slate-400">
         {remainingMs === null ? ' ' : formatDuration(remainingMs)}
       </p>
     </div>

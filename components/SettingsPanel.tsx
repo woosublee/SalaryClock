@@ -44,7 +44,7 @@ const TIME_FIELD =
 const RESET_CONFIRM_MS = 3000
 
 const LABEL = 'text-sm text-slate-600 dark:text-slate-300'
-const HINT = 'text-xs text-slate-400 dark:text-slate-500'
+const HINT = 'text-xs text-slate-500 dark:text-slate-400'
 
 /**
  * 이 컴포넌트는 열릴 때마다 새로 마운트된다 (부모가 revision을 key로 준다).
@@ -207,7 +207,7 @@ export const SettingsPanel = memo(function SettingsPanel({
               type="button"
               onClick={onClose}
               aria-label="설정 닫기"
-              className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -276,7 +276,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                     set('payAmount', digits === '' ? 0 : Number(digits))
                   }}
                 />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
                   원
                 </span>
               </div>
@@ -306,7 +306,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                     <button
                       type="button"
                       onClick={() => setShowAdvanced((v) => !v)}
-                      className="mt-1.5 text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
+                      className="mt-1.5 text-xs text-slate-500 underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
                     >
                       {showAdvanced ? '접기' : '공제 내역 · 직접 설정'}
                     </button>
@@ -356,7 +356,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                                 )
                               }}
                             />
-                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
                               %
                             </span>
                           </div>
@@ -448,7 +448,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                 <button
                   type="button"
                   onClick={() => setShowCalendar((v) => !v)}
-                  className="text-xs text-slate-400 underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
+                  className="text-xs text-slate-500 underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
                 >
                   {showCalendar ? '달력 접기' : '달력에서 고르기'}
                 </button>
@@ -470,7 +470,7 @@ export const SettingsPanel = memo(function SettingsPanel({
                     }))
                   }}
                 />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
                   일
                 </span>
               </div>
@@ -565,7 +565,7 @@ export const SettingsPanel = memo(function SettingsPanel({
               className={
                 resetArmed
                   ? 'rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400'
-                  : 'rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-red-600 dark:hover:text-red-400'
+                  : 'rounded-lg px-3 py-2 text-sm text-slate-500 hover:text-red-600 dark:hover:text-red-400'
               }
             >
               {resetArmed ? '한 번 더 누르면 초기화' : '초기화'}

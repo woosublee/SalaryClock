@@ -59,7 +59,7 @@ export default function Home() {
     update({ ...settings, theme: settings.theme === 'dark' ? 'light' : 'dark' })
 
   const iconButton =
-    'rounded-lg p-2 text-slate-400 transition-colors hover:text-slate-700 dark:hover:text-slate-200'
+    'rounded-lg p-2 text-slate-500 transition-colors hover:text-slate-700 dark:hover:text-slate-200'
 
   // 쉬는 날에는 가리기 화면을 그대로 쓴다. 날짜와 시각만 남아 앱이 시계가 된다.
   const dayOff = earnings.phase === 'dayoff'

@@ -129,6 +129,9 @@ public enum Palette {
     /// sky-500 — #00a5ef
     public static let sky500 = srgb(0.000000, 0.647059, 0.937255)
 
+    /// sky-600 — #0084cc
+    public static let sky600 = srgb(0.000000, 0.517647, 0.800000)
+
     /// rose-500 — #ff2357
     public static let rose500 = srgb(1.000000, 0.137255, 0.341176)
 

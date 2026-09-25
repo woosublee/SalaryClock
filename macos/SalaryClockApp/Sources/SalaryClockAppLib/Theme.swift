@@ -32,11 +32,12 @@ struct Theme {
     var perSecond: Color { scheme == .dark ? Palette.emerald400 : Palette.emerald600 }
     /// 보조 텍스트
     var secondary: Color { scheme == .dark ? Palette.slate400 : Palette.slate500 }
-    /// 금액 소수부 · 흐린 텍스트
-    var dim: Color { scheme == .dark ? Palette.slate500 : Palette.slate400 }
+    /// 금액 소수부 · 흐린 텍스트. 흰 바탕에서 slate-400은 대비가 2.6:1이라
+    /// 글자로는 못 읽는다 — 웹과 함께 한 단계씩 진하게(어두운 쪽은 밝게) 올렸다.
+    var dim: Color { scheme == .dark ? Palette.slate400 : Palette.slate500 }
     /// 아이콘 버튼(설정·종료) — 웹 app/page.tsx의 iconButton 클래스는
-    /// text-slate-400을 밝기 모드와 무관하게 그대로 쓴다.
-    var iconButton: Color { Palette.slate400 }
+    /// text-slate-500을 밝기 모드와 무관하게 그대로 쓴다.
+    var iconButton: Color { Palette.slate500 }
     /// 아이콘 버튼에 마우스를 올렸을 때 — hover:text-slate-700
     /// dark:hover:text-slate-200.
     var iconButtonHover: Color { scheme == .dark ? Palette.slate200 : Palette.slate700 }
@@ -61,16 +62,16 @@ struct Theme {
     /// 달력 헤더 "N년 N월 · 근무 N일" — text-slate-600 dark:text-slate-300.
     var calendarHeaderText: Color { scheme == .dark ? Palette.slate300 : Palette.slate600 }
 
-    /// "이 달 선택 지우기" — text-slate-400, 밝기와 무관하게 같은 값.
-    var calendarClearButton: Color { Palette.slate400 }
+    /// "이 달 선택 지우기" — text-slate-500, 밝기와 무관하게 같은 값.
+    var calendarClearButton: Color { Palette.slate500 }
 
-    /// 요일 머리글 색 — 일=rose-400, 토=sky-400, 그 외 slate-400. 셋 다
-    /// 밝기 모드와 무관하게 같은 값을 쓴다(웹 클래스에 dark: 접두어가 없다).
+    /// 요일 머리글 색 — 웹 MonthCalendar의 요일 줄과 같다.
+    /// 일=rose-600/400, 토=sky-600/400, 그 외 slate-500/400 (밝게/어둡게).
     func calendarDowLabel(_ dow: Int) -> Color {
         switch dow {
-        case 0: return Palette.rose400
-        case 6: return Palette.sky400
-        default: return Palette.slate400
+        case 0: return scheme == .dark ? Palette.rose400 : Palette.rose600
+        case 6: return scheme == .dark ? Palette.sky400 : Palette.sky600
+        default: return scheme == .dark ? Palette.slate400 : Palette.slate500
         }
     }
 
@@ -89,8 +90,8 @@ struct Theme {
     func calendarForeground(for kind: DayKind) -> Color {
         switch kind {
         case .work: return scheme == .dark ? Palette.slate200 : Palette.slate700
-        case .weekend: return scheme == .dark ? Palette.slate500 : Palette.slate400
-        case .holiday: return Palette.rose400
+        case .weekend: return scheme == .dark ? Palette.slate400 : Palette.slate500
+        case .holiday: return scheme == .dark ? Palette.rose400 : Palette.rose600
         case .customOff: return scheme == .dark ? Palette.slate200 : Palette.slate600
         case .customWork: return scheme == .dark ? Palette.emerald300 : Palette.emerald700
         }

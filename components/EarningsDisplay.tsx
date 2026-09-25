@@ -13,7 +13,7 @@ export function EarningsDisplay({ earnings }: { earnings: Earnings }) {
       */}
       <div className="flex items-center justify-center gap-1.5">
         <span className="text-sm text-slate-500 dark:text-slate-400">오늘 벌어들인 금액</span>
-        <span className="rounded px-1.5 py-1 text-xs leading-none text-slate-400 ring-1 ring-slate-200 dark:text-slate-500 dark:ring-slate-700">
+        <span className="rounded px-1.5 py-1 text-xs leading-none text-slate-500 ring-1 ring-slate-200 dark:text-slate-400 dark:ring-slate-700">
           {earnings.isNet ? '실수령' : '세전'}
         </span>
       </div>
@@ -25,7 +25,7 @@ export function EarningsDisplay({ earnings }: { earnings: Earnings }) {
       */}
       <p className="mt-1.5 font-mono text-5xl font-bold tabular-nums tracking-tight sm:text-6xl">
         <Won text={formatWon(Math.floor(earnings.earned))} />
-        <span className="text-slate-400 dark:text-slate-500">
+        <span className="text-slate-500 dark:text-slate-400">
           .{Math.floor((earnings.earned % 1) * 10)}
         </span>
       </p>
