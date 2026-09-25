@@ -2,6 +2,10 @@ import AppKit
 import SwiftUI
 import SalaryClockCore
 
+/// 팝오버가 스스로 닫힌 직후 버튼 액션을 무시하는 시간. 누르고 떼는 사이
+/// (보통 0.1초 안팎)를 덮되, 닫은 뒤 다시 열려는 두 번째 클릭은 막지 않는다.
+let popoverReopenGuard: TimeInterval = 0.3
+
 @MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
@@ -32,6 +36,15 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 그 모서리의 화면 좌표는 그대로고, 항목이 줄면 아이콘이 바로 그 모서리
     /// 옆으로 오므로 화살표가 가리키는 곳도 두 상태 모두에서 자연스럽다.
     private var anchorWindow: NSWindow?
+
+    /// 팝오버가 마지막으로 닫힌 시각.
+    ///
+    /// 팝오버를 버튼이 아니라 anchorWindow에 걸었으므로, 열린 팝오버를 닫으려고
+    /// 아이콘을 누르면 AppKit에게 그 클릭은 "팝오버 바깥"이다. transient 팝오버가
+    /// 마우스를 누르는 순간 먼저 스스로 닫히고, 이어 버튼 액션(togglePopover)이
+    /// 불릴 때는 isShown이 이미 false라 다시 연다 — 닫히지 않고 깜빡인다.
+    /// 방금 닫혔다면 그 클릭은 닫으려던 것으로 보고 무시한다.
+    private var lastPopoverClose: Date = .distantPast
 
     public override init() {
         super.init()
@@ -171,6 +184,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func togglePopover() {
         guard let button = statusItem.button else { return }
+        if Date().timeIntervalSince(lastPopoverClose) < popoverReopenGuard { return }
         if popover.isShown {
             // 타이머를 되돌리는 건 popoverDidClose가 한다 — 여기서 또 부르면
             // 같은 일을 두 번 한다. 바깥 클릭으로 닫히는 경로는 어차피
@@ -340,6 +354,7 @@ extension AppDelegate: NSPopoverDelegate {
     /// 닫힌다. 그 경우에도 0.1초 주기를 되돌려야 배터리를 안 먹는다 — tick이
     /// 닫힌 상태로 다음 시점을 다시 정한다.
     public func popoverDidClose(_ notification: Notification) {
+        lastPopoverClose = Date()
         tick()
         anchorWindow?.orderOut(nil)
         anchorWindow = nil
