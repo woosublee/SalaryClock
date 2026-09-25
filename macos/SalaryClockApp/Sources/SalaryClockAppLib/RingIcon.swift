@@ -13,7 +13,7 @@ import SalaryClockCore
 /// 있는 작은 시계가 된다 — 휴무일에 이 앱을 시계로 쓴다는 원래 의도와 맞는다.
 ///
 /// 그리기 핸들러로 만든다. lockFocus로 그리면 트랙과 바늘의 동적 색
-/// (tertiaryLabelColor, labelColor)이 만드는 순간의 앱 외형으로 비트맵에
+/// (labelColor)이 만드는 순간의 앱 외형으로 비트맵에
 /// 굳는다. 메뉴바 외형은 앱 외형과 따로 논다 — 밝은 모드라도 배경화면이
 /// 어두우면 메뉴바 글자는 희다. 핸들러는 버튼이 그릴 때마다 불리고 그때의
 /// 외형(버튼의 실효 외형)으로 색이 풀리므로 메뉴바를 그대로 따라간다.
@@ -35,7 +35,10 @@ private func drawRing(progress: Double, clockAt now: Int?, size: CGFloat) {
     let track = NSBezierPath()
     track.appendArc(withCenter: center, radius: radius, startAngle: 0, endAngle: 360)
     track.lineWidth = lineWidth
-    NSColor.tertiaryLabelColor.setStroke()
+    // 메뉴바 글자와 같은 색 — 어두운 메뉴바에서는 흰색, 밝은 메뉴바에서는 검정.
+    // tertiaryLabelColor는 25% 남짓만 비쳐 어두운 메뉴바에서 링이 흐려 보였다.
+    // 흰색으로 박으면 밝은 메뉴바에서 사라진다.
+    NSColor.labelColor.setStroke()
     track.stroke()
 
     let clamped = min(max(progress, 0), 1)
