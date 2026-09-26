@@ -13,6 +13,7 @@ struct FormatGolden: Decodable {
     let koreanUnits: [NumCase]
     let dateKo: [AtCase]
     let clockTime: [AtCase]
+    let clockTime12: [AtCase]
 }
 
 @Test("골든 — format")
@@ -38,6 +39,12 @@ func goldenFormat() throws {
     }
     for c in g.clockTime {
         #expect(formatClockTime(Golden.ms(c.at)) == c.expected, "formatClockTime(\(c.at))")
+    }
+    for c in g.clockTime12 {
+        #expect(
+            formatClockTime(Golden.ms(c.at), hour12: true) == c.expected,
+            "formatClockTime(\(c.at), hour12: true)"
+        )
     }
 }
 

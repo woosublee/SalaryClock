@@ -148,6 +148,10 @@ describe('golden — format', () => {
     it(`formatClockTime(${c.at.join(',')})`, () =>
       expect(formatClockTime(ms(c.at))).toBe(c.expected))
   }
+  for (const c of f.clockTime12) {
+    it(`formatClockTime(${c.at.join(',')}, true)`, () =>
+      expect(formatClockTime(ms(c.at), true)).toBe(c.expected))
+  }
 })
 
 describe('golden — clock', () => {

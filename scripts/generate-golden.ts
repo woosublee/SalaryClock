@@ -352,6 +352,7 @@ const formats = {
   })),
   dateKo: MOMENTS.map((m) => ({ at: m.at, expected: formatDateKo(ms(m.at)) })),
   clockTime: MOMENTS.map((m) => ({ at: m.at, expected: formatClockTime(ms(m.at)) })),
+  clockTime12: MOMENTS.map((m) => ({ at: m.at, expected: formatClockTime(ms(m.at), true) })),
 }
 
 /** 스위프 운동. 밀리초를 버리면 1초마다 6도씩 튀는 쿼츠 시계가 된다. */

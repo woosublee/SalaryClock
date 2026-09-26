@@ -236,6 +236,16 @@ export const SettingsPanel = memo(function SettingsPanel({
                 shift={previewShift}
                 onChange={(clockStyle) => set('clockStyle', clockStyle)}
               />
+              {/* 금액을 가렸을 때 금액 자리에 뜨는 디지털 시각에만 쓰인다 */}
+              <label className="mt-2 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  className="accent-emerald-600"
+                  checked={draft.hour12}
+                  onChange={(e) => set('hour12', e.target.checked)}
+                />
+                12시간제로 보기 (오전/오후)
+              </label>
             </div>
 
             {/* 급여 ─ 실수령 옵션을 여기에 붙인다. 금액을 보면서 바로 켜고 끌 수 있게 */}

@@ -200,16 +200,31 @@ struct PopoverView: View {
         VStack(spacing: 4) {
             Text(" ").font(.system(size: 11))
 
-            Text(formatClockTime(model.now))
-                .font(.system(size: 28, weight: .bold, design: .monospaced))
-                .monospacedDigit()
-                .foregroundStyle(theme.foreground)
+            // 오전/오후를 숫자와 같은 크기로 쓰면 220pt 폭을 넘는다. 웹
+            // TimeDisplay처럼 작게 떼어 붙이고 큰 숫자는 24시간제와 같은 폭을 둔다.
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                if let meridiem = clockParts.meridiem {
+                    Text(meridiem)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(theme.secondary)
+                }
+                Text(clockParts.hms)
+                    .font(.system(size: 28, weight: .bold, design: .monospaced))
+                    .monospacedDigit()
+                    .foregroundStyle(theme.foreground)
+            }
 
             Text(remainingTimeText)
                 .font(.system(size: 11, design: .monospaced))
                 .monospacedDigit()
                 .foregroundStyle(theme.dim)
         }
+    }
+
+    private var clockParts: (meridiem: String?, hms: String) {
+        let text = formatClockTime(model.now, hour12: model.settings.hour12)
+        guard let space = text.firstIndex(of: " ") else { return (nil, text) }
+        return (String(text[..<space]), String(text[text.index(after: space)...]))
     }
 
     private var remainingTimeText: String {

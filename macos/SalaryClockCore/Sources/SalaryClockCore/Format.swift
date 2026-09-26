@@ -65,16 +65,25 @@ public func formatDateKo(_ now: Int) -> String {
         + "\(cal.component(.day, from: date))일 (\(WEEKDAYS[dow]))"
 }
 
-/// "16:53:21" — 24시간제. 오전/오후를 안 쓰면 폭이 고정돼 숫자가 흔들리지 않는다.
-public func formatClockTime(_ now: Int) -> String {
+/// "16:53:21", 12시간제면 "오후 04:53:21". 웹 `formatClockTime`과 같다.
+///
+/// 12시간제에서도 시를 0으로 채운다. 9시에서 10시로 넘어갈 때 자릿수가 바뀌면
+/// 큰 숫자 전체가 한 칸 밀린다. 자정과 정오는 0이 아니라 12로 쓴다.
+public func formatClockTime(_ now: Int, hour12: Bool = false) -> String {
     let date = Date(timeIntervalSince1970: Double(now) / 1000)
     let cal = appCalendar
-    return String(
-        format: "%02d:%02d:%02d",
-        cal.component(.hour, from: date),
-        cal.component(.minute, from: date),
-        cal.component(.second, from: date)
-    )
+    let h = cal.component(.hour, from: date)
+    let hms = { (hh: Int) in
+        String(
+            format: "%02d:%02d:%02d",
+            hh,
+            cal.component(.minute, from: date),
+            cal.component(.second, from: date)
+        )
+    }
+    guard hour12 else { return hms(h) }
+    let hh = h % 12 == 0 ? 12 : h % 12
+    return "\(h < 12 ? "오전" : "오후") \(hms(hh))"
 }
 
 /// 금액을 억/만 단위로 끊어 읽어준다. 입력창에 0을 몇 개 쳤는지 보기 위한 보조 표시다.

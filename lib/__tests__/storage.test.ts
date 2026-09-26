@@ -82,6 +82,7 @@ describe('localStorage 저장', () => {
       deductionRate: 0.142,
       clockStyle: 'grain',
       hideAmount: true,
+      hour12: true,
       theme: 'dark',
     }
 
@@ -102,6 +103,19 @@ describe('localStorage 저장', () => {
     const s = loadSettings().settings
     expect(s.clockStyle).toBe('rings')
     expect(s.hideAmount).toBe(true)
+  })
+
+  it('12시간제 설정도 살아남는다', () => {
+    saveSettings({ ...DEFAULT_SETTINGS, hour12: true })
+    expect(loadSettings().settings.hour12).toBe(true)
+  })
+
+  it('hour12가 없던 예전 저장값은 24시간제로 읽는다', () => {
+    const legacy = { ...without(DEFAULT_SETTINGS, 'hour12'), payAmount: 55_000_000 }
+    store.set(STORAGE_KEY, JSON.stringify(legacy))
+    const s = loadSettings().settings
+    expect(s.payAmount).toBe(55_000_000)
+    expect(s.hour12).toBe(false)
   })
 
   it('테마 설정도 살아남는다', () => {

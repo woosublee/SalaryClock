@@ -124,3 +124,31 @@ describe('formatClockTime', () => {
     expect(formatClockTime(new Date(2026, 8, 22, 9, 0, 0, 999).getTime())).toBe('09:00:00')
   })
 })
+
+describe('formatClockTime — 12시간제', () => {
+  const at = (h: number, m: number, sec: number) => new Date(2026, 8, 22, h, m, sec).getTime()
+
+  it('오후에는 12를 빼고 0을 채운다', () => {
+    expect(formatClockTime(at(16, 53, 21), true)).toBe('오후 04:53:21')
+  })
+
+  it('오전에는 시를 그대로 쓴다', () => {
+    expect(formatClockTime(at(9, 0, 0), true)).toBe('오전 09:00:00')
+  })
+
+  it('자정은 오전 12시다', () => {
+    expect(formatClockTime(at(0, 5, 9), true)).toBe('오전 12:05:09')
+  })
+
+  it('정오는 오후 12시다', () => {
+    expect(formatClockTime(at(12, 0, 0), true)).toBe('오후 12:00:00')
+  })
+
+  it('11시 59분 59초는 아직 오전이다', () => {
+    expect(formatClockTime(at(11, 59, 59), true)).toBe('오전 11:59:59')
+  })
+
+  it('끄면 24시간제 그대로다', () => {
+    expect(formatClockTime(at(16, 53, 21), false)).toBe('16:53:21')
+  })
+})
