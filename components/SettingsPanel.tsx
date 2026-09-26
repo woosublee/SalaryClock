@@ -185,8 +185,13 @@ export const SettingsPanel = memo(function SettingsPanel({
       // 그래도 닫히는 경우가 있다. Chrome은 대화상자가 열린 뒤 사용자가 아무것도
       // 누르지 않았으면 cancel을 막지 못하게 하고 곧바로 닫는다(남용 방지).
       // 첫 방문에 그대로 두면 저장 버튼도 없는 빈 화면에 갇히므로 다시 연다.
-      // 언마운트하며 부르는 close()의 이벤트는 문서에서 떨어진 뒤라 여기 오지 않는다.
-      onClose={() => {
+      //
+      // close 이벤트는 비동기로 온다. 개발 모드의 StrictMode는 effect를 정리했다가
+      // 곧바로 다시 실행하는데, 정리 때 부른 close()의 이벤트가 다시 연(showModal)
+      // 뒤에 도착한다. 그 시점에 대화상자가 열려 있으면 지난 이벤트이므로 버린다.
+      // 받아들이면 톱니바퀴를 누를 때마다 창이 열리자마자 닫힌다.
+      onClose={(e) => {
+        if (e.currentTarget.open) return
         if (dismissable) onClose()
         else dialogRef.current?.showModal()
       }}
