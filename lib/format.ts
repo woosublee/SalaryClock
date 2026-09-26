@@ -67,9 +67,17 @@ export function formatDateKo(now: number): string {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`
 }
 
-/** "16:53:21" — 24시간제. 오전/오후를 안 쓰면 폭이 고정돼 숫자가 흔들리지 않는다 */
-export function formatClockTime(now: number): string {
+/**
+ * "16:53:21", 12시간제면 "오후 04:53:21".
+ *
+ * 12시간제에서도 시를 0으로 채운다. 9시에서 10시로 넘어갈 때 자릿수가 바뀌면
+ * 큰 숫자 전체가 한 칸 밀린다. 자정과 정오는 0이 아니라 12로 쓴다.
+ */
+export function formatClockTime(now: number, hour12 = false): string {
   const d = new Date(now)
   const pad = (v: number) => String(v).padStart(2, '0')
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  const h = d.getHours()
+  const hms = (hh: number) => `${pad(hh)}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  if (!hour12) return hms(h)
+  return `${h < 12 ? '오전' : '오후'} ${hms(h % 12 || 12)}`
 }

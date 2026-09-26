@@ -14,6 +14,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "night": {
@@ -31,6 +32,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "hourly": {
@@ -48,6 +50,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "hourlyNet": {
@@ -65,6 +68,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "monthly": {
@@ -82,6 +86,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "noLunch": {
@@ -99,6 +104,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "net": {
@@ -116,6 +122,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "offToday": {
@@ -135,6 +142,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "workOnHoliday": {
@@ -154,6 +162,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "workFridayOfHolidayWeek": {
@@ -173,6 +182,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "customRate": {
@@ -190,6 +200,7 @@
     "deductionRate": 0.245,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "calendarMode": {
@@ -211,6 +222,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   },
   "manualMode": {
@@ -228,6 +240,7 @@
     "deductionRate": null,
     "clockStyle": "minimal",
     "hideAmount": false,
+    "hour12": false,
     "theme": "light"
   }
 }

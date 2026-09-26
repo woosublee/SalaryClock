@@ -49,6 +49,8 @@ export interface Settings {
   clockStyle: ClockStyle
   /** 금액을 블러로 가릴지. 옆자리에서 화면이 보일 때 쓴다 */
   hideAmount: boolean
+  /** 금액을 가렸을 때 보이는 디지털 시각을 12시간제(오전/오후)로 쓸지 */
+  hour12: boolean
   /**
    * 저장된 값이 없을 때만 기기 설정에서 가져온다(loadSettings 참고).
    * 한 번 저장된 뒤로는 기기 설정이 바뀌어도 사용자가 고른 값을 지킨다.
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: Settings = {
   deductionRate: null,
   clockStyle: 'minimal',
   hideAmount: false,
+  hour12: false,
   theme: 'light',
 }
 
@@ -123,6 +126,7 @@ export const SettingsSchema = z
       'pulse',
     ]),
     hideAmount: z.boolean(),
+    hour12: z.boolean(),
     theme: z.enum(['light', 'dark']),
   })
   .superRefine((s, ctx) => {

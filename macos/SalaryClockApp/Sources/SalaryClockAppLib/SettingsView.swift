@@ -109,10 +109,14 @@ struct SettingsView: View {
 
             // 웹 SettingsPanel도 시계 페이스가 급여보다 앞에 온다.
             field("시계 페이스") {
-                ClockStylePickerView(
-                    value: $draft.clockStyle, now: panelNow,
-                    shift: previewShift, theme: theme
-                )
+                VStack(alignment: .leading, spacing: 8) {
+                    ClockStylePickerView(
+                        value: $draft.clockStyle, now: panelNow,
+                        shift: previewShift, theme: theme
+                    )
+                    // 금액을 가렸을 때 금액 자리에 뜨는 디지털 시각에만 쓰인다.
+                    Toggle("12시간제로 보기 (오전/오후)", isOn: $draft.hour12)
+                }
             }
 
             // 실수령액 토글·공제율은 웹처럼 급여 박스 안, 금액 바로 아래에 둔다 —

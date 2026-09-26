@@ -21,6 +21,8 @@ public struct Settings: Codable, Equatable, Sendable {
     public var deductionRate: Double?
     public var clockStyle: String
     public var hideAmount: Bool
+    /// 금액을 가렸을 때 보이는 디지털 시각을 12시간제(오전/오후)로 쓸지
+    public var hour12: Bool
     public var theme: ThemeMode
 
     public init(
@@ -38,6 +40,7 @@ public struct Settings: Codable, Equatable, Sendable {
         deductionRate: Double? = nil,
         clockStyle: String = "minimal",
         hideAmount: Bool = false,
+        hour12: Bool = false,
         theme: ThemeMode = .light
     ) {
         self.payMode = payMode; self.payAmount = payAmount
@@ -47,7 +50,8 @@ public struct Settings: Codable, Equatable, Sendable {
         self.lunchEnabled = lunchEnabled; self.lunchStart = lunchStart
         self.lunchMinutes = lunchMinutes
         self.netPay = netPay; self.deductionRate = deductionRate
-        self.clockStyle = clockStyle; self.hideAmount = hideAmount; self.theme = theme
+        self.clockStyle = clockStyle; self.hideAmount = hideAmount
+        self.hour12 = hour12; self.theme = theme
     }
 
     public static let `default` = Settings()
@@ -55,7 +59,7 @@ public struct Settings: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case payMode, payAmount, workDaysMode, workDaysPerMonth, dayOverrides
         case workStart, workEnd, lunchEnabled, lunchStart, lunchMinutes
-        case netPay, deductionRate, clockStyle, hideAmount, theme
+        case netPay, deductionRate, clockStyle, hideAmount, hour12, theme
     }
 
     /// 빠진 필드는 기본값으로 채운다. 웹 `loadSettings`가 저장값을
@@ -82,6 +86,7 @@ public struct Settings: Codable, Equatable, Sendable {
         deductionRate = try c.decodeIfPresent(Double.self, forKey: .deductionRate) ?? d.deductionRate
         clockStyle = try c.decodeIfPresent(String.self, forKey: .clockStyle) ?? d.clockStyle
         hideAmount = try c.decodeIfPresent(Bool.self, forKey: .hideAmount) ?? d.hideAmount
+        hour12 = try c.decodeIfPresent(Bool.self, forKey: .hour12) ?? d.hour12
         theme = try c.decodeIfPresent(ThemeMode.self, forKey: .theme) ?? d.theme
     }
 }

@@ -111,7 +111,7 @@ export default function Home() {
         똑같이 유지하므로 가리기를 눌러도 시계가 제자리에 있는다.
       */}
       {minimal ? (
-        <TimeDisplay now={now} earnings={earnings} />
+        <TimeDisplay now={now} earnings={earnings} hour12={settings.hour12} />
       ) : (
         <EarningsDisplay earnings={earnings} />
       )}
