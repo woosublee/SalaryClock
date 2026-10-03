@@ -112,9 +112,9 @@ npm run swift:test:app
 ```
 
 iOS 앱은 `ios/SalaryClock.xcodeproj`입니다. 계산은 `macos/SalaryClockCore`를,
-시계 화면과 설정 화면은 `macos/SalaryClockApp`의 SwiftUI 파일을 그대로 가져다
-씁니다. 플랫폼마다 다른 부분(메뉴바, 자동 업데이트, 로그인 항목)은 `#if os(macOS)`로
-나눴습니다. Xcode에서 열어 실행하거나 아래처럼 빌드합니다. 실기기 설치와 App Store
+시계 페이스·달력·화면 문구(`EarningsText.swift`)는 `macos/SalaryClockApp`의 SwiftUI
+파일을 그대로 가져다 씁니다. 메인 화면과 설정 화면만 `ios/SalaryClock/`에 iOS용으로
+따로 있습니다. Xcode에서 열어 실행하거나 아래처럼 빌드합니다. 실기기 설치와 App Store
 배포에는 Xcode의 Signing에서 개발 팀을 지정해야 합니다.
 
 ```bash

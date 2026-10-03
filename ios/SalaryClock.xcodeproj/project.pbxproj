@@ -18,16 +18,15 @@
 		72D9D82C924C84CF4A53E95A /* MinimalFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A4E4287D05A59BE517958C /* MinimalFaceView.swift */; };
 		DF4CE52D9B0C73251B1F440D /* MonthCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0A8157C92E1D3D998F647D /* MonthCalendarView.swift */; };
 		8195F1D3D30A074D8FDB344F /* NumeralsFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E43832BEDD5D4EBC5E1337A /* NumeralsFaceView.swift */; };
-		75E859E459DA4972AE240913 /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545647923F529D38123CF859 /* PopoverView.swift */; };
 		E0FC8EAE091E2776359DBBEE /* PulseFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B69852C4B66E256D5160106C /* PulseFaceView.swift */; };
 		1E21EA711DEAEA49F110C653 /* RingsFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9328E6FF447D75B3111031C5 /* RingsFaceView.swift */; };
 		6E05687BB1A50591DA3D778E /* SectorFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F467A03BB0F0F1A3E925C8 /* SectorFaceView.swift */; };
 		A5C88E290914C5388EB70317 /* SettingsFieldMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A9C7FFFF13514A49A9D291 /* SettingsFieldMath.swift */; };
 		0124903F615A096B58A6609C /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252036562B2C5619FAB354C4 /* SettingsStore.swift */; };
-		F4755474D35447407D866DAF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED7B5733F25DD30FAA629D7 /* SettingsView.swift */; };
 		4780E56E8411CAE443E14B0B /* SundialFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1683F03E7C7C81FC39AA01 /* SundialFaceView.swift */; };
 		6CB69052689E995AD0C18E3A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0EAB7AAB7B13A3E62427730 /* Theme.swift */; };
 		19B3A46B0D0BEEF689A5FEE1 /* SalaryClockCore in Frameworks */ = {isa = PBXBuildFile; productRef = 18685E8F78C101C84B529A5E /* SalaryClockCore */; };
+		5CD725048393CDDACDB69DA9 /* EarningsText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29FF44D267FB8C1C1FF106E5 /* EarningsText.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,15 +42,14 @@
 		07A4E4287D05A59BE517958C /* MinimalFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalFaceView.swift; sourceTree = "<group>"; };
 		2F0A8157C92E1D3D998F647D /* MonthCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthCalendarView.swift; sourceTree = "<group>"; };
 		5E43832BEDD5D4EBC5E1337A /* NumeralsFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumeralsFaceView.swift; sourceTree = "<group>"; };
-		545647923F529D38123CF859 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
 		B69852C4B66E256D5160106C /* PulseFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseFaceView.swift; sourceTree = "<group>"; };
 		9328E6FF447D75B3111031C5 /* RingsFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingsFaceView.swift; sourceTree = "<group>"; };
 		A6F467A03BB0F0F1A3E925C8 /* SectorFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectorFaceView.swift; sourceTree = "<group>"; };
 		C9A9C7FFFF13514A49A9D291 /* SettingsFieldMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFieldMath.swift; sourceTree = "<group>"; };
 		252036562B2C5619FAB354C4 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
-		1ED7B5733F25DD30FAA629D7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9A1683F03E7C7C81FC39AA01 /* SundialFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SundialFaceView.swift; sourceTree = "<group>"; };
 		A0EAB7AAB7B13A3E62427730 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		29FF44D267FB8C1C1FF106E5 /* EarningsText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarningsText.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -96,18 +94,17 @@
 				CB62CD1D3A5520E3E654D959 /* ClockStylePickerView.swift */,
 				04017D17C0DC56639CE65B9E /* CountdownFaceView.swift */,
 				AFDCEE2CF0CA3CC973E662CA /* DotsFaceView.swift */,
+				29FF44D267FB8C1C1FF106E5 /* EarningsText.swift */,
 				F7B03CF9023119880E4B97BB /* GrainFaceView.swift */,
 				7F5E95CBF7F197EC3A4FF1DC /* LevelFaceView.swift */,
 				07A4E4287D05A59BE517958C /* MinimalFaceView.swift */,
 				2F0A8157C92E1D3D998F647D /* MonthCalendarView.swift */,
 				5E43832BEDD5D4EBC5E1337A /* NumeralsFaceView.swift */,
-				545647923F529D38123CF859 /* PopoverView.swift */,
 				B69852C4B66E256D5160106C /* PulseFaceView.swift */,
 				9328E6FF447D75B3111031C5 /* RingsFaceView.swift */,
 				A6F467A03BB0F0F1A3E925C8 /* SectorFaceView.swift */,
 				C9A9C7FFFF13514A49A9D291 /* SettingsFieldMath.swift */,
 				252036562B2C5619FAB354C4 /* SettingsStore.swift */,
-				1ED7B5733F25DD30FAA629D7 /* SettingsView.swift */,
 				9A1683F03E7C7C81FC39AA01 /* SundialFaceView.swift */,
 				A0EAB7AAB7B13A3E62427730 /* Theme.swift */,
 			);
@@ -199,18 +196,17 @@
 				6C662EA87C4BFE7B0207472F /* ClockStylePickerView.swift in Sources */,
 				73571F423B434615BEE51BCA /* CountdownFaceView.swift in Sources */,
 				8DE3A7BDAB027DA45ED53856 /* DotsFaceView.swift in Sources */,
+				5CD725048393CDDACDB69DA9 /* EarningsText.swift in Sources */,
 				94B9CA799B5F870D58982EFE /* GrainFaceView.swift in Sources */,
 				2062098AB31BB7BB033038CF /* LevelFaceView.swift in Sources */,
 				72D9D82C924C84CF4A53E95A /* MinimalFaceView.swift in Sources */,
 				DF4CE52D9B0C73251B1F440D /* MonthCalendarView.swift in Sources */,
 				8195F1D3D30A074D8FDB344F /* NumeralsFaceView.swift in Sources */,
-				75E859E459DA4972AE240913 /* PopoverView.swift in Sources */,
 				E0FC8EAE091E2776359DBBEE /* PulseFaceView.swift in Sources */,
 				1E21EA711DEAEA49F110C653 /* RingsFaceView.swift in Sources */,
 				6E05687BB1A50591DA3D778E /* SectorFaceView.swift in Sources */,
 				A5C88E290914C5388EB70317 /* SettingsFieldMath.swift in Sources */,
 				0124903F615A096B58A6609C /* SettingsStore.swift in Sources */,
-				F4755474D35447407D866DAF /* SettingsView.swift in Sources */,
 				4780E56E8411CAE443E14B0B /* SundialFaceView.swift in Sources */,
 				6CB69052689E995AD0C18E3A /* Theme.swift in Sources */,
 			);
