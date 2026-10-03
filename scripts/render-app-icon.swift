@@ -7,14 +7,19 @@
 // 그림은 말끔(minimal) 페이스를 그대로 키운 것이다 — 바깥에 진행 링, 안에 눈금과
 // 바늘. 메뉴바 아이콘·팝오버 시계와 같은 언어를 쓴다.
 //
-// 사용법: render-app-icon <palette.json> <출력 디렉터리>
+// 사용법: render-app-icon <palette.json> <출력 디렉터리> [--ios]
+//
+// --ios를 주면 판을 캔버스 끝까지 채운다. iOS는 시스템이 모서리를 깎으므로
+// 아이콘이 여백 없이 꽉 찬 사각형이어야 한다 — 맥처럼 둥근 판을 그려 넣으면
+// 둥근 판 바깥의 투명한 테두리가 그대로 보인다.
 import AppKit
 
 let args = CommandLine.arguments
-guard args.count == 3 else {
-    FileHandle.standardError.write("사용법: render-app-icon <palette.json> <출력 디렉터리>\n".data(using: .utf8)!)
+guard args.count == 3 || (args.count == 4 && args[3] == "--ios") else {
+    FileHandle.standardError.write("사용법: render-app-icon <palette.json> <출력 디렉터리> [--ios]\n".data(using: .utf8)!)
     exit(1)
 }
+let ios = args.count == 4
 let paletteURL = URL(fileURLWithPath: args[1])
 let outDir = URL(fileURLWithPath: args[2])
 
@@ -39,9 +44,9 @@ func color(_ token: String) -> NSColor {
 let side: CGFloat = 1024
 // macOS 아이콘은 1024 캔버스를 다 쓰지 않는다. 가장자리를 비워 다른 앱
 // 아이콘들과 시각적 크기를 맞춘다.
-let inset: CGFloat = 100
+let inset: CGFloat = ios ? 0 : 100
 let plate = NSRect(x: inset, y: inset, width: side - inset * 2, height: side - inset * 2)
-let corner = plate.width * 0.225
+let corner = ios ? 0 : plate.width * 0.225
 let center = CGPoint(x: side / 2, y: side / 2)
 
 /// 12시 방향 0도, 시계방향 증가. AppKit은 y축이 위로 향하므로 웹의

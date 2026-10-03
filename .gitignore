@@ -54,3 +54,6 @@ next-env.d.ts
 
 # CI가 번들을 조립하는 곳 (BUILD_DIR). 로컬은 캐시에 조립한다.
 /build/
+
+# Xcode 사용자별 상태
+xcuserdata/

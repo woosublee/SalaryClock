@@ -1,5 +1,7 @@
 import SwiftUI
+#if os(macOS)
 import ServiceManagement
+#endif
 import SalaryClockCore
 
 /// 지금 이 순간의 (연, 월) — 달력 모드가 처음 열릴 때 보여줄 달.
@@ -26,8 +28,10 @@ struct SettingsView: View {
     @State private var draft: SalaryClockCore.Settings = SettingsStore.shared.settings
     /// 승인 대기(.requiresApproval)도 켠 것으로 본다 — 사용자는 켜겠다고 했고,
     /// 남은 일은 시스템 설정에서 허용하는 것뿐이다. 그 사실은 아래 안내가 알린다.
+    #if os(macOS)
     @State private var launchAtLogin: Bool = Self.loginItemOn(SMAppService.mainApp.status)
     @State private var loginItemStatus: SMAppService.Status = SMAppService.mainApp.status
+    #endif
     // 공제율 직접 입력 섹션을 펼쳤는지 — 웹 SettingsPanel의 showAdvanced와 같다.
     @State private var showAdvanced = false
     /// 초기화가 두 번째 누름을 기다리는 중인지 — 웹 `resetArmed`와 같다.
@@ -43,12 +47,16 @@ struct SettingsView: View {
     /// 메뉴바 갱신 주기 입력칸의 원문. 숫자로 못 읽는 값도 그대로 담아 두고
     /// 빨갛게 보여줘야 하므로(다른 시각 입력칸과 같은 규칙) Double이 아니라
     /// String으로 갖는다.
+    #if os(macOS)
     @State private var intervalText = SettingsView.formatInterval(AppPreferences.shared.menuBarInterval)
+    #endif
     /// 업데이트 자동 확인. 값은 Sparkle이 자기 UserDefaults 키에 담으므로
     /// 저장 버튼을 기다리지 않고 토글하는 즉시 반영한다 — draft에 담지 않는
     /// 이유이기도 하다.
+    #if os(macOS)
     @State private var automaticDownloads = UpdaterController.shared.automaticallyDownloads
     @ObservedObject private var updater = UpdaterController.shared
+    #endif
     /// 창이 열린 시각. 웹 SettingsPanel의 `panelNow`와 같다 —
     /// `const [panelNow] = useState(now)`로 한 번 얼려 두고 창이 닫힐 때까지
     /// 그 값을 쓴다. 미리보기 페이스 열 개가 body가 다시 계산될 때마다 새 시각으로
@@ -85,6 +93,7 @@ struct SettingsView: View {
         let base = SettingsStore.isValid(draft) ? draft : SettingsStore.shared.settings
         return resolveShift(base, panelNow)
     }
+    #if os(macOS)
     private var intervalValue: Double? { Double(intervalText) }
 
     /// 위아래 버튼이 쓸 값. 입력칸은 문자열이라(숫자로 못 읽는 값도 그대로
@@ -102,6 +111,10 @@ struct SettingsView: View {
     private var isValid: Bool { SettingsStore.isValid(draft) && intervalValid }
 
     private static func formatInterval(_ v: Double) -> String { String(format: "%.1f", v) }
+    #else
+    /// iOS에는 메뉴바가 없으므로 갱신 주기 입력칸도 없다 — 공유 설정만 본다.
+    private var isValid: Bool { SettingsStore.isValid(draft) }
+    #endif
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -136,6 +149,7 @@ struct SettingsView: View {
                 TextField("", value: $draft.payAmount, format: .number)
                     .textFieldStyle(.roundedBorder)
                     .multilineTextAlignment(.trailing)
+                    .decimalKeyboard()
                     .font(.system(size: 18, weight: .semibold, design: .monospaced))
                     .padding(.trailing, 22)
                     .overlay(alignment: .trailing) {
@@ -183,6 +197,7 @@ struct SettingsView: View {
 
             workDaysSection
 
+            #if os(macOS)
             // 웹에 대응물이 없는 맥 전용 옵션 묶음. 라벨을 위에 얹지 않고
             // 한 줄에 붙여 세로 길이를 줄인다 — 위쪽 항목들과 달리 웹을 따라야
             // 할 배치가 없다.
@@ -233,6 +248,7 @@ struct SettingsView: View {
                 .foregroundStyle(theme.dim)
 
             updateSection
+            #endif
 
             if !isValid {
                 Text("설정값이 올바르지 않습니다")
@@ -249,11 +265,13 @@ struct SettingsView: View {
                 Button("닫기", action: onDone)
                 Button("저장") {
                     SettingsStore.shared.settings = draft
+                    #if os(macOS)
                     // isValid가 true일 때만 이 버튼이 눌리므로 intervalValue는
                     // 항상 유효한 값을 담고 있다 — if let은 안전망일 뿐이다.
                     if let interval = intervalValue {
                         AppPreferences.shared.menuBarInterval = interval
                     }
+                    #endif
                     onDone()
                 }
                 .disabled(!isValid)
@@ -261,7 +279,9 @@ struct SettingsView: View {
             }
         }
         .padding(20)
+        #if os(macOS)
         .frame(width: 340)
+        #endif
         .background(theme.background)
         // preferredColorScheme만으로는 하위 뷰의 @Environment(\.colorScheme)가
         // 바뀌지 않는다. MonthCalendarView는 그 키로 Theme을 만들므로, 심어주지
@@ -270,6 +290,7 @@ struct SettingsView: View {
         .preferredColorScheme(effectiveScheme)
     }
 
+    #if os(macOS)
     /// 맥 전용 항목. 웹에 대응물이 없다.
     ///
     /// 자동 확인은 초기화(resetAll)가 건드리지 않는다. 다른 항목과 달리
@@ -333,6 +354,7 @@ struct SettingsView: View {
         let build = info?["CFBundleVersion"] as? String ?? "?"
         return "\(short) (빌드 \(build))"
     }
+    #endif
 
     /// 첫 누름은 무장만 하고 3초 뒤 풀린다. 그 안에 다시 누르면 초기화한다.
     /// 되돌릴 수 없는 일이라 웹 SettingsPanel과 같이 두 번 누르게 한다.
@@ -350,6 +372,7 @@ struct SettingsView: View {
         resetAll()
     }
 
+    #if os(macOS)
     private static func loginItemOn(_ status: SMAppService.Status) -> Bool {
         status == .enabled || status == .requiresApproval
     }
@@ -358,6 +381,7 @@ struct SettingsView: View {
         loginItemStatus = SMAppService.mainApp.status
         launchAtLogin = Self.loginItemOn(loginItemStatus)
     }
+    #endif
 
     /// 설정을 기본값으로 되돌린다 — 웹 `resetSettings`에 대응한다.
     /// 패널은 연 채로 둔다. 웹도 같다.
@@ -367,12 +391,16 @@ struct SettingsView: View {
     /// 아니라 시스템 등록이지만, 이 창에서 켠 것이므로 같이 내린다.
     private func resetAll() {
         SettingsStore.shared.reset()
+        #if os(macOS)
         AppPreferences.shared.reset()
         try? SMAppService.mainApp.unregister()
+        #endif
 
         draft = SettingsStore.shared.settings
+        #if os(macOS)
         intervalText = Self.formatInterval(AppPreferences.shared.menuBarInterval)
         refreshLoginItemStatus()
+        #endif
         showAdvanced = false
         showCalendar = false
     }
@@ -408,6 +436,7 @@ struct SettingsView: View {
     private func timeField(_ value: Binding<String>) -> some View {
         TextField("HH:mm", text: value)
             .textFieldStyle(.roundedBorder)
+            .timeKeyboard()
             .frame(width: 70)
             .foregroundStyle(isValidHHmm(value.wrappedValue) ? theme.foreground : .red)
     }
@@ -474,6 +503,7 @@ struct SettingsView: View {
                         text: deductionRateBinding
                     )
                     .textFieldStyle(.roundedBorder)
+                    .decimalKeyboard()
                     .frame(width: 70)
                     Text("%").font(.system(size: 11)).foregroundStyle(theme.dim)
                 }
@@ -558,6 +588,7 @@ struct SettingsView: View {
     private var workDaysField: some View {
         TextField("", value: workDaysBinding, format: .number)
             .textFieldStyle(.roundedBorder)
+            .decimalKeyboard()
             .multilineTextAlignment(.trailing)
             .font(.system(size: 13, design: .monospaced))
             .padding(.trailing, 18)
@@ -617,5 +648,26 @@ struct SettingsView: View {
         .buttonStyle(.plain)
         .underline()
         .foregroundStyle(theme.dim)
+    }
+}
+
+/// iOS에서 숫자 칸을 누르면 숫자 키패드를 띄운다. 맥은 하드웨어 키보드라
+/// 아무 일도 하지 않는다 — 호출부마다 `#if`를 두지 않으려고 여기 모았다.
+private extension View {
+    func decimalKeyboard() -> some View {
+        #if os(iOS)
+        keyboardType(.decimalPad)
+        #else
+        self
+        #endif
+    }
+
+    /// "HH:mm"에는 콜론이 들어가므로 숫자 키패드로는 못 친다.
+    func timeKeyboard() -> some View {
+        #if os(iOS)
+        keyboardType(.numbersAndPunctuation)
+        #else
+        self
+        #endif
     }
 }

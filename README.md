@@ -111,6 +111,18 @@ npm run swift:test:core
 npm run swift:test:app
 ```
 
+iOS 앱은 `ios/SalaryClock.xcodeproj`입니다. 계산은 `macos/SalaryClockCore`를,
+시계 화면과 설정 화면은 `macos/SalaryClockApp`의 SwiftUI 파일을 그대로 가져다
+씁니다. 플랫폼마다 다른 부분(메뉴바, 자동 업데이트, 로그인 항목)은 `#if os(macOS)`로
+나눴습니다. Xcode에서 열어 실행하거나 아래처럼 빌드합니다. 실기기 설치와 App Store
+배포에는 Xcode의 Signing에서 개발 팀을 지정해야 합니다.
+
+```bash
+xcodebuild -project ios/SalaryClock.xcodeproj -scheme SalaryClock \
+  -destination 'generic/platform=iOS Simulator' build
+./scripts/generate-ios-icon.sh   # 팔레트가 바뀌었을 때 iOS 아이콘을 다시 그린다
+```
+
 버전을 올리고 태그를 푸시하면 GitHub Actions가 릴리스를 발행합니다. 아이콘은
 이미지가 아니라 코드로 그리며, 웹 파비콘은 `./scripts/generate-web-icons.sh`로
 다시 만듭니다.

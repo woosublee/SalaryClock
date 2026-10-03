@@ -18,7 +18,11 @@ final class TickModel {
 struct PopoverView: View {
     let model: TickModel
     var onSettings: () -> Void
-    var onQuit: () -> Void
+    /// 종료 버튼. iOS처럼 앱이 스스로 끝나지 않는 곳에서는 nil로 두어 버튼을 뺀다.
+    var onQuit: (() -> Void)? = nil
+    /// 팝오버(220pt 폭)를 기준으로 한 배율. 맥은 1이고, iOS는 화면 폭에 맞춰
+    /// 키운다 — scaleEffect로 늘리면 글자가 흐려지므로 치수 자체를 곱한다.
+    var scale: CGFloat = 1
 
     /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
     @Environment(\.colorScheme) private var systemScheme
@@ -41,7 +45,7 @@ struct PopoverView: View {
         // 콘텐츠 위에 띄운다 — 아래쪽 줄에 나란히 두지 않는다. 여기서도
         // ZStack으로 우측 상단에 얹는다.
         ZStack(alignment: .topTrailing) {
-            VStack(spacing: 12) {
+            VStack(spacing: 12 * scale) {
                 dateLine
 
                 // 페이스는 팝오버 폭(220)에서 좌우 여백 16씩을 뺀 만큼 꽉 채운다.
@@ -60,7 +64,7 @@ struct PopoverView: View {
                         shift: model.earnings.shift, theme: theme
                     )
                 }
-                .frame(width: 188, height: 188)
+                .frame(width: 188 * scale, height: 188 * scale)
 
                 if hidden {
                     // 쉬는 날과 가린 상태에서는 금액 대신 시각을 보여준다.
@@ -72,16 +76,16 @@ struct PopoverView: View {
 
                 status
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .padding(.horizontal, 16 * scale)
+            .padding(.bottom, 16 * scale)
             // 위쪽만 더 준다 — 우측 상단 아이콘 줄과 시계가 겹치지 않게.
-            .padding(.top, 36)
+            .padding(.top, 36 * scale)
 
             controls
-                .padding(.top, 8)
-                .padding(.trailing, 10)
+                .padding(.top, 8 * scale)
+                .padding(.trailing, 10 * scale)
         }
-        .frame(width: 220)
+        .frame(width: 220 * scale)
         .background(theme.background)
         // 두 줄이 서로 다른 일을 한다.
         //
@@ -102,14 +106,14 @@ struct PopoverView: View {
     @ViewBuilder private var dateLine: some View {
         if hidden {
             Text(formatDateKo(model.now))
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: 18 * scale, weight: .bold))
                 .foregroundStyle(theme.dateMinimal)
-                .frame(height: 26)
+                .frame(height: 26 * scale)
         } else {
             Text(formatDateKo(model.now))
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 11 * scale, weight: .medium))
                 .foregroundStyle(theme.dateNormal)
-                .frame(height: 26)
+                .frame(height: 26 * scale)
         }
     }
 
@@ -118,7 +122,7 @@ struct PopoverView: View {
     /// 아이콘이 220pt 폭 안에 들어간다는 것은 Task 10 리뷰에서 확인됐다.
     private var controls: some View {
         HStack(spacing: 2) {
-            IconButton(systemName: themeIconName, label: themeLabel, theme: theme, action: toggleTheme)
+            IconButton(systemName: themeIconName, label: themeLabel, theme: theme, scale: scale, action: toggleTheme)
             // 쉬는 날에는 가릴 금액이 없으므로 토글을 숨긴다 — 웹
             // app/page.tsx의 `{!dayOff && ...}`와 같다. 누른들 화면은 그대로인데
             // hideAmount만 몰래 뒤집혀 연휴가 끝난 뒤까지 금액이 가려진다.
@@ -128,11 +132,13 @@ struct PopoverView: View {
             if model.earnings.phase != .dayoff {
                 IconButton(
                     systemName: model.settings.hideAmount ? "eye.slash" : "eye",
-                    label: hideAmountLabel, theme: theme, action: toggleHideAmount
+                    label: hideAmountLabel, theme: theme, scale: scale, action: toggleHideAmount
                 )
             }
-            IconButton(systemName: "gearshape", label: "설정", theme: theme, action: onSettings)
-            IconButton(systemName: "power", label: "종료", theme: theme, action: onQuit)
+            IconButton(systemName: "gearshape", label: "설정", theme: theme, scale: scale, action: onSettings)
+            if let onQuit {
+                IconButton(systemName: "power", label: "종료", theme: theme, scale: scale, action: onQuit)
+            }
         }
     }
 
@@ -157,13 +163,13 @@ struct PopoverView: View {
     }
 
     private var amount: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 4 * scale) {
             HStack(spacing: 6) {
                 Text("오늘 벌어들인 금액")
-                    .font(.system(size: 11))
+                    .font(.system(size: 11 * scale))
                     .foregroundStyle(theme.secondary)
                 Text(model.earnings.isNet ? "실수령" : "세전")
-                    .font(.system(size: 10))
+                    .font(.system(size: 10 * scale))
                     .foregroundStyle(theme.dim)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
@@ -180,14 +186,14 @@ struct PopoverView: View {
                 Text(String(format: ".%d", Int((model.earnings.earned.truncatingRemainder(dividingBy: 1)) * 10)))
                     .foregroundStyle(theme.dim)
             }
-            .font(.system(size: 28, weight: .bold, design: .monospaced))
+            .font(.system(size: 28 * scale, weight: .bold, design: .monospaced))
             .monospacedDigit()
 
             Text(
                 model.earnings.perSecond > 0
                     ? "+\(formatPerSecond(model.earnings.perSecond)) / 초" : " "
             )
-            .font(.system(size: 11, design: .monospaced))
+            .font(.system(size: 11 * scale, design: .monospaced))
             .foregroundStyle(theme.perSecond)
         }
     }
@@ -197,25 +203,25 @@ struct PopoverView: View {
     /// 큰 숫자 자리에 시각, 초당 적립액 줄 자리에 라벨 없는 남은 시간
     /// (문구를 넣으면 "퇴근까지"처럼 가린 티가 나므로 숫자만 둔다).
     private var timeDisplay: some View {
-        VStack(spacing: 4) {
-            Text(" ").font(.system(size: 11))
+        VStack(spacing: 4 * scale) {
+            Text(" ").font(.system(size: 11 * scale))
 
             // 오전/오후를 숫자와 같은 크기로 쓰면 220pt 폭을 넘는다. 웹
             // TimeDisplay처럼 작게 떼어 붙이고 큰 숫자는 24시간제와 같은 폭을 둔다.
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 if let meridiem = clockParts.meridiem {
                     Text(meridiem)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 13 * scale, weight: .semibold))
                         .foregroundStyle(theme.secondary)
                 }
                 Text(clockParts.hms)
-                    .font(.system(size: 28, weight: .bold, design: .monospaced))
+                    .font(.system(size: 28 * scale, weight: .bold, design: .monospaced))
                     .monospacedDigit()
                     .foregroundStyle(theme.foreground)
             }
 
             Text(remainingTimeText)
-                .font(.system(size: 11, design: .monospaced))
+                .font(.system(size: 11 * scale, design: .monospaced))
                 .monospacedDigit()
                 .foregroundStyle(theme.dim)
         }
@@ -245,7 +251,7 @@ struct PopoverView: View {
         // 그대로 차지해야 팝오버가 들썩이지 않는다.
         if hidden {
             Text(" ")
-                .font(.system(size: 11, design: .monospaced))
+                .font(.system(size: 11 * scale, design: .monospaced))
         } else {
             let text: String = {
                 switch e.phase {
@@ -273,7 +279,7 @@ struct PopoverView: View {
                     Text(text).foregroundStyle(theme.secondary)
                 }
             }
-            .font(.system(size: 11, design: .monospaced))
+            .font(.system(size: 11 * scale, design: .monospaced))
             .monospacedDigit()
             // 실제로 쓰는 범위(남은 금액 6자리, ₩999,999까지)는 188pt 폭에
             // 그대로 들어간다 — minimumScaleFactor는 자연스러운 크기가
@@ -308,6 +314,7 @@ private struct IconButton: View {
     let systemName: String
     let label: String
     let theme: Theme
+    let scale: CGFloat
     let action: () -> Void
 
     @State private var isHovering = false
@@ -317,8 +324,8 @@ private struct IconButton: View {
             // 심볼 자체가 갖는 기본 접근성 라벨("gear" 등 영문)이 버튼의
             // 라벨과 겹치지 않도록 이미지는 장식으로 숨기고, 라벨은 버튼에만 둔다.
             Image(systemName: systemName)
-                .font(.system(size: 13, weight: .medium))
-                .frame(width: 22, height: 22)
+                .font(.system(size: 13 * scale, weight: .medium))
+                .frame(width: 22 * scale, height: 22 * scale)
                 // frame으로 22pt를 잡아도 히트 영역은 심볼이 그려진 만큼이다.
                 // 잡아둔 칸 전체를 과녁으로 쓴다.
                 .contentShape(Rectangle())
