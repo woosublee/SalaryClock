@@ -140,7 +140,7 @@ final class HolidayUpdater {
         } catch {
             // replaceItemAt이 도중에 실패하면 원본이 다른 곳(임시 위치)에 남아 있을 수
             // 있다 — 오류가 그 위치를 알려 주면 제자리로 돌려 다음 실행에도 읽히게 한다.
-            if let original = (error as NSError).userInfo[NSFileOriginalItemLocationKey] as? URL,
+            if let original = (error as NSError).userInfo["NSFileOriginalItemLocationKey"] as? URL,
                original.standardizedFileURL != directory.standardizedFileURL,
                !fileManager.fileExists(atPath: directory.path) {
                 try? fileManager.moveItem(at: original, to: directory)
