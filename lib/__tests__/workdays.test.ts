@@ -49,10 +49,11 @@ describe('workdaysInMonth — 공휴일까지 제외', () => {
 
 describe('workdaysInMonth — 주말과 겹친 공휴일', () => {
   it('토요일에 걸린 공휴일은 세지 않는다', () => {
-    // 2026-06-06 현충일은 토요일이라 평일이 줄지 않는다
+    // 2026-06-06 현충일은 토요일이라 세지 않는다. 6월에 남는 공휴일은
+    // 수요일인 6/3 지방선거일 하나뿐이다.
     const info = workdayInfo(on(2026, 6, 15))
-    expect(info.holidays).toBe(0)
-    expect(info.workdays).toBe(info.weekdays)
+    expect(info.holidays).toBe(1)
+    expect(info.workdays).toBe(info.weekdays - 1)
   })
 
   it('추석 연휴 중 토요일(9/26)은 세지 않아 9월 공휴일은 2일이다', () => {
