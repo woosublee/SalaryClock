@@ -1,0 +1,28 @@
+{
+  "coverageEndExclusive": "2028-01-01",
+  "coverageStart": "2026-01-01",
+  "files": [
+    {
+      "filename": "holidays-2026.json",
+      "sha256": "001de61aabdcf8e16b387e99f01fe984a6c996e111c768912a5ec4bc0b4c96db",
+      "year": 2026
+    },
+    {
+      "filename": "holidays-2027.json",
+      "sha256": "c6f055fccc9f6dd2e8faa598b7fb446d5f5ca5ab5f766c376a5e2d9bbfea4fa4",
+      "year": 2027
+    }
+  ],
+  "schemaVersion": 1,
+  "sourceURLs": [
+    "https://www.kasi.re.kr/kor/post/newsMaterial/32031",
+    "https://www.kasa.go.kr/prog/plcyBrf/brief/kor/sub01_01_04/view.do?plcyBrfNo=202",
+    "https://www.kasa.go.kr/prog/plcyBrf/brief/kor/sub01_01_04/view.do?plcyBrfNo=431",
+    "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=283311&efYd=20260511&chrClsCd=010202",
+    "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=285779&efYd=20260511&chrClsCd=010202",
+    "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=165523&efYd=20141230&chrClsCd=010202",
+    "https://www.nec.go.kr/",
+    "https://www.korea.kr/totalSearch.do"
+  ],
+  "verifiedAt": "2026-09-13"
+}

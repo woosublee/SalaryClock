@@ -1,4 +1,8 @@
+#if os(macOS)
 import AppKit
+#else
+import UIKit
+#endif
 import Foundation
 import SalaryClockCore
 
@@ -109,9 +113,16 @@ public final class SettingsStore: @unchecked Sendable {
     /// 해당한다. `NSAppearance.currentDrawing()`은 그리기 문맥 밖에서도 앱(없으면
     /// 시스템)의 실효 외형을 돌려주므로 앱이 뜨기 전에 불려도 안전하다.
     /// 웹이 못 읽을 때 밝은 쪽으로 보는 것처럼, 판정이 안 되면 `.light`로 둔다.
+    ///
+    /// iOS는 `UITraitCollection.current`가 같은 일을 한다 — 화면이 뜨기 전에는
+    /// 시스템 외형을 돌려준다.
     static func deviceTheme() -> ThemeMode {
+        #if os(macOS)
         let appearance = NSAppearance.currentDrawing()
         return appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .dark : .light
+        #else
+        return UITraitCollection.current.userInterfaceStyle == .dark ? .dark : .light
+        #endif
     }
 
     private static func save(_ s: Settings) {

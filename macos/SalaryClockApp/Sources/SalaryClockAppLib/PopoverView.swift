@@ -177,7 +177,7 @@ struct PopoverView: View {
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(formatWon(model.earnings.earned))
                     .foregroundStyle(theme.foreground)
-                Text(String(format: ".%d", Int((model.earnings.earned.truncatingRemainder(dividingBy: 1)) * 10)))
+                Text(earnedFraction(model.earnings.earned))
                     .foregroundStyle(theme.dim)
             }
             .font(.system(size: 28, weight: .bold, design: .monospaced))
@@ -222,20 +222,10 @@ struct PopoverView: View {
     }
 
     private var clockParts: (meridiem: String?, hms: String) {
-        let text = formatClockTime(model.now, hour12: model.settings.hour12)
-        guard let space = text.firstIndex(of: " ") else { return (nil, text) }
-        return (String(text[..<space]), String(text[text.index(after: space)...]))
+        splitClockTime(model.now, hour12: model.settings.hour12)
     }
 
-    private var remainingTimeText: String {
-        let e = model.earnings
-        switch e.phase {
-        case .before: return formatDuration(e.msUntilStart)
-        case .lunch: return formatDuration(e.msUntilLunchEnd)
-        case .working: return formatDuration(e.msUntilEnd)
-        case .after, .dayoff: return " "
-        }
-    }
+    private var remainingTimeText: String { remainingTime(model.earnings) }
 
     @ViewBuilder private var status: some View {
         let e = model.earnings
@@ -247,20 +237,7 @@ struct PopoverView: View {
             Text(" ")
                 .font(.system(size: 11, design: .monospaced))
         } else {
-            let text: String = {
-                switch e.phase {
-                case .before: return "출근까지 \(formatDuration(e.msUntilStart))"
-                // "· 재개까지"를 빼서 짧게 줄였다 — 웹 StatusLine도 같은 문구다.
-                case .lunch: return "점심시간 \(formatDuration(e.msUntilLunchEnd))"
-                // 종류(kind)는 SalaryClockCore가 정하고, 문구는 여기(UI)가 갖는다.
-                // 표는 웹 components/StatusLine.tsx의 AFTER_WORK_TEXT와 같다.
-                case .after: return afterWorkText(afterWorkKind(model.settings, model.now))
-                case .working: return "퇴근까지 \(formatDuration(e.msUntilEnd))"
-                // hidden이 이미 .dayoff를 걸러내므로 여기 오지 않는다 —
-                // switch를 다 채우기 위한 자리만 지킨다.
-                case .dayoff: return " "
-                }
-            }()
+            let text = statusText(e, model.settings, model.now)
 
             // HStack에 Text 두 개를 따로 두면 minimumScaleFactor가 각자
             // 따로 줄어들어(한쪽만 말줄임표가 남는 등) 어색해진다. Text를
@@ -286,18 +263,6 @@ struct PopoverView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.85)
         }
-    }
-}
-
-/// 퇴근 후 격려 문구. 종류(kind)는 SalaryClockCore.afterWorkKind가 정하고,
-/// 실제 한국어 문장은 여기(UI)가 갖는다 — 웹 components/StatusLine.tsx의
-/// AFTER_WORK_TEXT와 같은 표를 따른다.
-private func afterWorkText(_ kind: AfterWorkKind) -> String {
-    switch kind {
-    case .tomorrow: return "🌙 오늘 하루도 수고하셨어요"
-    case .restThisWeek: return "😌 오늘은 여기까지, 편히 쉬세요"
-    case .nextWeek: return "🎉 한 주 동안 수고하셨어요"
-    case .longBreak: return "🏖️ 즐거운 연휴 보내세요"
     }
 }
 

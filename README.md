@@ -111,6 +111,28 @@ npm run swift:test:core
 npm run swift:test:app
 ```
 
+iOS 앱은 `ios/SalaryClock.xcodeproj`입니다. 계산은 `macos/SalaryClockCore`를,
+시계 페이스·달력·화면 문구(`EarningsText.swift`)는 `macos/SalaryClockApp`의 SwiftUI
+파일을 그대로 가져다 씁니다. 메인 화면과 설정 화면만 `ios/SalaryClock/`에 iOS용으로
+따로 있습니다. Xcode에서 열어 실행하거나 아래처럼 빌드합니다. 실기기 설치와 App Store
+배포에는 Xcode의 Signing에서 개발 팀을 지정해야 합니다.
+
+iOS 앱은 공휴일을 앱 업데이트 없이 갱신합니다. 알람 앱과 같은 서명된 자료
+(`woosublee/kairos`의 `holiday-data/`)를 하루 한 번 받아, 서명과 파일 해시를 확인한 뒤
+그 자료가 다루는 해만 앱에 든 표 대신 씁니다. 해마다 관보가 나면 그 자료만 갱신하면
+됩니다(절차는 알람 앱 README의 "공휴일 자료 업데이트 방법"). 검증은
+`SalaryClockCore/HolidayData.swift`, 내려받기는 `ios/SalaryClock/HolidayUpdater.swift`에
+있습니다. 웹과 macOS 앱은 지금처럼 `lib/holidays.ts` 표를 씁니다.
+
+웹에는 App Store 제출용 [개인정보 처리방침](https://sc.vicals.com/privacy)과
+[지원](https://sc.vicals.com/support) 페이지가 있습니다.
+
+```bash
+xcodebuild -project ios/SalaryClock.xcodeproj -scheme SalaryClock \
+  -destination 'generic/platform=iOS Simulator' build
+./scripts/generate-ios-icon.sh   # 팔레트가 바뀌었을 때 iOS 아이콘을 다시 그린다
+```
+
 버전을 올리고 태그를 푸시하면 GitHub Actions가 릴리스를 발행합니다. 아이콘은
 이미지가 아니라 코드로 그리며, 웹 파비콘은 `./scripts/generate-web-icons.sh`로
 다시 만듭니다.

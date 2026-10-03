@@ -122,18 +122,36 @@ private let HOLIDAYS: [Int: Set<String>] = [
 ],
 ]
 
+/// 앱 밖에서 받은 확정 공휴일. 같은 해는 위 표 대신 이것을 쓴다.
+///
+/// iOS 앱은 App Store 심사를 거쳐야 표를 고칠 수 있어서, 서명된 공휴일 자료를
+/// 내려받아 여기 넣는다(HolidayData.swift). 해 단위로 통째로 바꾸므로, 받은
+/// 자료가 다루지 않는 해는 위 표가 그대로 쓰인다. 웹과 맥은 이 값을 건드리지
+/// 않으므로 골든 비교는 늘 위 표를 본다.
+nonisolated(unsafe) private var downloadedHolidays: [Int: Set<String>] = [:]
+private let downloadedHolidaysLock = NSLock()
+
+/// 내려받은 공휴일로 바꾼다. 빈 사전을 넣으면 앱에 든 표로 돌아간다.
+public func setDownloadedHolidays(_ table: [Int: Set<String>]) {
+    downloadedHolidaysLock.withLock { downloadedHolidays = table }
+}
+
+private func holidays(in year: Int) -> Set<String>? {
+    downloadedHolidaysLock.withLock { downloadedHolidays[year] } ?? HOLIDAYS[year]
+}
+
 public func hasHolidayData(_ year: Int) -> Bool {
-    HOLIDAYS[year] != nil
+    holidays(in: year) != nil
 }
 
 /// month는 0-based. 웹과 맞춘다.
 public func isHoliday(_ year: Int, _ month: Int, _ day: Int) -> Bool {
-    HOLIDAYS[year]?.contains(dateKey(year, month, day)) ?? false
+    holidays(in: year)?.contains(dateKey(year, month, day)) ?? false
 }
 
 /// 그 달의 평일에 걸린 공휴일. 주말과 겹친 것은 세지 않는다.
 public func weekdayHolidaysInMonth(_ year: Int, _ month: Int) -> [String] {
-    guard let days = HOLIDAYS[year] else { return [] }
+    guard let days = holidays(in: year) else { return [] }
     let prefix = String(format: "%04d-%02d-", year, month + 1)
     return days.filter { key in
         guard key.hasPrefix(prefix), let day = Int(key.suffix(2)) else { return false }

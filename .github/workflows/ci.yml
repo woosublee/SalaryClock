@@ -60,3 +60,10 @@ jobs:
           restore-keys: swiftpm-${{ runner.os }}-
       - run: swift test --package-path macos/SalaryClockCore
       - run: swift test --package-path macos/SalaryClockApp
+      # iOS 앱은 맥 앱의 SwiftUI 파일을 그대로 가져다 쓴다. 맥 쪽만 고치고
+      # #if os(macOS)를 빠뜨리면 여기서 깨진다. 서명 없이 시뮬레이터용으로만 빌드한다.
+      - name: iOS 앱 빌드
+        run: |
+          xcodebuild -project ios/SalaryClock.xcodeproj -scheme SalaryClock \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build -quiet
