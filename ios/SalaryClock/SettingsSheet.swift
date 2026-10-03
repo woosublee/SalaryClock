@@ -10,6 +10,8 @@ struct SettingsSheet: View {
 
     @State private var draft: SalaryClockCore.Settings = SettingsStore.shared.settings
     @State private var confirmReset = false
+    /// 숫자 키패드에는 리턴 키가 없다. 키보드 위 "완료" 버튼이 이 값을 비워 닫는다.
+    @FocusState private var focused: Bool
     /// 시트가 열린 시각. 미리보기 페이스가 body가 다시 계산될 때마다 새로
     /// 그려지지 않게 한 번 얼려 둔다 — 맥 SettingsView의 panelNow와 같다.
     @State private var panelNow = currentMillis()
@@ -37,7 +39,7 @@ struct SettingsSheet: View {
                 workDaysSection
                 resetSection
             }
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboard(.immediately)
             .navigationTitle("설정")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -51,6 +53,11 @@ struct SettingsSheet: View {
                     }
                     .fontWeight(.semibold)
                     .disabled(!isValid)
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("완료") { focused = false }
+                        .fontWeight(.semibold)
                 }
             }
         }
@@ -85,6 +92,7 @@ struct SettingsSheet: View {
             HStack {
                 TextField("금액", value: $draft.payAmount, format: .number)
                     .keyboardType(.numberPad)
+                    .focused($focused)
                     .multilineTextAlignment(.trailing)
                     .font(.system(size: 20, weight: .semibold, design: .monospaced))
                 Text("원").foregroundStyle(.secondary)
@@ -104,6 +112,7 @@ struct SettingsSheet: View {
                         text: deductionRateBinding
                     )
                     .keyboardType(.decimalPad)
+                    .focused($focused)
                     .multilineTextAlignment(.trailing)
                     Text("%").foregroundStyle(.secondary)
                 }
@@ -202,6 +211,7 @@ struct SettingsSheet: View {
                 Text("월 근무일수")
                 TextField("", value: workDaysBinding, format: .number)
                     .keyboardType(.decimalPad)
+                    .focused($focused)
                     .multilineTextAlignment(.trailing)
                     .monospacedDigit()
                 Text("일").foregroundStyle(.secondary)
