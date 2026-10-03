@@ -16,7 +16,6 @@
 		94B9CA799B5F870D58982EFE /* GrainFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B03CF9023119880E4B97BB /* GrainFaceView.swift */; };
 		2062098AB31BB7BB033038CF /* LevelFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5E95CBF7F197EC3A4FF1DC /* LevelFaceView.swift */; };
 		72D9D82C924C84CF4A53E95A /* MinimalFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A4E4287D05A59BE517958C /* MinimalFaceView.swift */; };
-		DF4CE52D9B0C73251B1F440D /* MonthCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0A8157C92E1D3D998F647D /* MonthCalendarView.swift */; };
 		8195F1D3D30A074D8FDB344F /* NumeralsFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E43832BEDD5D4EBC5E1337A /* NumeralsFaceView.swift */; };
 		E0FC8EAE091E2776359DBBEE /* PulseFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B69852C4B66E256D5160106C /* PulseFaceView.swift */; };
 		1E21EA711DEAEA49F110C653 /* RingsFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9328E6FF447D75B3111031C5 /* RingsFaceView.swift */; };
@@ -40,7 +39,6 @@
 		F7B03CF9023119880E4B97BB /* GrainFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrainFaceView.swift; sourceTree = "<group>"; };
 		7F5E95CBF7F197EC3A4FF1DC /* LevelFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelFaceView.swift; sourceTree = "<group>"; };
 		07A4E4287D05A59BE517958C /* MinimalFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalFaceView.swift; sourceTree = "<group>"; };
-		2F0A8157C92E1D3D998F647D /* MonthCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthCalendarView.swift; sourceTree = "<group>"; };
 		5E43832BEDD5D4EBC5E1337A /* NumeralsFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumeralsFaceView.swift; sourceTree = "<group>"; };
 		B69852C4B66E256D5160106C /* PulseFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseFaceView.swift; sourceTree = "<group>"; };
 		9328E6FF447D75B3111031C5 /* RingsFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingsFaceView.swift; sourceTree = "<group>"; };
@@ -98,7 +96,6 @@
 				F7B03CF9023119880E4B97BB /* GrainFaceView.swift */,
 				7F5E95CBF7F197EC3A4FF1DC /* LevelFaceView.swift */,
 				07A4E4287D05A59BE517958C /* MinimalFaceView.swift */,
-				2F0A8157C92E1D3D998F647D /* MonthCalendarView.swift */,
 				5E43832BEDD5D4EBC5E1337A /* NumeralsFaceView.swift */,
 				B69852C4B66E256D5160106C /* PulseFaceView.swift */,
 				9328E6FF447D75B3111031C5 /* RingsFaceView.swift */,
@@ -200,7 +197,6 @@
 				94B9CA799B5F870D58982EFE /* GrainFaceView.swift in Sources */,
 				2062098AB31BB7BB033038CF /* LevelFaceView.swift in Sources */,
 				72D9D82C924C84CF4A53E95A /* MinimalFaceView.swift in Sources */,
-				DF4CE52D9B0C73251B1F440D /* MonthCalendarView.swift in Sources */,
 				8195F1D3D30A074D8FDB344F /* NumeralsFaceView.swift in Sources */,
 				E0FC8EAE091E2776359DBBEE /* PulseFaceView.swift in Sources */,
 				1E21EA711DEAEA49F110C653 /* RingsFaceView.swift in Sources */,

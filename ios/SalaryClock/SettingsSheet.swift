@@ -277,53 +277,6 @@ struct SettingsSheet: View {
     }
 }
 
-/// 근무일을 날짜별로 찍는 화면. 달을 넘겨 다음 달 연차도 미리 찍을 수 있다.
-private struct WorkdayCalendarPage: View {
-    @Binding var draft: SalaryClockCore.Settings
-    @State private var year = thisMonth().year
-    @State private var month = thisMonth().month
-
-    var body: some View {
-        Form {
-            Section {
-                MonthCalendarView(
-                    year: year,
-                    month: month,
-                    overrides: draft.dayOverrides,
-                    onToggle: { date in
-                        draft.workDaysMode = .calendar
-                        draft.dayOverrides = toggleOverride(draft.dayOverrides, date)
-                    },
-                    onClearMonth: {
-                        draft.dayOverrides = clearMonthOverrides(draft.dayOverrides, year, month)
-                    },
-                    onStepMonth: { delta in
-                        let next = stepMonth(year, month, delta)
-                        year = next.year
-                        month = next.month
-                    },
-                    onToday: (year, month) == thisMonth() ? nil : {
-                        (year, month) = thisMonth()
-                    }
-                )
-                .padding(.vertical, 8)
-            } footer: {
-                Text("날짜를 눌러 근무일과 쉬는 날을 바꿉니다. 저장을 눌러야 반영됩니다.")
-            }
-        }
-        .navigationTitle("근무일 달력")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-/// 지금 이 순간의 (연, 0-based 월). 맥 SettingsView의 calendarComponents와 같은 규칙.
-private func thisMonth() -> (year: Int, month: Int) {
-    var cal = Calendar(identifier: .gregorian)
-    cal.timeZone = TimeZone.current
-    let now = Date()
-    return (cal.component(.year, from: now), cal.component(.month, from: now) - 1)
-}
-
 private func currentMillis() -> Int {
     Int((Date().timeIntervalSince1970 * 1000).rounded())
 }
