@@ -12,6 +12,9 @@ struct SettingsSheet: View {
     @State private var confirmReset = false
     /// 숫자 키패드에는 리턴 키가 없다. 키보드 위 "완료" 버튼이 이 값을 비워 닫는다.
     @FocusState private var focused: Bool
+    /// 공제율 입력칸의 원문. 값에서 매번 다시 만들면 "2"를 치는 순간 "2.0"으로
+    /// 바뀌어 이어 칠 수 없다 — 입력 중에는 친 그대로 두고, 칸을 떠날 때만 맞춘다.
+    @State private var rateText = ""
     /// 시트가 열린 시각. 미리보기 페이스가 body가 다시 계산될 때마다 새로
     /// 그려지지 않게 한 번 얼려 둔다 — 맥 SettingsView의 panelNow와 같다.
     @State private var panelNow = currentMillis()
@@ -49,7 +52,11 @@ struct SettingsSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("저장") {
-                        SettingsStore.shared.settings = draft
+                        var s = draft
+                        // 아직 저장한 적이 없으면 지금 보이는 외형(기기 설정)을 심는다 —
+                        // 앱이 뜰 때 읽은 외형이 남아 있으면 저장 순간 화면이 뒤집힌다.
+                        if !SettingsStore.shared.hasStored { s.theme = effectiveScheme == .dark ? .dark : .light }
+                        SettingsStore.shared.settings = s
                         dismiss()
                     }
                     .fontWeight(.semibold)
@@ -64,6 +71,11 @@ struct SettingsSheet: View {
         }
         .environment(\.colorScheme, effectiveScheme)
         .preferredColorScheme(effectiveScheme)
+        .onAppear { rateText = deductionRateText(draft.deductionRate) }
+        // 칸을 떠나면 저장될 값의 모양("2.50" → "2.5")으로 맞춘다.
+        .onChange(of: focused) { _, isFocused in
+            if !isFocused { rateText = deductionRateText(draft.deductionRate) }
+        }
     }
 
     // MARK: - 시계
@@ -110,8 +122,15 @@ struct SettingsSheet: View {
                     Text("직접 입력")
                     TextField(
                         String(format: "%.1f", estimatedDeductions.rate * 100),
-                        text: deductionRateBinding
+                        text: $rateText
                     )
+                    .onChange(of: rateText) { _, text in
+                        switch parseDeductionRateInput(text) {
+                        case .useEstimate: draft.deductionRate = nil
+                        case .rate(let r): draft.deductionRate = r
+                        case .ignore: break
+                        }
+                    }
                     .keyboardType(.decimalPad)
                     .focused($focused)
                     .multilineTextAlignment(.trailing)
@@ -138,20 +157,6 @@ struct SettingsSheet: View {
 
     private var estimatedDeductions: Deductions { estimateDeductions(previewGross) }
     private var effectiveRate: Double { draft.deductionRate ?? estimatedDeductions.rate }
-
-    /// 비우면 nil(추정치), 숫자를 넣으면 그 값 — 맥 SettingsView와 같은 해석.
-    private var deductionRateBinding: Binding<String> {
-        Binding(
-            get: { deductionRateText(draft.deductionRate) },
-            set: { newValue in
-                switch parseDeductionRateInput(newValue) {
-                case .useEstimate: draft.deductionRate = nil
-                case .rate(let r): draft.deductionRate = r
-                case .ignore: break
-                }
-            }
-        )
-    }
 
     // MARK: - 근무 시간
 
@@ -237,6 +242,9 @@ struct SettingsSheet: View {
         Binding(
             get: { effectiveWorkDays(draft, panelNow) },
             set: { newValue in
+                // 칸을 눌렀다 떠나기만 해도 같은 값이 다시 들어온다. 그때 manual로
+                // 넘어가면 근무일수가 더는 달을 따라가지 않는다.
+                guard newValue != effectiveWorkDays(draft, panelNow) else { return }
                 draft.workDaysMode = .manual
                 draft.workDaysPerMonth = newValue
             }
@@ -267,6 +275,7 @@ struct SettingsSheet: View {
                         // 기기 설정을 따라가게 된다. 시트는 연 채로 둔다.
                         SettingsStore.shared.reset()
                         draft = SettingsStore.shared.settings
+                        rateText = deductionRateText(draft.deductionRate)
                     }
                 }
         } footer: {

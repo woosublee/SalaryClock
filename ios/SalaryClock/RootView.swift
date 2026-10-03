@@ -129,6 +129,10 @@ struct RootView: View {
     private func toggleHideAmount() {
         var s = model.settings
         s.hideAmount.toggle()
+        // 아직 저장한 적이 없으면 화면은 기기 외형을 따르고 있다. settings.theme에는
+        // 앱이 뜰 때 읽은 외형이 남아 있어(그 사이 기기가 다크로 바뀌었을 수 있다)
+        // 그대로 저장하면 화면이 갑자기 뒤집혀 고정된다. 지금 보이는 외형을 심는다.
+        if !SettingsStore.shared.hasStored { s.theme = effectiveScheme == .dark ? .dark : .light }
         SettingsStore.shared.settings = s
         model.tick()
     }
