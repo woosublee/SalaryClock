@@ -28,6 +28,7 @@ struct RootView: View {
     @State private var showSettings = false
     /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
     @Environment(\.colorScheme) private var systemScheme
+    @Environment(\.scenePhase) private var scenePhase
 
     /// 웹 `loadSettings`와 같은 세 상태 규칙: 저장된 값이 없으면 기기 설정을
     /// 따르고, 한 번이라도 저장했으면 그 값에 고정한다.
@@ -81,6 +82,10 @@ struct RootView: View {
         .preferredColorScheme(effectiveScheme)
         // 화면에 있는 동안만 돈다. 앱이 백그라운드로 가면 iOS가 멈추고, 돌아오면
         // 매 tick이 지금 시각으로 다시 계산하므로 따로 맞출 것이 없다.
+        // 켜질 때와 앞으로 돌아올 때 공휴일 자료를 확인한다(하루 한 번).
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            if phase == .active { Task { await HolidayUpdater.shared.check() } }
+        }
         .task {
             while !Task.isCancelled {
                 model.tick()

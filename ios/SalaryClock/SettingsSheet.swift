@@ -37,6 +37,7 @@ struct SettingsSheet: View {
                 hoursSection
                 lunchSection
                 workDaysSection
+                HolidayDataSection()
                 resetSection
             }
             .scrollDismissesKeyboard(.immediately)
@@ -273,6 +274,40 @@ struct SettingsSheet: View {
                 Text("설정값이 올바르지 않습니다. 퇴근이 출근보다 늦고, 점심시간이 근무 시간 안에 있어야 합니다.")
                     .foregroundStyle(.red)
             }
+        }
+    }
+}
+
+/// 공휴일 자료가 어디까지 들어 있는지 보여주고, 바로 확인할 수 있게 한다.
+private struct HolidayDataSection: View {
+    @State private var updater = HolidayUpdater.shared
+    @State private var message: String?
+
+    var body: some View {
+        Section {
+            LabeledContent("공휴일 자료", value: summary)
+            Button(updater.isChecking ? "확인 중…" : "지금 확인") {
+                Task { message = describe(await updater.check(force: true)) }
+            }
+            .disabled(updater.isChecking)
+        } header: {
+            Text("공휴일")
+        } footer: {
+            Text(message ?? "확정된 공휴일이 나오면 앱 업데이트 없이 하루 한 번 받아옵니다. 받는 자료에는 개인정보가 담기지 않습니다.")
+        }
+    }
+
+    private var summary: String {
+        guard let m = updater.active else { return "앱에 포함된 자료" }
+        let lastYear = (Int(m.coverageEndExclusive.prefix(4)) ?? 1) - 1
+        return "\(lastYear)년까지 · \(m.verifiedAt) 확인"
+    }
+
+    private func describe(_ result: HolidayUpdater.Result) -> String {
+        switch result {
+        case .updated: return "새 공휴일 자료로 바꿨어요."
+        case .upToDate, .skipped: return "이미 최신 자료예요."
+        case .failed(let why): return "\(why). 지금 자료를 그대로 씁니다."
         }
     }
 }

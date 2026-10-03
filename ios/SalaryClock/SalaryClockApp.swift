@@ -5,6 +5,11 @@ import SwiftUI
 /// project.pbxproj가 macos/SalaryClockApp의 파일을 직접 가리킨다.
 @main
 struct SalaryClockApp: App {
+    init() {
+        // 첫 화면이 그려지기 전에 전에 받아 둔 공휴일 자료를 올려 둔다.
+        _ = HolidayUpdater.shared
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
