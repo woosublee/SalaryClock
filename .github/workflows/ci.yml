@@ -67,3 +67,10 @@ jobs:
           xcodebuild -project ios/SalaryClock.xcodeproj -scheme SalaryClock \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO build -quiet
+      # Mac App Store용 타깃도 같은 소스를 쓰되 APP_STORE를 켜고 Sparkle 없이
+      # 빌드한다. Sparkle을 부르는 코드를 #if !APP_STORE 밖에 두면 여기서 깨진다.
+      - name: Mac App Store 앱 빌드
+        run: |
+          xcodebuild -project ios/SalaryClock.xcodeproj -scheme SalaryClockMac \
+            -destination 'generic/platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO build -quiet

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Mac App Store는 샌드박스를 요구한다. 이 앱은 설정을 UserDefaults에만
+         담고 네트워크도 파일도 쓰지 않으므로 더 열어 줄 권한이 없다.
+         로그인 시 실행(SMAppService)은 샌드박스 안에서도 그대로 된다.
+
+         GitHub로 내는 DMG 빌드(macos/SalaryClock.entitlements)와 따로 둔다 —
+         그쪽은 샌드박스 밖에서 Sparkle이 앱을 갈아 끼워야 한다. -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+</dict>
+</plist>

@@ -45,9 +45,9 @@ export default function PrivacyPage() {
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>웹: 웹사이트를 제공하는 호스팅 업체</li>
-          <li>macOS 앱: 새 버전을 확인할 때 접속하는 GitHub</li>
+          <li>macOS 앱(GitHub에서 내려받은 경우): 새 버전을 확인할 때 접속하는 GitHub</li>
           <li>iOS 앱: 하루 한 번 공휴일 자료를 받아올 때 접속하는 GitHub</li>
-          <li>iOS 앱: 앱 설치·업데이트를 제공하는 Apple App Store</li>
+          <li>iOS 앱과 App Store에서 받은 macOS 앱: 앱 설치·업데이트를 제공하는 Apple App Store</li>
         </ul>
         <p>
           공휴일 자료는 누구에게나 같은 공개 파일을 내려받는 것이며, 요청에는 쿠키나 기기

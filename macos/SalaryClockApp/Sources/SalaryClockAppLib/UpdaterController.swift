@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Foundation
+#if !APP_STORE
 import Sparkle
 
 /// Sparkle 업데이터를 감싼다.
@@ -90,4 +91,30 @@ final class UpdaterController: ObservableObject {
     }
 }
 
+#else
 
+/// Mac App Store 빌드의 업데이터. 하는 일이 없다.
+///
+/// App Store 앱은 스스로를 고쳐 쓸 수 없다 — 업데이트는 App Store가 맡고,
+/// 앱 안에 다른 업데이트 경로가 있으면 심사에서 반려된다. 그래서 Xcode의
+/// macOS 타깃(ios/SalaryClock.xcodeproj)은 Sparkle을 링크하지 않고
+/// `APP_STORE`를 켜서 이쪽을 쓴다. 겉모양은 Sparkle 쪽과 같게 둬서
+/// 부르는 곳(AppDelegate, SettingsView)이 빌드마다 갈라지지 않게 한다.
+@MainActor
+final class UpdaterController: ObservableObject {
+    static let shared = UpdaterController()
+
+    @Published private(set) var canCheck = false
+    @Published private(set) var lastCheck: Date?
+    var isAvailable: Bool { false }
+    var automaticallyDownloads: Bool {
+        get { false }
+        set {}
+    }
+
+    private init() {}
+
+    func checkForUpdates() {}
+}
+
+#endif

@@ -26,6 +26,7 @@
 		6CB69052689E995AD0C18E3A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0EAB7AAB7B13A3E62427730 /* Theme.swift */; };
 		19B3A46B0D0BEEF689A5FEE1 /* SalaryClockCore in Frameworks */ = {isa = PBXBuildFile; productRef = 18685E8F78C101C84B529A5E /* SalaryClockCore */; };
 		5CD725048393CDDACDB69DA9 /* EarningsText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29FF44D267FB8C1C1FF106E5 /* EarningsText.swift */; };
+		012ECE2316244DADB28A849F /* SalaryClockCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8454DA46ED8C41E2AD25C546 /* SalaryClockCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,10 +49,13 @@
 		9A1683F03E7C7C81FC39AA01 /* SundialFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SundialFaceView.swift; sourceTree = "<group>"; };
 		A0EAB7AAB7B13A3E62427730 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		29FF44D267FB8C1C1FF106E5 /* EarningsText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarningsText.swift; sourceTree = "<group>"; };
+		17F939069E6F4E679DA2E3EE /* SalaryClock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SalaryClock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		74C61EEF9C048939045A3EDA /* SalaryClock */ = {isa = PBXFileSystemSynchronizedRootGroup; path = SalaryClock; sourceTree = "<group>"; };
+		E455291DCD69408180ED87C1 /* SalaryClockMac */ = {isa = PBXFileSystemSynchronizedRootGroup; path = SalaryClockMac; sourceTree = "<group>"; };
+		7F5D401217ED4F11A4D16ED8 /* SharedMac */ = {isa = PBXFileSystemSynchronizedRootGroup; name = SharedMac; path = ../macos/SalaryClockApp/Sources/SalaryClockAppLib; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +67,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		41DB113BA51F4E16AB8176C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				012ECE2316244DADB28A849F /* SalaryClockCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -71,6 +83,8 @@
 			children = (
 				74C61EEF9C048939045A3EDA /* SalaryClock */,
 				429461E971936A1CC87DA17D /* Shared */,
+				E455291DCD69408180ED87C1 /* SalaryClockMac */,
+				7F5D401217ED4F11A4D16ED8 /* SharedMac */,
 				86024CAD1E83101D97359D73 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,6 +93,7 @@
 			isa = PBXGroup;
 			children = (
 				7F6D01D6546BCD07518D8398 /* SalaryClock.app */,
+				17F939069E6F4E679DA2E3EE /* SalaryClock.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -135,6 +150,30 @@
 			productReference = 7F6D01D6546BCD07518D8398 /* SalaryClock.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C2E126D7A0984E2690A168A5 /* SalaryClockMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B2708323084D47419B9E9873 /* Build configuration list for PBXNativeTarget "SalaryClockMac" */;
+			buildPhases = (
+				10FB1FC029D047DC91203559 /* Sources */,
+				41DB113BA51F4E16AB8176C2 /* Frameworks */,
+				17AFCD61764B461CA14C1CBD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E455291DCD69408180ED87C1 /* SalaryClockMac */,
+				7F5D401217ED4F11A4D16ED8 /* SharedMac */,
+			);
+			name = SalaryClockMac;
+			packageProductDependencies = (
+				8454DA46ED8C41E2AD25C546 /* SalaryClockCore */,
+			);
+			productName = SalaryClockMac;
+			productReference = 17F939069E6F4E679DA2E3EE /* SalaryClock.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -146,6 +185,9 @@
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					42AEFBAE01D2DFD981F7DA7D = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					C2E126D7A0984E2690A168A5 = {
 						CreatedOnToolsVersion = 27.0;
 					};
 				};
@@ -168,12 +210,20 @@
 			projectRoot = "";
 			targets = (
 				42AEFBAE01D2DFD981F7DA7D /* SalaryClock */,
+				C2E126D7A0984E2690A168A5 /* SalaryClockMac */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		55B558C7EF820E6E00E5993B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		17AFCD61764B461CA14C1CBD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -205,6 +255,13 @@
 				0124903F615A096B58A6609C /* SettingsStore.swift in Sources */,
 				4780E56E8411CAE443E14B0B /* SundialFaceView.swift in Sources */,
 				6CB69052689E995AD0C18E3A /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		10FB1FC029D047DC91203559 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,8 +319,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				CURRENT_PROJECT_VERSION = 14;
+				DEVELOPMENT_TEAM = 2L6ZW98RCP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SalaryClock;
@@ -276,7 +333,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.woosublee.salaryclock;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -291,8 +348,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				CURRENT_PROJECT_VERSION = 14;
+				DEVELOPMENT_TEAM = 2L6ZW98RCP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = SalaryClock;
@@ -305,13 +362,73 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.woosublee.salaryclock;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		331BBA75B1554DDF9BBBFD0B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SalaryClockMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 14;
+				DEVELOPMENT_TEAM = 2L6ZW98RCP;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SalaryClock;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.2.1;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.woosublee.salaryclock;
+				PRODUCT_NAME = SalaryClock;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG APP_STORE $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		1D26FE76133046A388377973 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SalaryClockMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 14;
+				DEVELOPMENT_TEAM = 2L6ZW98RCP;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SalaryClock;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.2.1;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.woosublee.salaryclock;
+				PRODUCT_NAME = SalaryClock;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "APP_STORE $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
 		};
@@ -336,6 +453,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		B2708323084D47419B9E9873 /* Build configuration list for PBXNativeTarget "SalaryClockMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				331BBA75B1554DDF9BBBFD0B /* Debug */,
+				1D26FE76133046A388377973 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -347,6 +473,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		18685E8F78C101C84B529A5E /* SalaryClockCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SalaryClockCore;
+		};
+		8454DA46ED8C41E2AD25C546 /* SalaryClockCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SalaryClockCore;
 		};
