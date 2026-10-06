@@ -21,8 +21,8 @@ export default function SupportPage() {
             GitHub 이슈
           </a>
           에 남겨 주세요. 사용 중인 기기(아이폰·Mac·브라우저)와 앱 버전을 함께 적어 주시면 빨리
-          확인할 수 있습니다. iOS 앱 버전은 아이폰 설정 › 일반 › iPhone 저장 공간 › SalaryClock에서
-          볼 수 있습니다.
+          확인할 수 있습니다. iOS 앱 버전은 아이폰 설정 › 일반 › iPhone 저장 공간 › SalaryClock에서,
+          Mac 앱 버전은 SalaryClock 설정 창 맨 아래에서 볼 수 있습니다.
         </p>
       </DocSection>
 
