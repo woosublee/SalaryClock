@@ -21,7 +21,7 @@
     "notes": "No account or login is required.\n\nSalaryClock shows how much the user has earned so far today, updated every second, based on their salary and working hours. Open Settings with the gear icon (on macOS, click the menu bar item first to open the popover) to enter an annual/monthly/hourly pay and working hours.\n\nThe amount only increases during working hours (default 09:00-18:00 KST, weekdays, excluding Korean public holidays). Outside those hours the app shows \"off work\" or \"day off\" - this is expected.\n\nmacOS: this is a menu bar app (LSUIElement). It has no Dock icon or main window; look for the clock and amount in the menu bar after launch.\n\nAll data stays on device. The iOS app downloads a public holiday table (JSON) from GitHub once a day; no user data is sent."
   },
   "screenshots": {
-    "APP_IPHONE_67": "appstore/screenshots/iphone",
+    "APP_IPHONE_61": "appstore/screenshots/iphone",
     "APP_DESKTOP": "appstore/screenshots/mac"
   }
 }

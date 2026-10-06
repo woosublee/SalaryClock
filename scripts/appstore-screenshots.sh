@@ -3,8 +3,10 @@
 #
 # 사용법: appstore-screenshots.sh [출력 디렉터리]   (기본: appstore/screenshots/iphone)
 #
-# 6.9인치(iPhone 17 Pro Max, 1320×2868) 한 벌만 찍는다. App Store Connect는
-# 가장 큰 화면의 스크린샷을 작은 기기에도 줄여 쓴다.
+# 6.3인치(iPhone 17 Pro, 1206×2622) 한 벌만 찍는다. 2026년 App Store Connect는
+# Dynamic Island 중형 디스플레이(1206×2622, 1179×2556)를 기준 크기로 받고, 다른
+# 기기에는 이것을 줄이거나 늘려 쓴다. 6.9인치(1320×2868)로 올리면 크기가 맞지
+# 않는다며 거부한다.
 #
 # 금액은 지금 시각으로 계산되므로 근무 시간(평일 9~18시, 점심 제외)에 돌려야
 # 금액이 올라가는 화면이 찍힌다. 그 밖의 시간에 돌리면 "퇴근" 화면이 나온다.
@@ -12,8 +14,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="${1:-$ROOT/appstore/screenshots/iphone}"
-DEVICE_NAME="SalaryClock Screenshots"
-DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max"
+DEVICE_NAME="SalaryClock Screenshots 6.3"
+DEVICE_TYPE="com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro"
 BUNDLE_ID="dev.woosublee.salaryclock"
 DERIVED="$HOME/Library/Caches/salaryclock/screenshots-dd"
 

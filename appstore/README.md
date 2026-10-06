@@ -52,10 +52,21 @@ DMG 릴리스와 같다. App Store Connect는 같은 빌드 번호를 두 번 �
 
 ## 스크린샷
 
-- **iPhone (6.9인치, 1320×2868)**: `./scripts/appstore-screenshots.sh`가
-  시뮬레이터에서 찍어 `screenshots/iphone/`에 둔다. 금액은 지금 시각으로 계산되므로
-  평일 근무 시간(9~18시, 점심 제외)에 돌려야 금액이 올라가는 화면이 나온다.
-- **Mac (16:10 — 2880×1800, 2560×1600, 1440×900, 1280×800 중 하나)**: 메뉴바 앱이라
-  자동으로 찍지 않는다. 바탕화면을 정리하고 메뉴바 항목을 눌러 팝오버를 연 뒤
-  ⌘⇧3으로 화면 전체를 찍는다. 레티나 맥이면 2880×1800 등 그대로 올릴 수 있는
-  크기로 나온다. 설정 창을 연 화면도 한 장 있으면 좋다.
+둘 다 평일 근무 시간(9~18시, 점심 제외)에 돌려야 금액이 올라가는 화면이 나온다.
+
+- **iPhone (6.3인치, 1206×2622)**: `./scripts/appstore-screenshots.sh` → `screenshots/iphone/`.
+  App Store Connect가 Dynamic Island 중형 디스플레이를 기준 크기로 받는다(6.9인치는
+  거부). 메인·근무일 달력·설정·어두운 화면 순. 달력과 설정은 개발 빌드만 읽는
+  `-screenshot` 실행 인자로 연 채 찍는다(`ios/SalaryClock/ScreenshotScene.swift`).
+- **Mac (2880×1800)**: `./scripts/appstore-screenshots-mac.sh` → `screenshots/mac/`.
+  화면을 캡처하지 않는다 — App Store 타깃 개발 빌드가 팝오버·설정 창을 PNG로 그려
+  내고(`AppDelegate`의 `-screenshotOut`), `compose-mac-screenshot.swift`가 메뉴바와
+  바탕 위에 놓는다. 화면 녹화 권한이 필요 없고 바탕화면이 섞이지 않는다.
+
+## 등록 정보 반영
+
+`appstore/metadata.json`이 기준이다. `node scripts/appstore-metadata.mjs [--screenshots]`가
+App Store Connect API로 반영한다 — 단, API 키에 **앱 관리(App Manager)** 권한이 있어야
+한다. 1.0.0 때 쓴 키는 "제품 개발" 권한이라 문구를 고칠 수 없어(403) 이 스크립트를
+끝까지 돌려 보지 못했고(스크린샷 표시 종류 `APP_IPHONE_61`도 아직 확인 전),
+1.0.0의 등록 정보는 웹 화면에서 같은 값으로 채웠다.
