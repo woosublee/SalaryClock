@@ -36,7 +36,8 @@ APP="$BUILD_DIR/SalaryClock.app"
 # 신원 이름은 release-common.sh 한 곳에서 정한다.
 source "$ROOT/scripts/release-common.sh"
 IDENTITY="$RELEASE_IDENTITY"
-if ! security find-identity -v -p codesigning | grep -Fq "\"$IDENTITY\""; then
+# find-identity는 한 줄에 "지문 "이름""을 찍으므로 지문이든 이름이든 그 줄에서 찾는다.
+if ! security find-identity -v -p codesigning | grep -Fq "$IDENTITY"; then
   echo "코드 서명 신원이 없다: $IDENTITY" >&2
   echo "Xcode > Settings > Accounts > Manage Certificates에서 Developer ID Application을 만들 것." >&2
   exit 1

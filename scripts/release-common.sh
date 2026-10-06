@@ -14,7 +14,13 @@ RELEASE_SPARKLE_ACCOUNT="$RELEASE_BUNDLE_ID.sparkle.ed25519"
 # 서명하고 공증까지 받아야 한다. 인증서는 Xcode > Settings > Accounts >
 # Manage Certificates에서 "Developer ID Application"으로 만든다.
 RELEASE_TEAM_ID="2L6ZW98RCP"
-RELEASE_IDENTITY="${CODESIGN_IDENTITY:-Developer ID Application: Woosub Lee ($RELEASE_TEAM_ID)}"
+#
+# 이름이 아니라 인증서 지문(SHA-1)으로 고른다. 같은 이름("Developer ID Application:
+# Woosub Lee (2L6ZW98RCP)")의 인증서가 키체인에 여럿 있으면 codesign이 어느 것인지
+# 모호하다며 멈춘다 — 인증서를 새로 받을 때마다 그렇게 된다. 지금 것은 G2 중간
+# 인증서 아래에서 발급된 것으로 2031-09-17까지 쓴다. 바꾸면 이 값과 CI 시크릿
+# (SIGNING_CERTIFICATE_BASE64·_PASSWORD)을 같이 바꾼다.
+RELEASE_IDENTITY="${CODESIGN_IDENTITY:-3AEDD0B6ED90FAE4E245F9968FA6EE81DF0399ED}"
 RELEASE_MIN_SYSTEM="14.0"
 
 RELEASE_VERSION="$(plutil -extract marketingVersion raw -o - "$RELEASE_ROOT/release/version.json")"
