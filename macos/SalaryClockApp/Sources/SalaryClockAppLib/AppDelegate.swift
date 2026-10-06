@@ -129,7 +129,50 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // 한 번 건드리는 것이 곧 시작이다. 개발 빌드에서는 피드가 없어
         // 아무 일도 하지 않는다 (UpdaterController 주석).
         _ = UpdaterController.shared
+
+        #if DEBUG
+        // App Store 스크린샷용(scripts/appstore-screenshots-mac.sh). 팝오버와 설정 창은
+        // 메뉴바를 눌러야 열리므로, 실행 인자 `-screenshot popover|settings`로 고른
+        // 화면을 연 채 시작한다. 개발 빌드에만 있다.
+        //
+        // `-screenshotOut <경로>`를 같이 주면 연 화면을 그 경로에 PNG로 그려 두고
+        // 끝낸다. 화면 녹화 권한 없이 찍을 수 있고, 바탕화면이나 다른 앱이 섞이지
+        // 않는다.
+        let out = UserDefaults.standard.string(forKey: "screenshotOut")
+        switch UserDefaults.standard.string(forKey: "screenshot") {
+        case "popover":
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.togglePopover() }
+            if let out { exportScreenshot(to: out) { self.popover.contentViewController?.view } }
+        case "settings":
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.openSettings() }
+            if let out { exportScreenshot(to: out) { self.settingsWindow?.contentView?.superview } }
+        default: break
+        }
+        #endif
     }
+
+    #if DEBUG
+    /// 화면이 다 그려질 때쯤 `view()`를 레티나 해상도로 그려 PNG로 쓰고 앱을 끝낸다.
+    /// 설정 창은 제목 막대까지 담으려고 콘텐츠 뷰의 상위 뷰를, 팝오버는 말풍선 틀이
+    /// 그려지지 않으므로 내용 뷰만 받는다.
+    private func exportScreenshot(to path: String, view: @escaping () -> NSView?) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            guard let v = view(), let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds) else {
+                FileHandle.standardError.write(Data("스크린샷: 뷰가 없다\n".utf8))
+                exit(1)
+            }
+            v.cacheDisplay(in: v.bounds, to: rep)
+            try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
+            // 메뉴바 글자도 같이 남긴다 — 조립할 때 메뉴바에 그대로 그린다. 개발 빌드는
+            // 메뉴바를 이미지로 그리므로 버튼에서 읽지 않고 같은 함수로 다시 만든다.
+            let s = SettingsStore.shared.settings
+            let now = Int((Date().timeIntervalSince1970 * 1000).rounded())
+            let title = menuBarTitle(computeEarnings(s, now), hideAmount: s.hideAmount) ?? ""
+            try? title.write(toFile: path + ".title", atomically: true, encoding: .utf8)
+            NSApp.terminate(nil)
+        }
+    }
+    #endif
 
     /// 다음 tick 하나를 건다. 타이머는 늘 한 번만 울리고, tick이 끝날 때마다
     /// 그때의 상태로 다음 시점을 다시 정한다(nextTickDelay). 주기가 상태에 따라
