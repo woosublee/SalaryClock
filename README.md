@@ -114,8 +114,12 @@ npm run swift:test:app
 iOS 앱은 `ios/SalaryClock.xcodeproj`입니다. 계산은 `macos/SalaryClockCore`를,
 시계 페이스·달력·화면 문구(`EarningsText.swift`)는 `macos/SalaryClockApp`의 SwiftUI
 파일을 그대로 가져다 씁니다. 메인 화면과 설정 화면만 `ios/SalaryClock/`에 iOS용으로
-따로 있습니다. Xcode에서 열어 실행하거나 아래처럼 빌드합니다. 실기기 설치와 App Store
-배포에는 Xcode의 Signing에서 개발 팀을 지정해야 합니다.
+따로 있습니다. Xcode에서 열어 실행하거나 아래처럼 빌드합니다. 개발 팀(`2L6ZW98RCP`)은 프로젝트에
+지정돼 있습니다.
+
+같은 Xcode 프로젝트에 Mac App Store용 `SalaryClockMac` 타깃도 있습니다. 맥 앱 소스를
+그대로 쓰되 샌드박스를 켜고 Sparkle을 뺀(`APP_STORE`) 빌드입니다. App Store 출시
+절차는 [`appstore/README.md`](appstore/README.md)에 있습니다.
 
 iOS 앱은 공휴일을 앱 업데이트 없이 갱신합니다. 알람 앱과 같은 서명된 자료
 (`woosublee/kairos`의 `holiday-data/`)를 하루 한 번 받아, 서명과 파일 해시를 확인한 뒤
@@ -130,7 +134,9 @@ iOS 앱은 공휴일을 앱 업데이트 없이 갱신합니다. 알람 앱과 �
 ```bash
 xcodebuild -project ios/SalaryClock.xcodeproj -scheme SalaryClock \
   -destination 'generic/platform=iOS Simulator' build
-./scripts/generate-ios-icon.sh   # 팔레트가 바뀌었을 때 iOS 아이콘을 다시 그린다
+./scripts/generate-ios-icon.sh            # 팔레트가 바뀌었을 때 iOS 아이콘을 다시 그린다
+./scripts/generate-app-icon.sh --xcassets  # 같은 때 Mac App Store 타깃 아이콘도
+./scripts/appstore-release.sh --upload     # iOS·Mac을 App Store Connect에 올린다
 ```
 
 버전을 올리고 태그를 푸시하면 GitHub Actions가 릴리스를 발행합니다. 아이콘은
