@@ -7,10 +7,15 @@
 # 두는 이유는 옛 경로(CFBundleIconFile)로 읽는 곳이 남아 있어서다.
 #
 # 사용법: generate-app-icon.sh <출력 디렉터리>
+#         generate-app-icon.sh --xcassets
+#
+# --xcassets는 컴파일하지 않고 appiconset을 Mac App Store 타깃의 asset
+# catalog(ios/SalaryClockMac/Assets.xcassets)에 넣는다. 그쪽은 Xcode가 직접
+# 컴파일하므로 결과 PNG를 커밋해 둔다 — 팔레트가 바뀌면 다시 돌려 커밋한다.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT="${1:?출력 디렉터리를 줄 것}"
+OUT="${1:?출력 디렉터리 또는 --xcassets를 줄 것}"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/salaryclock-icon.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -42,6 +47,14 @@ for pt in (16, 32, 128, 256, 512):
 json.dump({"images": images, "info": {"author": "salaryclock", "version": 1}},
           open(f"{iconset}/Contents.json", "w"), indent=2)
 PY
+
+if [[ "$OUT" == "--xcassets" ]]; then
+  DEST="$ROOT/ios/SalaryClockMac/Assets.xcassets/AppIcon.appiconset"
+  rm -rf "$DEST"
+  ditto --norsrc --noextattr "$ICONSET" "$DEST"
+  echo "icon → $DEST"
+  exit 0
+fi
 
 mkdir -p "$OUT"
 xcrun actool "$WORK/Assets.xcassets" \

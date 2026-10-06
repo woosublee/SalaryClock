@@ -299,9 +299,9 @@ struct SettingsView: View {
                         .foregroundStyle(theme.dim)
                 }
             } else {
-                // 개발 빌드다. 버튼을 눌러도 할 일이 없으므로 아예 두지 않고
-                // 왜 없는지를 적는다.
-                Text("개발 빌드에는 업데이트 기능이 없습니다 · \(versionLine)")
+                // 개발 빌드이거나 App Store 빌드다. 버튼을 눌러도 할 일이
+                // 없으므로 아예 두지 않고 왜 없는지를 적는다.
+                Text("\(noUpdaterReason) · \(versionLine)")
                     .font(.system(size: 11))
                     .foregroundStyle(theme.dim)
             }
@@ -324,6 +324,16 @@ struct SettingsView: View {
         f.locale = Locale(identifier: "ko_KR")
         f.dateFormat = "M월 d일 HH:mm"
         return f.string(from: date)
+    }
+
+    /// 업데이트 버튼이 없는 이유. App Store 빌드는 App Store가 업데이트를 맡는다
+    /// (UpdaterController의 APP_STORE 쪽 주석).
+    private var noUpdaterReason: String {
+        #if APP_STORE
+        "업데이트는 App Store에서 받습니다"
+        #else
+        "개발 빌드에는 업데이트 기능이 없습니다"
+        #endif
     }
 
     /// "1.0.0 (빌드 3)" — 업데이트가 실제로 올라왔는지 확인할 때 이 줄을 본다.
