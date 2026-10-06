@@ -72,8 +72,9 @@ jobs:
 
           rm -f "$P12"
 
-          # Developer ID 인증서는 Apple이 발급해 따로 신뢰 설정이 필요 없다.
-          security find-identity -v -p codesigning | grep -F '"Developer ID Application: Woosub Lee (2L6ZW98RCP)"'
+          # Developer ID 인증서는 Apple이 발급해 따로 신뢰 설정이 필요 없다. 방금 들인
+          # 임시 키체인만 본다 — 기본 목록을 보면 다른 곳의 같은 이름이 대신 통과한다.
+          security find-identity -v -p codesigning "$KEYCHAIN" | grep -F '"Developer ID Application: Woosub Lee (2L6ZW98RCP)"'
 
           # 공증용 API 키. 작업이 끝나면 러너와 함께 사라지지만 마지막 단계에서도 지운다.
           ASC_KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
