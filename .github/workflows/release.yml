@@ -82,7 +82,12 @@ jobs:
 
           # Developer ID 인증서는 Apple이 발급해 따로 신뢰 설정이 필요 없다. 방금 들인
           # 임시 키체인만 본다 — 기본 목록을 보면 다른 곳의 같은 이름이 대신 통과한다.
-          security find-identity -v -p codesigning "$KEYCHAIN" | grep -F '"Developer ID Application: Woosub Lee (2L6ZW98RCP)"'
+          # 스크립트가 고르는 지문(release-common.sh)과 시크릿의 인증서가 같은지 본다.
+          source scripts/release-common.sh
+          security find-identity -v -p codesigning "$KEYCHAIN" | grep -F "$RELEASE_IDENTITY" || {
+            echo "시크릿의 인증서가 release-common.sh의 지문($RELEASE_IDENTITY)과 다르다" >&2
+            exit 1
+          }
 
           # 공증용 API 키. 작업이 끝나면 러너와 함께 사라지지만 마지막 단계에서도 지운다.
           ASC_KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
