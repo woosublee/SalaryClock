@@ -25,7 +25,7 @@ final class HomeModel {
 /// 누르기 좋게 내비게이션 바에 올린다. 문구는 EarningsText.swift를 맥과 같이 쓴다.
 struct RootView: View {
     @State private var model = HomeModel()
-    @State private var showSettings = false
+    @State private var showSettings = ScreenshotScene.current != nil
     /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
     @Environment(\.colorScheme) private var systemScheme
     @Environment(\.scenePhase) private var scenePhase

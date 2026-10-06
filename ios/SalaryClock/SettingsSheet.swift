@@ -18,6 +18,8 @@ struct SettingsSheet: View {
     /// 시트가 열린 시각. 미리보기 페이스가 body가 다시 계산될 때마다 새로
     /// 그려지지 않게 한 번 얼려 둔다 — 맥 SettingsView의 panelNow와 같다.
     @State private var panelNow = currentMillis()
+    /// 달력 화면을 연 채로 시작할지 — 스크린샷용(ScreenshotScene).
+    @State private var showCalendar = ScreenshotScene.current == .calendar
 
     private var effectiveScheme: ColorScheme {
         guard SettingsStore.shared.hasStored else { return systemScheme }
@@ -45,6 +47,9 @@ struct SettingsSheet: View {
             }
             .scrollDismissesKeyboard(.immediately)
             .navigationTitle("설정")
+            .navigationDestination(isPresented: $showCalendar) {
+                WorkdayCalendarPage(draft: $draft)
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
