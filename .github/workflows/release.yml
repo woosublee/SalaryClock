@@ -72,6 +72,14 @@ jobs:
 
           rm -f "$P12"
 
+          # 중간 인증서. p12에는 보통 잎 인증서만 들어 있고, 러너 이미지에 Developer ID
+          # 중간 인증서가 없으면 신원이 "유효하지 않음"으로 빠진다. G1·G2를 둘 다 넣는다 —
+          # 어느 쪽으로 발급됐든 사슬이 이어진다.
+          for ca in DeveloperIDCA DeveloperIDG2CA; do
+            curl -fsSL "https://www.apple.com/certificateauthority/$ca.cer" -o "$RUNNER_TEMP/$ca.cer"
+            security import "$RUNNER_TEMP/$ca.cer" -k "$KEYCHAIN" >/dev/null || true
+          done
+
           # Developer ID 인증서는 Apple이 발급해 따로 신뢰 설정이 필요 없다. 방금 들인
           # 임시 키체인만 본다 — 기본 목록을 보면 다른 곳의 같은 이름이 대신 통과한다.
           security find-identity -v -p codesigning "$KEYCHAIN" | grep -F '"Developer ID Application: Woosub Lee (2L6ZW98RCP)"'
