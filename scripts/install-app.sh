@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # release 빌드를 만들어 /Applications에 설치한다.
 #
-# 자체 서명 인증서로 서명한 앱이라(scripts/create-signing-certificate.sh)
-# 본인 기계에서는 Gatekeeper가 막지 않는다 — 이 기계의 키체인이 그 인증서를
-# 신뢰하기 때문이다. 남의 기계에서는 처음 한 번 "그래도 열기"가 필요하다.
+# Developer ID로 서명하지만 공증은 받지 않는다(공증은 release.sh에서만). 직접
+# 빌드해 옮긴 파일에는 격리 속성이 없어 Gatekeeper가 공증을 묻지 않는다.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

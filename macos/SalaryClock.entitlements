@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-    <!-- 하드닝 런타임은 앱과 같은 Team ID로 서명된 라이브러리만 불러오게 한다.
-         자체 서명 인증서에는 Team ID가 없어서 번들 안의 Sparkle.framework가
-         "different Team IDs"로 거부되고 앱이 아예 뜨지 않는다. 검사를 끈다.
+<!--
+  GitHub DMG 빌드의 entitlements. 비어 있는 게 맞다.
 
-         Developer ID로 서명하게 되면 이 항목은 빼야 한다 — 그때는 Team ID가
-         생기므로 검사가 통과하고, 켜 두는 편이 안전하다. -->
-    <key>com.apple.security.cs.disable-library-validation</key>
-    <true/>
-</dict>
+  자체 서명 시절에는 com.apple.security.cs.disable-library-validation을 켜야
+  했다 — 인증서에 Team ID가 없어 하드닝 런타임이 번들 안의 Sparkle.framework를
+  "different Team IDs"로 거부했기 때문이다. Developer ID로 서명하면서 앱과
+  프레임워크가 같은 Team ID를 갖게 돼 검사를 다시 켰다.
+
+  샌드박스는 켜지 않는다. Sparkle이 앱을 갈아 끼워야 한다. App Store 빌드는
+  ios/SalaryClockMac.entitlements를 쓴다.
+-->
+<dict/>
 </plist>

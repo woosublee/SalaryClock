@@ -21,7 +21,7 @@ ln -s /Applications "$STAGING/Applications"
 
 rm -f "$RELEASE_DMG"
 hdiutil create -volname SalaryClock -srcfolder "$STAGING" -ov -format UDZO "$RELEASE_DMG" >/dev/null
-codesign --force --sign "$RELEASE_IDENTITY" "$RELEASE_DMG"
+codesign --force --timestamp --sign "$RELEASE_IDENTITY" "$RELEASE_DMG"
 codesign --verify --strict "$RELEASE_DMG"
 
 echo "packaged $RELEASE_DMG"

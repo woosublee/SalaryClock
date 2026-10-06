@@ -88,6 +88,7 @@ grep -Fq "SalaryClock $RELEASE_VERSION" "$RELEASE_ROOT/release/notes.md" || {
 
 "$RELEASE_ROOT/scripts/bundle-app.sh" release
 "$RELEASE_ROOT/scripts/package-dmg.sh"
+"$RELEASE_ROOT/scripts/notarize-dmg.sh"
 "$RELEASE_ROOT/scripts/generate-appcast.sh"
 
 # 5. 번들에 박힌 버전과 appcast가 같은 이야기를 하는지 대조한다. 둘이
@@ -107,8 +108,8 @@ BUNDLED_FEED="$(plutil -extract SUFeedURL raw "$RELEASE_APP/Contents/Info.plist"
 #
 #    codesign --verify는 통과하는데 실행은 안 되는 경우가 있다. 실제로 겪었다:
 #    하드닝 런타임의 라이브러리 검증이 번들 안의 Sparkle.framework를 거부해
-#    dyld 단계에서 죽었는데(자체 서명이라 Team ID가 없다), 서명 자체는 끝까지
-#    유효했다. 서명 검사만으로는 못 잡는 종류라 한 번 띄워 본다.
+#    dyld 단계에서 죽었는데(그때는 자체 서명이라 Team ID가 없었다), 서명
+#    자체는 끝까지 유효했다. 서명 검사만으로는 못 잡는 종류라 한 번 띄워 본다.
 "$RELEASE_APP/Contents/MacOS/SalaryClock" >/dev/null 2>&1 &
 SMOKE_PID=$!
 sleep 3
