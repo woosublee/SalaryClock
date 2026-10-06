@@ -2,8 +2,8 @@
 #
 # 태그를 만드는 쪽은 사람이고, 태그를 산출물로 바꾸는 쪽은 scripts/release.sh
 # 하나다 — 로컬에서 돌리든 여기서 돌리든 같은 경로를 지난다. 이 파일이 하는
-# 일은 그 스크립트가 필요로 하는 두 개의 키를 러너에 잠깐 들여놓고, 끝나면
-# 치우는 것뿐이다.
+# 일은 그 스크립트가 필요로 하는 키들(Developer ID 인증서, 공증용 App Store
+# Connect API 키, Sparkle 비밀키)을 러너에 잠깐 들여놓고, 끝나면 치우는 것뿐이다.
 name: Release
 
 on:
@@ -30,6 +30,10 @@ jobs:
       CERTIFICATE_BASE64: ${{ secrets.SIGNING_CERTIFICATE_BASE64 }}
       CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
       SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+      # 공증(notarize-dmg.sh). .p8은 아래 단계에서 파일로 풀어 ASC_KEY_PATH로 넘긴다.
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
       GH_TOKEN: ${{ github.token }}
       # 로컬에서는 iCloud를 피해 캐시에 조립하지만(bundle-app.sh) 러너에는
       # iCloud가 없다. 작업 공간에 두면 산출물을 집어 올리기 쉽다.
@@ -44,7 +48,7 @@ jobs:
       - name: 서명 신원을 임시 키체인에 들인다
         run: |
           set -euo pipefail
-          for name in CERTIFICATE_BASE64 CERTIFICATE_PASSWORD SPARKLE_PRIVATE_KEY; do
+          for name in CERTIFICATE_BASE64 CERTIFICATE_PASSWORD SPARKLE_PRIVATE_KEY ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8_BASE64; do
             [[ -n "${!name}" ]] || { echo "시크릿이 비어 있다: $name" >&2; exit 1; }
           done
 
@@ -66,21 +70,24 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
 
-          # 자체 서명이라 신뢰 설정을 붙여야 한다. security find-identity -v는
-          # "유효한" 신원만 내놓는데, 신뢰 설정이 없으면 이 인증서가 그 목록에서
-          # 빠지고 bundle-app.sh가 신원이 없다며 멈춘다. 로컬에서는
-          # create-signing-certificate.sh가 같은 일을 한다.
-          #
-          # 인증서는 방금 들어간 키체인에서 꺼낸다. p12에서 openssl로 뽑으면
-          # 안 된다 — 이 p12는 legacy 암호(RC2)로 묶여 있고 러너의 OpenSSL 3는
-          # 그걸 기본 제공자로 못 읽는다.
-          CERT="$RUNNER_TEMP/signing.pem"
-          security find-certificate -c SalaryClock -p "$KEYCHAIN" > "$CERT"
-          sudo security add-trusted-cert -d -r trustRoot -p codeSign \
-            -k /Library/Keychains/System.keychain "$CERT"
-          rm -f "$P12" "$CERT"
+          rm -f "$P12"
 
-          security find-identity -v -p codesigning | grep -F '"SalaryClock"'
+          # 중간 인증서. p12에는 보통 잎 인증서만 들어 있고, 러너 이미지에 Developer ID
+          # 중간 인증서가 없으면 신원이 "유효하지 않음"으로 빠진다. G1·G2를 둘 다 넣는다 —
+          # 어느 쪽으로 발급됐든 사슬이 이어진다.
+          for ca in DeveloperIDCA DeveloperIDG2CA; do
+            curl -fsSL "https://www.apple.com/certificateauthority/$ca.cer" -o "$RUNNER_TEMP/$ca.cer"
+            security import "$RUNNER_TEMP/$ca.cer" -k "$KEYCHAIN" >/dev/null || true
+          done
+
+          # Developer ID 인증서는 Apple이 발급해 따로 신뢰 설정이 필요 없다. 방금 들인
+          # 임시 키체인만 본다 — 기본 목록을 보면 다른 곳의 같은 이름이 대신 통과한다.
+          security find-identity -v -p codesigning "$KEYCHAIN" | grep -F '"Developer ID Application: Woosub Lee (2L6ZW98RCP)"'
+
+          # 공증용 API 키. 작업이 끝나면 러너와 함께 사라지지만 마지막 단계에서도 지운다.
+          ASC_KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
+          printf '%s' "$ASC_KEY_P8_BASE64" | base64 --decode > "$ASC_KEY_PATH"
+          echo "ASC_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
 
       - name: 테스트
         run: |
@@ -114,4 +121,5 @@ jobs:
           set +e
           [[ -n "${ORIGINAL_KEYCHAINS:-}" ]] && security list-keychains -d user -s $ORIGINAL_KEYCHAINS
           [[ -n "${KEYCHAIN:-}" ]] && security delete-keychain "$KEYCHAIN"
+          [[ -n "${ASC_KEY_PATH:-}" ]] && rm -f "$ASC_KEY_PATH"
           exit 0

@@ -10,7 +10,11 @@ RELEASE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RELEASE_REPO="woosublee/SalaryClock"
 RELEASE_BUNDLE_ID="dev.woosublee.salaryclock"
 RELEASE_SPARKLE_ACCOUNT="$RELEASE_BUNDLE_ID.sparkle.ed25519"
-RELEASE_IDENTITY="${CODESIGN_IDENTITY:-SalaryClock}"
+# Developer ID로 서명한다. Gatekeeper가 처음 실행을 막지 않으려면 이 신원으로
+# 서명하고 공증까지 받아야 한다. 인증서는 Xcode > Settings > Accounts >
+# Manage Certificates에서 "Developer ID Application"으로 만든다.
+RELEASE_TEAM_ID="2L6ZW98RCP"
+RELEASE_IDENTITY="${CODESIGN_IDENTITY:-Developer ID Application: Woosub Lee ($RELEASE_TEAM_ID)}"
 RELEASE_MIN_SYSTEM="14.0"
 
 RELEASE_VERSION="$(plutil -extract marketingVersion raw -o - "$RELEASE_ROOT/release/version.json")"
@@ -53,4 +57,23 @@ release_sparkle_tool() {
     return 1
   }
   printf '%s' "$found"
+}
+
+# 공증(notarytool)에 넘길 인증 인자. 둘 중 하나:
+#   - App Store Connect API 키: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH(.p8) — CI와
+#     scripts/appstore-release.sh가 쓰는 것과 같은 키
+#   - 키체인 프로필: NOTARY_PROFILE(기본 woosublee-notary). 팀 키라 이 앱 말고도
+#     같은 개발자 계정의 다른 앱에서 함께 쓴다. 한 번 만들어 둔다:
+#       xcrun notarytool store-credentials woosublee-notary \
+#         --key <.p8> --key-id <ID> --issuer <Issuer ID>
+release_notary_auth() {
+  if [[ -n "${ASC_KEY_ID:-}" ]]; then
+    [[ -n "${ASC_ISSUER_ID:-}" && -f "${ASC_KEY_PATH:-}" ]] || {
+      echo "ASC_KEY_ID를 줬으면 ASC_ISSUER_ID와 ASC_KEY_PATH(.p8)도 있어야 한다" >&2
+      return 1
+    }
+    printf '%s\n' --key "$ASC_KEY_PATH" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID"
+  else
+    printf '%s\n' --keychain-profile "${NOTARY_PROFILE:-woosublee-notary}"
+  fi
 }

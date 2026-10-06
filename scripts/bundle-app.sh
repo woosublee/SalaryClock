@@ -30,13 +30,15 @@ SCRATCH="$HOME/Library/Caches/salaryclock/app"
 BUILD_DIR="${BUILD_DIR:-$HOME/Library/Caches/salaryclock/build}"
 APP="$BUILD_DIR/SalaryClock.app"
 
-# 서명 신원. ad-hoc이 아니라 고정된 자체 서명 인증서를 쓴다 — Sparkle이
-# 새 버전과 지금 버전의 서명이 같은 곳에서 왔는지 확인하려면 신원이
-# 빌드마다 바뀌면 안 된다. 없으면 만들라고 알리고 멈춘다.
-IDENTITY="${CODESIGN_IDENTITY:-SalaryClock}"
+# 서명 신원. 개발 빌드도 릴리스와 같은 Developer ID로 서명한다 — 하드닝
+# 런타임의 라이브러리 검증은 앱과 Sparkle.framework의 Team ID가 같아야
+# 통과하는데, 신원이 하나면 빌드 종류마다 entitlements를 갈라 둘 필요가 없다.
+# 신원 이름은 release-common.sh 한 곳에서 정한다.
+source "$ROOT/scripts/release-common.sh"
+IDENTITY="$RELEASE_IDENTITY"
 if ! security find-identity -v -p codesigning | grep -Fq "\"$IDENTITY\""; then
   echo "코드 서명 신원이 없다: $IDENTITY" >&2
-  echo "scripts/create-signing-certificate.sh 를 먼저 실행할 것." >&2
+  echo "Xcode > Settings > Accounts > Manage Certificates에서 Developer ID Application을 만들 것." >&2
   exit 1
 fi
 
@@ -120,9 +122,11 @@ fi
 
 # 안에서 밖으로 서명한다. 바깥 번들을 먼저 서명하면 안쪽을 건드리는 순간
 # 그 서명이 깨진다.
+#
+# --timestamp: 공증은 Apple 시간 서버의 서명 시각이 박힌 서명만 받는다.
 sign() {
   [[ -e "$1" ]] || return 0
-  codesign --force --options runtime --sign "$IDENTITY" "$1" >/dev/null
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" "$1" >/dev/null
 }
 FW="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
 sign "$FW/XPCServices/Installer.xpc"
@@ -132,7 +136,7 @@ sign "$FW/Updater.app"
 sign "$APP/Contents/Frameworks/Sparkle.framework"
 
 # 앱에만 entitlements를 준다 — 프레임워크는 받을 필요가 없다.
-codesign --force --options runtime --sign "$IDENTITY" \
+codesign --force --options runtime --timestamp --sign "$IDENTITY" \
   --entitlements "$ROOT/macos/SalaryClock.entitlements" "$APP"
 codesign --verify --strict --verbose=2 "$APP"
 echo "built $APP ($MARKETING_VERSION build $BUILD_NUMBER, $CONFIG)"

@@ -56,15 +56,9 @@ Apple Silicon(M1 이후) Mac 전용입니다. macOS 14 이상에서 동작합니
 
 1. [릴리스 페이지](https://github.com/woosublee/SalaryClock/releases/latest)에서
    DMG를 내려받습니다.
-2. 앱을 응용 프로그램 폴더로 옮깁니다.
-3. 첫 실행을 허용합니다. Apple 공증을 거치지 않은 앱이라 macOS가 한 번 차단합니다.
+2. 앱을 응용 프로그램 폴더로 옮겨 실행합니다.
 
-| macOS | 허용 방법 |
-|---|---|
-| 13–14 | Finder에서 앱을 Control-클릭 → **열기** |
-| 15 이상 | 실행을 한 번 시도 → **시스템 설정 › 개인정보 보호 및 보안 › 보안** → **그래도 열기** |
-
-한 번 허용하면 이후에는 바로 실행됩니다.
+Apple 공증을 받은 앱이라 따로 허용할 것이 없습니다. 새 버전은 앱이 알아서 받습니다.
 
 ### 전용 기능
 
@@ -104,8 +98,14 @@ macOS 앱은 Swift로 작성되어 `macos/`에 있습니다. 계산 규칙은 �
 `shared/golden/*.json`을 양쪽 테스트가 함께 읽으므로 규칙이 어긋나면 한쪽이
 실패합니다.
 
+앱 번들은 이 맥 키체인의 **Developer ID Application** 인증서로 서명합니다. Xcode ›
+Settings › Accounts › Manage Certificates에서 한 번 만들어 두면 됩니다. 릴리스
+(`scripts/release.sh`)는 DMG를 Apple에 공증받는데, 이때 쓸 App Store Connect API 키를
+`xcrun notarytool store-credentials woosublee-notary --key <.p8> --key-id <ID> --issuer <Issuer ID>`로
+한 번 저장해 둡니다. CI는 같은 값을 시크릿(`SIGNING_CERTIFICATE_BASE64`·`_PASSWORD`,
+`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64`)으로 받습니다.
+
 ```bash
-./scripts/create-signing-certificate.sh   # 최초 1회
 ./scripts/install-app.sh                  # 빌드 후 /Applications에 설치
 npm run swift:test:core
 npm run swift:test:app
