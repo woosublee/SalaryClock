@@ -62,8 +62,9 @@ release_sparkle_tool() {
 # 공증(notarytool)에 넘길 인증 인자. 둘 중 하나:
 #   - App Store Connect API 키: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH(.p8) — CI와
 #     scripts/appstore-release.sh가 쓰는 것과 같은 키
-#   - 키체인 프로필: NOTARY_PROFILE(기본 salaryclock). 한 번 만들어 둔다:
-#       xcrun notarytool store-credentials salaryclock \
+#   - 키체인 프로필: NOTARY_PROFILE(기본 woosublee-notary). 팀 키라 이 앱 말고도
+#     같은 개발자 계정의 다른 앱에서 함께 쓴다. 한 번 만들어 둔다:
+#       xcrun notarytool store-credentials woosublee-notary \
 #         --key <.p8> --key-id <ID> --issuer <Issuer ID>
 release_notary_auth() {
   if [[ -n "${ASC_KEY_ID:-}" ]]; then
@@ -73,6 +74,6 @@ release_notary_auth() {
     }
     printf '%s\n' --key "$ASC_KEY_PATH" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID"
   else
-    printf '%s\n' --keychain-profile "${NOTARY_PROFILE:-salaryclock}"
+    printf '%s\n' --keychain-profile "${NOTARY_PROFILE:-woosublee-notary}"
   fi
 }

@@ -101,7 +101,7 @@ macOS 앱은 Swift로 작성되어 `macos/`에 있습니다. 계산 규칙은 �
 앱 번들은 이 맥 키체인의 **Developer ID Application** 인증서로 서명합니다. Xcode ›
 Settings › Accounts › Manage Certificates에서 한 번 만들어 두면 됩니다. 릴리스
 (`scripts/release.sh`)는 DMG를 Apple에 공증받는데, 이때 쓸 App Store Connect API 키를
-`xcrun notarytool store-credentials salaryclock --key <.p8> --key-id <ID> --issuer <Issuer ID>`로
+`xcrun notarytool store-credentials woosublee-notary --key <.p8> --key-id <ID> --issuer <Issuer ID>`로
 한 번 저장해 둡니다. CI는 같은 값을 시크릿(`SIGNING_CERTIFICATE_BASE64`·`_PASSWORD`,
 `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64`)으로 받습니다.
 
