@@ -2,7 +2,12 @@
 
 근무 시간 동안 쌓이는 급여를 실시간으로 보여줍니다.
 
-**https://sc.vicals.com** · macOS 메뉴바 앱 제공
+**https://sc.vicals.com** · iPhone 앱 · macOS 메뉴바 앱
+
+<a href="https://apps.apple.com/kr/app/id6819583975"><img src="appstore/badges/download-on-the-app-store.svg" alt="App Store에서 다운로드" height="40"></a>
+<a href="https://apps.apple.com/kr/app/id6819583975?platform=mac"><img src="appstore/badges/download-on-the-mac-app-store.svg" alt="Mac App Store에서 다운로드" height="40"></a>
+
+iPhone과 Mac 앱은 App Store에서 무료로 받을 수 있습니다. 한 번 받으면 두 기기 모두에서 쓸 수 있습니다.
 
 ## 시작하기
 
@@ -46,29 +51,40 @@
 
 퇴근 후에는 다음 근무일에 맞춘 안내 문구가 나옵니다.
 
+## iPhone 앱
+
+웹과 같은 시계와 설정을 iPhone에서 씁니다. iOS 17 이상에서 동작하며
+[App Store](https://apps.apple.com/kr/app/id6819583975)에서 받습니다.
+
 ## macOS 메뉴바 앱
 
 메뉴바에 금액을 표시합니다. 누르면 시계와 상세가 담긴 팝오버가 열립니다.
+macOS 14 이상에서 동작합니다.
 
 ### 설치
 
-Apple Silicon(M1 이후) Mac 전용입니다. macOS 14 이상에서 동작합니다.
+**App Store (권장)** — [Mac App Store](https://apps.apple.com/kr/app/id6819583975?platform=mac)에서 받습니다. 업데이트도
+App Store가 처리합니다.
+
+**DMG** — App Store를 쓰지 않으려면 직접 내려받을 수도 있습니다. Apple Silicon(M1 이후)
+Mac 전용입니다.
 
 1. [릴리스 페이지](https://github.com/woosublee/SalaryClock/releases/latest)에서
    DMG를 내려받습니다.
 2. 앱을 응용 프로그램 폴더로 옮겨 실행합니다.
 
 Apple 공증을 받은 앱이라 따로 허용할 것이 없습니다. 새 버전은 앱이 알아서 받습니다.
+두 판은 같은 버전으로 나오니 하나만 설치하세요.
 
 ### 전용 기능
 
 | 항목 | 내용 |
 |---|---|
-| 자동 업데이트 | 실행할 때와 하루에 한 번 확인합니다. 자동 설치를 켜면 묻지 않고 설치합니다. |
+| 자동 업데이트 | DMG 판만 해당합니다. 실행할 때와 하루에 한 번 확인하고, 자동 설치를 켜면 묻지 않고 설치합니다. |
 | 로그인 시 자동 실행 | 로그인 항목으로 등록합니다. |
 | 메뉴바 갱신 주기 | 기본 1초, 최소 0.1초. 짧을수록 부드럽고 전력을 조금 더 씁니다. |
 
-설정값은 웹과 따로 저장됩니다. 앱에서 한 번 다시 입력하세요.
+설정값은 웹·iPhone과 따로 저장됩니다. 기기마다 한 번씩 입력하세요.
 
 ## 참고
 
