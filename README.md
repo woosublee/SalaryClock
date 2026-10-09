@@ -1,14 +1,52 @@
 # SalaryClock
 
-근무 시간 동안 쌓이는 급여를 실시간으로 보여줍니다.
+**출근부터 퇴근까지, 오늘 번 돈이 초 단위로 올라갑니다.**
 
-**https://sc.vicals.com** · macOS 메뉴바 앱 제공
+연봉·월급·시급 중 하나와 근무 시간만 넣으면 출근 시각부터 금액이 올라가기 시작합니다.
+점심시간에는 멈추고, 퇴근하면 오늘 번 금액이 그대로 남습니다.
+
+<a href="https://apps.apple.com/kr/app/id6819583975"><img src="appstore/badges/download-on-the-app-store.svg" alt="App Store에서 다운로드" height="40"></a>
+<a href="https://apps.apple.com/kr/app/id6819583975?platform=mac"><img src="appstore/badges/download-on-the-mac-app-store.svg" alt="Mac App Store에서 다운로드" height="40"></a>
+
+웹에서 바로 쓰기: **https://sc.vicals.com**
+
+<p>
+  <img src="appstore/screenshots/iphone/01-main.png" alt="iPhone 메인 화면" width="180">
+  <img src="appstore/screenshots/iphone/02-calendar.png" alt="근무일 달력" width="180">
+  <img src="appstore/screenshots/iphone/04-dark.png" alt="어두운 화면" width="180">
+</p>
+<img src="appstore/screenshots/mac/01-popover.png" alt="Mac 메뉴바 팝오버" width="560">
+
+## 어디서 쓸 수 있나요
+
+| | 요구 사항 | 받는 곳 |
+|---|---|---|
+| iPhone | iOS 17 이상 | [App Store](https://apps.apple.com/kr/app/id6819583975) |
+| Mac (메뉴바) | macOS 14 이상 | [Mac App Store](https://apps.apple.com/kr/app/id6819583975?platform=mac) |
+| 웹 | 최신 브라우저 | [sc.vicals.com](https://sc.vicals.com) |
+
+모두 무료이고, 회원가입과 광고가 없습니다. App Store에서 한 번 받으면 iPhone과 Mac
+모두에서 쓸 수 있습니다.
+
+## 이런 걸 보여줍니다
+
+- **오늘 번 금액** — 1초마다 올라갑니다. 1초에 얼마씩 버는지, 퇴근까지 남은 시간과
+  금액도 함께 보입니다.
+- **지금 상태** — 출근 전·근무 중·점심시간·퇴근 후·쉬는 날을 알아서 구분합니다.
+  퇴근 후에는 다음 근무일에 맞춘 안내가 나옵니다.
+- **세전·실수령액** — 4대보험과 소득세를 뺀 금액으로도 볼 수 있습니다.
+- **정확한 근무일** — 한국 공휴일과 대체공휴일을 빼고 이번 달 근무일을 셉니다.
+- **10가지 시계** — 바늘 시계, 링, 해시계, 점, 카운트다운 등에서 고릅니다.
+- **금액 가리기** — 눈 모양 버튼을 누르면 시계와 시각만 남습니다. 회사에서 쓰기 좋습니다.
+
+Mac에서는 메뉴바에 금액이 표시되고, 누르면 시계와 상세가 담긴 창이 열립니다.
+로그인할 때 자동으로 켜지게 할 수 있습니다.
 
 ## 시작하기
 
-1. 오른쪽 위 설정 아이콘을 누릅니다.
+1. 오른쪽 위 톱니바퀴(설정)를 누릅니다. Mac은 메뉴바의 금액을 먼저 누릅니다.
 2. 급여 형태(연봉·월급·시급)를 고르고 금액을 입력합니다.
-3. 출근과 퇴근 시각을 입력합니다.
+3. 출근·퇴근 시각을 입력합니다.
 4. 저장을 누릅니다.
 
 출근 시각이 지나면 금액이 올라가기 시작합니다.
@@ -17,131 +55,62 @@
 
 | 항목 | 내용 |
 |---|---|
-| 급여 | 연봉·월급·시급 중 선택. 입력한 금액을 억·만 단위로 함께 표시합니다. |
-| 실수령액 기준 | 4대보험과 소득세를 뺀 금액으로 표시합니다. 공제율 직접 입력도 가능합니다. |
-| 근무 시간 | 출근·퇴근 시각. 자정을 넘기는 야간 근무를 지원합니다. |
-| 점심시간 | 시작·종료 시각. 이 구간은 무급으로 계산합니다. |
-| 근무일수 | 아래 세 가지 방법 중 하나로 정합니다. |
-| 시계 페이스 | 10종 중 선택합니다. |
+| 급여 | 연봉·월급·시급 중 선택합니다. 입력한 금액을 억·만 단위로 함께 보여줍니다. |
+| 실수령액 기준 | 4대보험과 소득세를 뺀 금액으로 표시합니다. 공제율을 직접 넣을 수도 있습니다. |
+| 근무 시간 | 출근·퇴근 시각. 자정을 넘기는 야간 근무도 됩니다. |
+| 점심시간 | 시작·종료 시각. 이 시간에는 금액이 멈춥니다. |
+| 근무일수 | 아래 세 가지 중 하나로 정합니다. |
+| 시계 페이스 | 10가지 중 고릅니다. |
 
 ### 근무일수
 
-월급제는 하루 급여가 `월급 ÷ 근무일수`이므로 이 값이 적립 속도를 정합니다.
+월급제는 하루 급여가 `월급 ÷ 근무일수`라서, 이 값에 따라 금액이 오르는 속도가 달라집니다.
 
-| 방법 | 사용하는 때 |
+| 방법 | 이럴 때 |
 |---|---|
 | 자동 | 평일에서 공휴일을 뺀 일수를 씁니다. 기본값입니다. |
-| 달력에서 지정 | 날짜를 눌러 휴무일·근무일을 전환합니다. 회사 휴무일이나 연차를 반영할 때 씁니다. |
+| 달력에서 지정 | 날짜를 눌러 휴무일·근무일을 바꿉니다. 연차나 회사 휴무일을 반영할 때 씁니다. |
 | 직접 입력 | 일수를 숫자로 넣습니다. |
 
-## 화면
+## 자주 묻는 질문
 
-오른쪽 위에 아이콘 세 개가 있습니다.
+**내 급여 정보가 어딘가로 전송되나요?**
+아니요. 서버와 계정이 없고, 입력한 값은 쓰는 기기(웹은 브라우저) 안에만 저장되며
+계산도 모두 그 안에서 이뤄집니다. 자세한 내용은
+[개인정보 처리방침](https://sc.vicals.com/privacy)에 있습니다.
 
-| 아이콘 | 기능 |
-|---|---|
-| 해·달 | 밝게·어둡게 전환 |
-| 눈 | 금액 가리기. 켜면 시계와 시각만 남습니다. |
-| 톱니바퀴 | 설정 |
+**실수령액이 급여명세서와 달라요.**
+4대보험은 법정 요율이라 정확하지만, 소득세는 부양가족 수 등을 알 수 없어 추정치입니다.
+명세서의 `공제 합계 ÷ 세전 금액`을 설정의 공제율에 직접 넣으면 맞출 수 있습니다.
 
-퇴근 후에는 다음 근무일에 맞춘 안내 문구가 나옵니다.
+**설정을 다른 기기와 맞출 수 있나요?**
+아직은 안 됩니다. 웹·iPhone·Mac, 그리고 브라우저마다 따로 저장되니 기기마다 한 번씩
+입력해 주세요.
 
-## macOS 메뉴바 앱
+**앱을 껐다 켜거나 잠자기에서 깨면 금액이 어긋나지 않나요?**
+어긋나지 않습니다. 금액을 쌓아 두지 않고 매 순간 설정과 현재 시각으로 다시 계산합니다.
 
-메뉴바에 금액을 표시합니다. 누르면 시계와 상세가 담긴 팝오버가 열립니다.
+**공휴일은 언제까지 들어 있나요?**
+2030년까지 들어 있습니다. 2028년 이후는 아직 확정 전이라 바뀔 수 있으며, iPhone 앱은
+업데이트 없이 최신 공휴일을 받아 옵니다. 노동절(5월 1일)은 2026년부터 포함했고,
+선거일은 날짜가 따로 공고되어 넣지 않았습니다. 표에 없는 해는 주말만 빼고 계산하며
+화면에 그 사실을 알려 줍니다.
 
-### 설치
+**금액 가리기를 켜면 안전한가요?**
+주변 시선을 가리는 용도입니다. 보안 기능은 아닙니다.
 
-Apple Silicon(M1 이후) Mac 전용입니다. macOS 14 이상에서 동작합니다.
+## Mac 앱을 App Store 밖에서 받기
 
-1. [릴리스 페이지](https://github.com/woosublee/SalaryClock/releases/latest)에서
-   DMG를 내려받습니다.
-2. 앱을 응용 프로그램 폴더로 옮겨 실행합니다.
+App Store를 쓰지 않으려면 [릴리스 페이지](https://github.com/woosublee/SalaryClock/releases/latest)에서
+DMG를 받아 응용 프로그램 폴더로 옮기면 됩니다. Apple Silicon(M1 이후) Mac 전용이고,
+Apple 공증을 받아 따로 허용할 것이 없습니다. 새 버전은 앱이 알아서 확인하고 받습니다.
+App Store 판과 같은 앱이니 둘 중 하나만 설치하세요.
 
-Apple 공증을 받은 앱이라 따로 허용할 것이 없습니다. 새 버전은 앱이 알아서 받습니다.
+## 문의
 
-### 전용 기능
+버그나 제안은 [지원 페이지](https://sc.vicals.com/support)나
+[GitHub 이슈](https://github.com/woosublee/SalaryClock/issues)로 알려 주세요.
 
-| 항목 | 내용 |
-|---|---|
-| 자동 업데이트 | 실행할 때와 하루에 한 번 확인합니다. 자동 설치를 켜면 묻지 않고 설치합니다. |
-| 로그인 시 자동 실행 | 로그인 항목으로 등록합니다. |
-| 메뉴바 갱신 주기 | 기본 1초, 최소 0.1초. 짧을수록 부드럽고 전력을 조금 더 씁니다. |
+---
 
-설정값은 웹과 따로 저장됩니다. 앱에서 한 번 다시 입력하세요.
-
-## 참고
-
-- **급여 정보는 외부로 전송되지 않습니다.** 서버와 계정이 없고, 설정값은 브라우저
-  (앱은 기기)에만 저장되며 계산도 전부 그 안에서 이뤄집니다.
-- **소득세는 추정치입니다.** 4대보험은 법정 요율이라 정확하지만 소득세는 부양가족
-  수 등을 알 수 없어 근사합니다. 명세서와 다르면 `공제 합계 ÷ 세전 금액`을 공제율에
-  직접 넣으세요.
-- **공휴일은 2030년까지 들어 있습니다.** 2028년 이후는 관보 확정 전이라 확정 후
-  달라질 수 있습니다. 표에 없는 연도는 주말만 빼고 계산하며 화면에 그 사실을
-  표시합니다. 노동절(5월 1일)은 2026년부터 공휴일이라 포함했고, 선거일은 날짜가
-  공고로 정해져 넣지 않았습니다.
-- **금액 가리기는 보안 기능이 아닙니다.** 주변 시선을 가리는 용도입니다.
-- **설정은 브라우저마다 따로 저장됩니다.** 다른 브라우저나 기기로 이어지지 않습니다.
-- **값은 누적하지 않습니다.** 매 순간 설정과 현재 시각으로 다시 계산하므로 탭을
-  닫거나 절전에서 깨어나도 어긋나지 않습니다.
-
-## 개발
-
-```bash
-npm install
-npm run dev      # http://localhost:3000
-npm test
-```
-
-macOS 앱은 Swift로 작성되어 `macos/`에 있습니다. 계산 규칙은 웹과 공유하며,
-`shared/golden/*.json`을 양쪽 테스트가 함께 읽으므로 규칙이 어긋나면 한쪽이
-실패합니다.
-
-앱 번들은 이 맥 키체인의 **Developer ID Application** 인증서로 서명합니다. Xcode ›
-Settings › Accounts › Manage Certificates에서 한 번 만들어 두면 됩니다. 릴리스
-(`scripts/release.sh`)는 DMG를 Apple에 공증받는데, 이때 쓸 App Store Connect API 키를
-`xcrun notarytool store-credentials woosublee-notary --key <.p8> --key-id <ID> --issuer <Issuer ID>`로
-한 번 저장해 둡니다. CI는 같은 값을 시크릿(`SIGNING_CERTIFICATE_BASE64`·`_PASSWORD`,
-`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64`)으로 받습니다.
-
-```bash
-./scripts/install-app.sh                  # 빌드 후 /Applications에 설치
-npm run swift:test:core
-npm run swift:test:app
-```
-
-iOS 앱은 `ios/SalaryClock.xcodeproj`입니다. 계산은 `macos/SalaryClockCore`를,
-시계 페이스·달력·화면 문구(`EarningsText.swift`)는 `macos/SalaryClockApp`의 SwiftUI
-파일을 그대로 가져다 씁니다. 메인 화면과 설정 화면만 `ios/SalaryClock/`에 iOS용으로
-따로 있습니다. Xcode에서 열어 실행하거나 아래처럼 빌드합니다. 개발 팀(`2L6ZW98RCP`)은 프로젝트에
-지정돼 있습니다.
-
-같은 Xcode 프로젝트에 Mac App Store용 `SalaryClockMac` 타깃도 있습니다. 맥 앱 소스를
-그대로 쓰되 샌드박스를 켜고 Sparkle을 뺀(`APP_STORE`) 빌드입니다. App Store 출시
-절차는 [`appstore/README.md`](appstore/README.md)에 있습니다.
-
-iOS 앱은 공휴일을 앱 업데이트 없이 갱신합니다. 알람 앱과 같은 서명된 자료
-(`woosublee/kairos`의 `holiday-data/`)를 하루 한 번 받아, 서명과 파일 해시를 확인한 뒤
-그 자료가 다루는 해만 앱에 든 표 대신 씁니다. 해마다 관보가 나면 그 자료만 갱신하면
-됩니다(절차는 알람 앱 README의 "공휴일 자료 업데이트 방법"). 검증은
-`SalaryClockCore/HolidayData.swift`, 내려받기는 `ios/SalaryClock/HolidayUpdater.swift`에
-있습니다. 웹과 macOS 앱은 지금처럼 `lib/holidays.ts` 표를 씁니다.
-
-웹에는 App Store 제출용 [개인정보 처리방침](https://sc.vicals.com/privacy)과
-[지원](https://sc.vicals.com/support) 페이지가 있습니다.
-
-```bash
-xcodebuild -project ios/SalaryClock.xcodeproj -scheme SalaryClock \
-  -destination 'generic/platform=iOS Simulator' build
-./scripts/generate-ios-icon.sh            # 팔레트가 바뀌었을 때 iOS 아이콘을 다시 그린다
-./scripts/generate-app-icon.sh --xcassets  # 같은 때 Mac App Store 타깃 아이콘도
-./scripts/appstore-release.sh --upload     # iOS·Mac을 App Store Connect에 올린다
-```
-
-버전을 올리고 태그를 푸시하면 GitHub Actions가 릴리스를 발행합니다. 아이콘은
-이미지가 아니라 코드로 그리며, 웹 파비콘은 `./scripts/generate-web-icons.sh`로
-다시 만듭니다.
-
-설계 배경은 [설계 문서](docs/superpowers/specs/2026-09-22-macos-menubar-design.md)에
-있습니다. Next.js · TypeScript · Tailwind CSS로 작성했고 서버 코드는 없습니다.
+개발 관련 내용은 [개발 문서](docs/development.md)에 있습니다.
