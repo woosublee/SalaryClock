@@ -12,7 +12,7 @@ final class HomeModel {
     var settings: SalaryClockCore.Settings = .default
 
     func tick() {
-        let now = Int((Date().timeIntervalSince1970 * 1000).rounded())
+        let now = Int((AppClock.now.timeIntervalSince1970 * 1000).rounded())
         let s = SettingsStore.shared.settings
         self.now = now
         earnings = computeEarnings(s, now)
@@ -91,7 +91,7 @@ struct RootView: View {
         TimelineView(.animation) { context in
             ClockFaceView(
                 style: ClockStyle(name: model.settings.clockStyle),
-                now: Int((context.date.timeIntervalSince1970 * 1000).rounded()),
+                now: Int((AppClock.shifted(context.date).timeIntervalSince1970 * 1000).rounded()),
                 shift: model.earnings.shift, theme: theme
             )
         }
@@ -120,8 +120,9 @@ struct RootView: View {
     /// 시계가 옆으로 밀리지 않게.
     private func wideLayout(_ size: CGSize) -> some View {
         let gap: CGFloat = 56
-        let info = min(max(size.width * 0.38, 320), 460)
-        let face = max(min(size.height - 64, size.width - info - gap - 48, 560), 200)
+        // 양옆에 48pt씩은 남긴다 — 시계가 화면 가장자리에 붙어 보이지 않게.
+        let info = min(max(size.width * 0.36, 300), 440)
+        let face = max(min(size.height - 80, size.width - info - gap - 96, 560), 200)
         return HStack(spacing: gap) {
             clockFace(face)
             VStack(spacing: 28) {

@@ -18,9 +18,26 @@ GitHub로 내는 DMG(`scripts/release.sh`, Sparkle 자동 업데이트)는 그�
 
 ## 버전
 
-iOS·Mac(App Store)·DMG 모두 `release/version.json` 하나를 따른다. 올리는 규칙은
-DMG 릴리스와 같다. App Store Connect는 같은 빌드 번호를 두 번 받지 않으므로,
-반려돼서 다시 올릴 때도 `buildNumber`를 올린다.
+`release/version.json`이 원천이다. 버전은 플랫폼마다 따로, 빌드 번호는 하나다.
+
+```json
+{ "buildNumber": 17, "ios": "1.1.0", "mac": "1.0.0" }
+```
+
+- **바뀐 플랫폼만 올린다.** iPhone 앱만 바뀌었으면 `ios`만 올리고
+  `./scripts/appstore-release.sh ios --upload`로 iOS만 낸다. 변경 없는 플랫폼을 버전
+  맞추려고 같이 내지 않는다 — 심사를 한 번 더 받고, 사용자에게는 뭐가 바뀌었는지
+  모를 업데이트가 간다.
+- **`mac`은 Mac App Store와 GitHub DMG가 함께 쓴다.** 같은 앱이라 둘은 늘 같은
+  번호로 낸다. DMG 태그(`v…`)도 이 번호다.
+- **`buildNumber`는 어느 플랫폼이든 낼 때마다 1씩 올린다.** App Store Connect는 한 번
+  쓴 빌드 번호를 다시 받지 않고(반려돼서 다시 올릴 때도), Sparkle은 빌드 번호로 새
+  버전을 고른다. 플랫폼별로 따로 세면 언젠가 겹치므로 하나로 이어 쓴다.
+
+2026-11-01에 Mac 1.1.0(빌드 16)을 iOS와 맞춰 냈다가 거뒀다. Mac App Store 1.1.0
+칸은 심사에서 뺀 채 남아 있고, DMG는 한 명이 1.1.0(16)을 받아 갔다. 그래서 다음 Mac
+릴리스는 빌드 번호가 16보다 커야 하고(위 규칙대로면 저절로 그렇다), 버전도 1.1.0
+이상으로 잡는 편이 그 사용자에게 자연스럽다.
 
 ## 처음 한 번 (사람이 웹에서)
 

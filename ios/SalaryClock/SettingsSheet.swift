@@ -327,5 +327,5 @@ private struct HolidayDataSection: View {
 }
 
 private func currentMillis() -> Int {
-    Int((Date().timeIntervalSince1970 * 1000).rounded())
+    Int((AppClock.now.timeIntervalSince1970 * 1000).rounded())
 }

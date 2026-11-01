@@ -50,10 +50,12 @@ xcodebuild -project ios/SalaryClock.xcodeproj -scheme SalaryClock \
   -destination 'generic/platform=iOS Simulator' build
 ./scripts/generate-ios-icon.sh            # 팔레트가 바뀌었을 때 iOS 아이콘을 다시 그린다
 ./scripts/generate-app-icon.sh --xcassets  # 같은 때 Mac App Store 타깃 아이콘도
-./scripts/appstore-release.sh --upload     # iOS·Mac을 App Store Connect에 올린다
+./scripts/appstore-release.sh ios --upload # 바뀐 플랫폼만 App Store Connect에 올린다 (ios|mac)
 ```
 
-버전을 올리고 태그를 푸시하면 GitHub Actions가 릴리스를 발행합니다. 아이콘은
+버전은 `release/version.json`에 iOS·Mac이 따로 있고 바뀐 쪽만 올립니다(규칙은
+[`appstore/README.md`](../appstore/README.md)의 "버전"). Mac 버전을 올리고 태그를
+푸시하면 GitHub Actions가 DMG 릴리스를 발행합니다. 아이콘은
 이미지가 아니라 코드로 그리며, 웹 파비콘은 `./scripts/generate-web-icons.sh`로
 다시 만듭니다.
 

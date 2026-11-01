@@ -171,6 +171,6 @@ struct WorkdayCalendarPage: View {
 private func thisMonth() -> (year: Int, month: Int) {
     var cal = Calendar(identifier: .gregorian)
     cal.timeZone = TimeZone.current
-    let now = Date()
+    let now = AppClock.now
     return (cal.component(.year, from: now), cal.component(.month, from: now) - 1)
 }
