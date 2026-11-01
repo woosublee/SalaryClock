@@ -177,8 +177,11 @@ for (const platform of ['IOS', 'MAC_OS']) {
   if (!v) { log(platform, '고칠 수 있는 버전이 없다 (심사 중이거나 출시됨)'); continue }
   // 플랫폼마다 버전이 따로다. 이번에 올리지 않는 플랫폼은 version.json 번호가 이미
   // 출시된 버전과 같으므로 건너뛴다 — 고칠 수 있는 칸을 출시된 번호로 덮지 않게.
+  // 위 목록은 한 페이지(최근 20개)뿐이라 오래된 출시 버전이 빠질 수 있다. 플랫폼과
+  // 번호로 따로 물어 전부 확인한다.
   const marketing = platform === 'IOS' ? release.ios : release.mac
-  if (versions.some((x) => x.attributes.platform === platform && x.attributes.versionString === marketing && x.id !== v.id)) {
+  const same = (await get(`/v1/apps/${app.id}/appStoreVersions?filter[platform]=${platform}&filter[versionString]=${encodeURIComponent(marketing)}`)).data
+  if (same.some((x) => x.id !== v.id)) {
     log(platform, marketing, '은 이미 나간 버전 — 이번에 올리지 않는 플랫폼으로 보고 건너뜀')
     continue
   }
