@@ -80,6 +80,17 @@ iOS와 macOS가 앱 하나(번들 ID `dev.woosublee.salaryclock`)로 묶이므�
 
 첫 버전에는 넣지 않는다(App Store Connect가 첫 버전에는 묻지 않는다).
 
+### 1.1.0
+
+iOS:
+
+• iPhone Duo의 펼친 화면을 지원해요. 시계는 크게, 오늘 번 금액은 옆에 보여요.
+• 근무일 달력이 설정 화면과 같은 색으로 보여요.
+
+macOS:
+
+• iPhone 앱과 버전을 맞췄어요. 바뀐 기능은 없어요.
+
 ## 앱 개인정보 (App Privacy)
 
 - 데이터 수집: **수집하지 않음 (Data Not Collected)**

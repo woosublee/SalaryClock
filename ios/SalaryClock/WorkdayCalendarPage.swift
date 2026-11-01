@@ -27,21 +27,30 @@ struct WorkdayCalendarPage: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                header
-                actions
-                grid
-                legend
+            VStack(spacing: 8) {
+                // 설정 Form의 묶음 칸과 같은 바탕·모서리로 달력을 감싼다 — 설정에서
+                // 밀고 들어왔을 때 다른 화면처럼 보이지 않게.
+                VStack(spacing: 16) {
+                    header
+                    actions
+                    grid
+                    legend
+                }
+                .padding(16)
+                .background(Color(.secondarySystemGroupedBackground),
+                            in: RoundedRectangle(cornerRadius: 26, style: .continuous))
                 Text("날짜를 누르면 근무일과 쉬는 날이 바뀝니다. 설정에서 저장을 눌러야 반영됩니다.")
                     .font(.footnote)
-                    .foregroundStyle(theme.dim)
+                    .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
             }
             .padding(16)
             .frame(maxWidth: 520)
             .frame(maxWidth: .infinity)
         }
-        .background(theme.background.ignoresSafeArea())
+        // 설정 Form과 같은 시스템 바탕. 시트 안에서는 iOS가 알아서 한 단계 밝힌다.
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("근무일 달력")
         .navigationBarTitleDisplayMode(.inline)
         .sensoryFeedback(.selection, trigger: draft.dayOverrides)

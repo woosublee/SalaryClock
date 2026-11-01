@@ -29,6 +29,7 @@ struct RootView: View {
     /// 기기 설정 — 저장된 테마가 없을 때만 쓴다.
     @Environment(\.colorScheme) private var systemScheme
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     /// 웹 `loadSettings`와 같은 세 상태 규칙: 저장된 값이 없으면 기기 설정을
     /// 따르고, 한 번이라도 저장했으면 그 값에 고정한다.
@@ -45,27 +46,7 @@ struct RootView: View {
     var body: some View {
         NavigationStack {
             GeometryReader { geo in
-                // 폭에 맞추되 키 작은 폰(SE)에서 금액이 밀려나지 않게 높이로도
-                // 제한하고, 아이패드에서 끝없이 커지지 않게 상한을 둔다.
-                let face = min(geo.size.width - 64, geo.size.height * 0.48, 380)
-                VStack(spacing: 28) {
-                    Spacer(minLength: 0)
-                    dateLine
-                    // 시계만 화면 주사율로 다시 그려 초침이 흐르게 한다.
-                    TimelineView(.animation) { context in
-                        ClockFaceView(
-                            style: ClockStyle(name: model.settings.clockStyle),
-                            now: Int((context.date.timeIntervalSince1970 * 1000).rounded()),
-                            shift: model.earnings.shift, theme: theme
-                        )
-                    }
-                    .frame(width: face, height: face)
-                    if hidden { timeDisplay } else { amount }
-                    status
-                    Spacer(minLength: 0)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 24)
+                if isWide(geo.size) { wideLayout(geo.size) } else { tallLayout(geo.size) }
             }
             .background(theme.background.ignoresSafeArea())
             .toolbar { controls }
@@ -92,6 +73,65 @@ struct RootView: View {
                 try? await Task.sleep(for: .milliseconds(100))
             }
         }
+    }
+
+    // MARK: - 배치
+
+    /// 펼친 iPhone Duo처럼 넓은(regular) 화면을 가로로 쓸 때. 기기 이름이 아니라
+    /// 크기 등급과 비율로 고른다 — 접으면(compact) 늘 세로 배치로 돌아온다.
+    private func isWide(_ size: CGSize) -> Bool {
+        sizeClass == .regular && size.width > size.height
+    }
+
+    /// 넓은 화면에서는 글자도 한 단계 키운다.
+    private var large: Bool { sizeClass == .regular }
+
+    /// 시계만 화면 주사율로 다시 그려 초침이 흐르게 한다.
+    private func clockFace(_ side: CGFloat) -> some View {
+        TimelineView(.animation) { context in
+            ClockFaceView(
+                style: ClockStyle(name: model.settings.clockStyle),
+                now: Int((context.date.timeIntervalSince1970 * 1000).rounded()),
+                shift: model.earnings.shift, theme: theme
+            )
+        }
+        .frame(width: side, height: side)
+    }
+
+    /// 폰(세로): 날짜·시계·금액·상태를 위에서 아래로.
+    private func tallLayout(_ size: CGSize) -> some View {
+        // 폭에 맞추되 키 작은 폰(SE)에서 금액이 밀려나지 않게 높이로도
+        // 제한하고, 큰 화면에서 끝없이 커지지 않게 상한을 둔다.
+        let face = min(size.width - 64, size.height * 0.48, large ? 480 : 380)
+        return VStack(spacing: 28) {
+            Spacer(minLength: 0)
+            dateLine
+            clockFace(face)
+            if hidden { timeDisplay } else { amount }
+            status
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 24)
+    }
+
+    /// 펼친 화면(가로): 시계를 왼쪽에 크게, 날짜·금액·상태를 오른쪽에.
+    /// 오른쪽 칸은 폭을 고정한다 — 금액을 가리거나 쉬는 날이 되어 글이 바뀌어도
+    /// 시계가 옆으로 밀리지 않게.
+    private func wideLayout(_ size: CGSize) -> some View {
+        let gap: CGFloat = 56
+        let info = min(max(size.width * 0.38, 320), 460)
+        let face = max(min(size.height - 64, size.width - info - gap - 48, 560), 200)
+        return HStack(spacing: gap) {
+            clockFace(face)
+            VStack(spacing: 28) {
+                dateLine
+                if hidden { timeDisplay } else { amount }
+                status
+            }
+            .frame(width: info)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - 버튼
@@ -168,7 +208,7 @@ struct RootView: View {
                 Text(earnedFraction(model.earnings.earned))
                     .foregroundStyle(theme.dim)
             }
-            .font(.system(size: 46, weight: .bold, design: .monospaced))
+            .font(.system(size: large ? 60 : 46, weight: .bold, design: .monospaced))
             .monospacedDigit()
             .lineLimit(1)
             .minimumScaleFactor(0.6)
@@ -191,7 +231,7 @@ struct RootView: View {
                         .foregroundStyle(theme.secondary)
                 }
                 Text(parts.hms)
-                    .font(.system(size: 46, weight: .bold, design: .monospaced))
+                    .font(.system(size: large ? 60 : 46, weight: .bold, design: .monospaced))
                     .monospacedDigit()
                     .foregroundStyle(theme.foreground)
             }
