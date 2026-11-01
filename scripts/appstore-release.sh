@@ -7,7 +7,9 @@
 #   ./scripts/appstore-release.sh ios --upload    # 한쪽만 (ios 또는 mac)
 #
 # 두 플랫폼은 App Store Connect에서 앱 하나로 묶인다(번들 ID가 같다). 그래서
-# 버전도 하나다 — 맥 DMG와 같이 release/version.json에서만 온다.
+# 버전은 release/version.json에서만 온다. iOS는 ios, Mac은 mac 번호를 쓰고(DMG와 같은
+# 번호), 빌드 번호는 둘이 하나를 이어 쓴다(release-common.sh). 바뀐 플랫폼만 올린다:
+#   ./scripts/appstore-release.sh ios --upload
 # project.pbxproj의 MARKETING_VERSION·CURRENT_PROJECT_VERSION은 Xcode에서
 # 돌려 볼 때만 쓰이고, 여기서는 명령줄로 덮어쓴다. 버전을 적는 곳이 두 군데가
 # 되면 한쪽만 올리는 실수가 반드시 난다.
@@ -43,7 +45,7 @@ PROJECT="$RELEASE_ROOT/ios/SalaryClock.xcodeproj"
 # 아카이브도 iCloud 동기화 밖에 둔다 — 이유는 bundle-app.sh의 주석.
 STORE_BUILD_DIR="${STORE_BUILD_DIR:-$HOME/Library/Caches/salaryclock/appstore}"
 
-echo "== SalaryClock App Store $RELEASE_VERSION (빌드 $RELEASE_BUILD): ${PLATFORMS[*]}"
+echo "== SalaryClock App Store 빌드 $RELEASE_BUILD: ${PLATFORMS[*]} (iOS $RELEASE_IOS_VERSION, Mac $RELEASE_MAC_VERSION)"
 
 # 작업 트리가 깨끗해야 한다. 올린 빌드가 어느 커밋에서 나왔는지 되짚을 수
 # 있어야 심사에서 반려됐을 때 같은 소스로 고쳐 다시 낼 수 있다.
@@ -70,6 +72,8 @@ fi
 #   $1 ios|mac  $2 스킴  $3 xcodebuild -destination  $4 아카이브 안 Info.plist 상대 경로
 ship() {
   local platform="$1" scheme="$2" destination="$3" plist_rel="$4"
+  local marketing="$RELEASE_IOS_VERSION"
+  [[ "$platform" == mac ]] && marketing="$RELEASE_MAC_VERSION"
   local archive="$STORE_BUILD_DIR/$platform/SalaryClock.xcarchive"
   local export_dir="$STORE_BUILD_DIR/$platform/export"
   local options="$STORE_BUILD_DIR/$platform/ExportOptions.plist"
@@ -87,7 +91,7 @@ ship() {
     -allowProvisioningUpdates \
     ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
     DEVELOPMENT_TEAM="$TEAM_ID" \
-    MARKETING_VERSION="$RELEASE_VERSION" \
+    MARKETING_VERSION="$marketing" \
     CURRENT_PROJECT_VERSION="$RELEASE_BUILD" \
     -quiet
 
@@ -97,8 +101,8 @@ ship() {
   local version build
   version="$(plutil -extract CFBundleShortVersionString raw "$plist")"
   build="$(plutil -extract CFBundleVersion raw "$plist")"
-  [[ "$version" == "$RELEASE_VERSION" && "$build" == "$RELEASE_BUILD" ]] || {
-    echo "$platform 아카이브 버전($version/$build)이 version.json($RELEASE_VERSION/$RELEASE_BUILD)과 다르다" >&2
+  [[ "$version" == "$marketing" && "$build" == "$RELEASE_BUILD" ]] || {
+    echo "$platform 아카이브 버전($version/$build)이 version.json($marketing/$RELEASE_BUILD)과 다르다" >&2
     exit 1
   }
 

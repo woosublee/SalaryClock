@@ -23,7 +23,16 @@ RELEASE_TEAM_ID="2L6ZW98RCP"
 RELEASE_IDENTITY="${CODESIGN_IDENTITY:-3AEDD0B6ED90FAE4E245F9968FA6EE81DF0399ED}"
 RELEASE_MIN_SYSTEM="14.0"
 
-RELEASE_VERSION="$(plutil -extract marketingVersion raw -o - "$RELEASE_ROOT/release/version.json")"
+# 버전은 플랫폼마다 따로, 빌드 번호는 하나다(release/version.json).
+#   - ios: iPhone 앱. mac: Mac 앱 — GitHub DMG와 Mac App Store가 같은 번호를 쓴다.
+#     바뀐 플랫폼의 번호만 올린다. 변경 없는 플랫폼을 같이 올리지 않는다.
+#   - buildNumber: 어느 플랫폼이든 내보낼 때마다 1씩 올린다. App Store Connect는 한 번
+#     쓴 빌드 번호를 다시 받지 않고 Sparkle은 빌드 번호로 새 버전을 고르므로, 플랫폼별로
+#     따로 세다 겹치는 일이 없게 하나로 이어 쓴다.
+# RELEASE_VERSION은 Mac 버전이다. DMG 태그·파일 이름·appcast가 이것을 쓴다.
+RELEASE_IOS_VERSION="$(plutil -extract ios raw -o - "$RELEASE_ROOT/release/version.json")"
+RELEASE_MAC_VERSION="$(plutil -extract mac raw -o - "$RELEASE_ROOT/release/version.json")"
+RELEASE_VERSION="$RELEASE_MAC_VERSION"
 RELEASE_BUILD="$(plutil -extract buildNumber raw -o - "$RELEASE_ROOT/release/version.json")"
 RELEASE_TAG="v$RELEASE_VERSION"
 RELEASE_DMG_NAME="SalaryClock-$RELEASE_VERSION.dmg"
@@ -43,10 +52,12 @@ RELEASE_NOTES_URL="https://github.com/$RELEASE_REPO/releases/tag/$RELEASE_TAG"
 
 # 버전 형태를 여기서 한 번 검사한다. 어긋난 채로 태그까지 만들면 되돌리기
 # 번거롭다.
-[[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
-  echo "marketingVersion이 x.y.z 형태가 아니다: $RELEASE_VERSION" >&2
-  exit 1
-}
+for v in "$RELEASE_IOS_VERSION" "$RELEASE_MAC_VERSION"; do
+  [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+    echo "version.json의 버전이 x.y.z 형태가 아니다: $v" >&2
+    exit 1
+  }
+done
 [[ "$RELEASE_BUILD" =~ ^[0-9]+$ ]] || {
   echo "buildNumber가 정수가 아니다: $RELEASE_BUILD" >&2
   exit 1

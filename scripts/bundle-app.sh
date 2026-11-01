@@ -47,7 +47,7 @@ fi
 # appcast와 번들이 어긋나고, 그 어긋남은 업데이트가 안 올라올 때까지
 # 드러나지 않는다.
 VERSION_JSON="$ROOT/release/version.json"
-MARKETING_VERSION="$(plutil -extract marketingVersion raw -o - "$VERSION_JSON")"
+MARKETING_VERSION="$(plutil -extract mac raw -o - "$VERSION_JSON")"
 BUILD_NUMBER="$(plutil -extract buildNumber raw -o - "$VERSION_JSON")"
 
 # appcast는 최신 릴리스의 에셋으로 올린다. /releases/latest/download/는
